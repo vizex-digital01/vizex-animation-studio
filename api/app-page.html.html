@@ -390,55 +390,72 @@ function pick(i,el){
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="lock"><label>🔒 KUNCI KARAKTER</label><div class="result">${e(lock)}</div><div class="actions"><button class="primary" onclick="scenes()">Buat Storyboard</button></div></div>`);
  document.getElementById("lock").scrollIntoView({behavior:"smooth"});
 }
-function buildDynamicStory(idea,n){
- const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
- const p=meta?.profile||null, ctx=p?.en||{}, raw=p?.raw||{};
- const place=ctx.place||raw.place||"lokasi yang secara langsung tersirat oleh judul";
- const activity=ctx.activity||raw.activity||"aktivitas yang secara langsung tersirat oleh judul";
- const object=ctx.object||raw.object||"properti penting yang memang disebut/tersirat oleh judul";
- const situation=ctx.situation||raw.situation||idea;
- const social=ctx.social||raw.social||"reaksi pendukung yang hanya berkaitan dengan kejadian utama";
- const emotion=ctx.emotion||raw.emotion||"natural sesuai perkembangan kejadian";
- const hook=meta?.hook||`Mulai langsung dari momen yang membuat judul \"${idea}\" terbaca secara visual.`;
- const payoff=meta?.payoff||`Tutup dengan akibat atau penyelesaian yang langsung menjawab kejadian \"${idea}\".`;
- const total=Math.max(1,+n||5), scenes=[];
- let previousEnd=`Karakter utama sudah berada di ${place}, menjalani ${activity}; keadaan, waktu, pakaian, properti, dan posisi awal dibuat jelas.`;
- for(let i=1;i<=total;i++){
-   const t=(i-1)/Math.max(1,total-1);
-   let fungsi,aksi,endState;
-   if(i===1){
-     fungsi="Opening / Hook";
-     aksi=`Perlihatkan ${hook} Kejadian utama \"${situation}\" mulai terlihat melalui aksi nyata, bukan dialog.`;
-     endState=`Karakter utama menyadari atau mulai terdampak oleh \"${situation}\"; posisi karakter dan ${object} tetap jelas untuk dilanjutkan.`;
-   }else if(i===total){
-     fungsi="Ending / Payoff";
-     aksi=`Lanjutkan persis dari kondisi sebelumnya lalu selesaikan \"${situation}\". ${payoff}`;
-     endState=`Kejadian utama selesai secara visual; hasil akhirnya jelas, logis, dan tetap berada dalam dunia cerita yang sama.`;
-   }else if(t<0.45){
-     fungsi="Perkembangan";
-     aksi=`Karakter utama merespons akibat langsung dari \"${situation}\" sambil tetap menjalani ${activity}. Jika ada karakter pendukung, reaksinya hanya mendukung kejadian ini: ${social}.`;
-     endState=`Masalah/kejadian berkembang satu langkah secara sebab-akibat; tidak ada lokasi, karakter, atau properti baru yang tidak diperlukan.`;
-   }else if(t<0.78){
-     fungsi="Klimaks / Eskalasi";
-     aksi=`Konsekuensi dari scene sebelumnya mencapai titik paling penting. Karakter utama aktif menghadapi \"${situation}\" dan berinteraksi logis dengan ${object}.`;
-     endState=`Aksi klimaks menghasilkan kondisi yang secara langsung membuka jalan menuju penyelesaian.`;
-   }else{
-     fungsi="Konsekuensi menuju Ending";
-     aksi=`Tunjukkan akibat langsung dari klimaks tanpa membuka cerita baru. Karakter utama bergerak menuju penyelesaian \"${situation}\".`;
-     endState=`Kondisi sudah siap untuk payoff akhir; semua properti, posisi, waktu, dan lingkungan tetap konsisten.`;
-   }
-   scenes.push({index:i,fungsi,start:previousEnd,action:aksi,end:endState,event:`${fungsi}: ${aksi}`});
-   previousEnd=endState;
+function titleStoryFacts(idea){
+ const t=String(idea||"").trim(), q=t.toLowerCase();
+ const has=(...xs)=>xs.some(x=>q.includes(x));
+ let f={title:t,place:"lokasi yang wajar sesuai judul",prop:"hanya benda yang benar-benar diperlukan cerita",premise:t,opening:"",cause:"",climax:"",ending:""};
+ if(has("telat","terlambat")){
+   f.place=has("pondok")?"pondok dan area keberangkatan yang sama":"tempat berkumpul yang tersirat oleh judul";
+   f.prop="jam/penunjuk waktu hanya jika diperlukan secara visual";
+   f.opening="Semua orang yang seharusnya siap sudah berkumpul, tetapi satu orang belum muncul ketika waktunya semakin mepet.";
+   f.cause="Kelompok menyadari orang yang ditunggu belum siap lalu mencarinya di area yang masuk akal, tanpa berpindah lokasi secara ajaib.";
+   f.climax="Orang yang dicari akhirnya ditemukan belum siap; ia buru-buru bersiap sementara yang lain menunggu dan ikut terdampak keterlambatan.";
+   f.ending="Orang itu akhirnya bergabung dan kelompok bisa melanjutkan tujuan mereka, tetapi semuanya sudah ikut terlambat atau nyaris terlambat.";
+ }else if(has("lupa")){
+   f.opening="Karakter memulai aktivitas normal yang disebut atau tersirat oleh judul, lalu menyadari ada satu hal penting yang tertinggal.";
+   f.cause="Ia memeriksa kembali langkah sebelumnya dan mencari benda/hal yang terlupa secara berurutan.";
+   f.climax="Pencarian mencapai titik paling mendesak ketika aktivitas berikutnya tidak bisa dilanjutkan tanpa hal tersebut.";
+   f.ending="Hal yang terlupa ditemukan atau konsekuensinya diterima, lalu cerita ditutup dengan akibat yang langsung menjawab judul.";
+ }else if(has("pertama kali","first time")){
+   f.opening="Karakter tiba pada situasi baru yang disebut dalam judul dan berhenti sejenak untuk memahami keadaan.";
+   f.cause="Ia mulai mencoba langkah pertama secara hati-hati dan menghadapi detail yang sebelumnya belum ia kenal.";
+   f.climax="Ia menghadapi bagian paling menantang dari pengalaman tersebut dan harus menyesuaikan tindakannya.";
+   f.ending="Karakter berhasil melewati pengalaman pertamanya dan hasil akhirnya memperlihatkan perubahan yang jelas dari kondisi awal.";
+ }else if(has("panik")){
+   f.opening="Situasi dimulai normal, lalu satu pemicu konkret dari judul membuat karakter menyadari ada masalah.";
+   f.cause="Karakter mencoba menangani masalah itu; reaksi orang lain hanya muncul jika benar-benar diperlukan oleh sebab-akibat cerita.";
+   f.climax="Masalah mencapai titik paling mendesak dan karakter melakukan tindakan paling penting untuk menyelesaikannya.";
+   f.ending="Sumber kepanikan teratasi atau konsekuensinya menjadi jelas, lalu suasana kembali stabil secara logis.";
+ }else{
+   f.opening=`Perlihatkan kondisi normal tepat sebelum kejadian utama dalam judul “${t}” terjadi. Jangan tambahkan benda, orang, atau aktivitas yang tidak dibutuhkan.`;
+   f.cause=`Tunjukkan pemicu konkret yang membuat kejadian “${t}” benar-benar dimulai, lalu respons langsung karakter utama.`;
+   f.climax=`Kembangkan hanya konsekuensi dari pemicu tadi sampai karakter harus menghadapi inti kejadian “${t}”.`;
+   f.ending=`Selesaikan inti kejadian “${t}” dengan akibat visual yang jelas dan tidak membuka cerita baru.`;
  }
- return {theme:p?.world||"title-locked cinematic story",scenes,locked:true,hook,payoff,ctx:{place,activity,object,situation,social,emotion}};
+ return f;
 }
-
+function buildDynamicStory(idea,n){
+ const facts=titleStoryFacts(idea), total=Math.max(1,+n||5), scenes=[];
+ const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
+ const p=meta?.profile||null, raw=p?.raw||{};
+ // Metadata hanya boleh membantu lokasi jika jelas relevan; jangan mencampur keyword profile menjadi plot.
+ const explicitPlace=raw.place && String(idea).toLowerCase().includes(String(raw.place).toLowerCase()) ? raw.place : facts.place;
+ const beats=[];
+ if(total===1) beats.push({fungsi:"Cerita Utuh",action:`${facts.opening} ${facts.cause} ${facts.climax} ${facts.ending}`});
+ else for(let i=1;i<=total;i++){
+   const r=(i-1)/(total-1);
+   if(i===1) beats.push({fungsi:"Opening / Hook",action:facts.opening});
+   else if(i===total) beats.push({fungsi:"Ending / Payoff",action:facts.ending});
+   else if(r<.5) beats.push({fungsi:"Perkembangan Sebab-Akibat",action:facts.cause});
+   else if(r<.8) beats.push({fungsi:"Klimaks",action:facts.climax});
+   else beats.push({fungsi:"Konsekuensi",action:`Tunjukkan akibat langsung dari klimaks dan arahkan secara natural menuju: ${facts.ending}`});
+ }
+ let previousEnd=`Kondisi awal cerita di ${explicitPlace}; karakter, waktu, pakaian, dan benda yang benar-benar diperlukan sudah konsisten.`;
+ beats.forEach((b,idx)=>{
+   const end=idx===beats.length-1
+     ? `Cerita selesai dengan akibat yang langsung menjawab judul “${idea}”.`
+     : `Aksi scene ${idx+1} selesai pada posisi fisik yang logis dan menjadi titik awal scene ${idx+2}; tidak ada teleportasi, benda random, atau perubahan waktu/lokasi tanpa transisi.`;
+   scenes.push({index:idx+1,fungsi:b.fungsi,start:previousEnd,action:b.action,end,event:b.action});
+   previousEnd=end;
+ });
+ return {theme:"single coherent title-driven story",scenes,locked:true,hook:meta?.hook||facts.opening,payoff:meta?.payoff||facts.ending,ctx:{place:explicitPlace,activity:"aksi konkret sesuai beat cerita",object:facts.prop,situation:facts.premise,social:"hanya jika dibutuhkan cerita",emotion:"ditunjukkan lewat body language yang sesuai kejadian"},facts};
+}
 function scenes(){
  let idea=v("idea").trim(); if(!idea)return alert("Masukkan judul/ide dulu.");
  if(!chosen)return alert("Pilih karakter dulu.");
  let n=+v("n"),story=buildDynamicStory(idea,n);
  let camera=["Establishing Wide Shot","Medium Tracking Shot","Medium Close-Up","Over-the-Shoulder","Wide Payoff Shot"];
- let h=`<div class="card" id="storyboard"><label>🎞️ STORYBOARD TERKUNCI KE JUDUL</label><p class="muted">Kondisi akhir scene sebelumnya otomatis menjadi dasar scene berikutnya. Edit hanya kalau memang dibutuhkan cerita.</p>`;
+ let h=`<div class="card" id="storyboard"><label>🧠 STORY PLAN • LOGIC LOCK</label><p class="muted">STORY LOGIC ENGINE: cerita dibangun dulu dari sebab → akibat → klimaks → ending. Cek Aksi/Kejadian di bawah; prompt baru dibuat setelah alurnya masuk akal.</p>`;
  story.scenes.forEach((s,i)=>{
    let cam=camera[Math.min(camera.length-1,Math.floor(i*camera.length/Math.max(1,n)))];
    h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(s.fungsi)}</h3><b>Kondisi Awal</b><div class="result">${e(s.start)}</div><br><b>Aksi / Kejadian</b><textarea id="sd${i+1}">${e(s.action)}</textarea><br><br><b>Kondisi Akhir</b><div class="result">${e(s.end)}</div><br><label>ANGLE KAMERA</label><select id="sc${i+1}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option ${x===cam?"selected":""}>${x}</option>`).join("")}</select></div>`;
@@ -622,14 +639,12 @@ function buildLifeNarration(idea,dur){
  return fitLifeNarration(p,dur);
 }
 function buildLockedNarration(story,dur){
- const c=story.ctx||{}, title=v("idea").trim();
- const meta=(selectedIdeaMeta && selectedIdeaMeta.title===title)?selectedIdeaMeta:null;
- let parts=[];
- parts.push(meta?.hook||`Awalnya semuanya terlihat biasa, sampai kejadian \"${title}\" benar-benar mulai terjadi.`);
- if(story.scenes.length>2) parts.push(`Dari situ, situasinya berkembang pelan-pelan. Karakter utama tetap menjalani ${c.activity}, tapi setiap aksi membawa akibat berikutnya.`);
- if(story.scenes.length>3) parts.push(`Kejadian itu makin terasa ketika ${c.situation}, dan semua yang terjadi tetap berpusat pada momen yang sama.`);
- parts.push(meta?.payoff||`Pada akhirnya, kejadian \"${title}\" sampai pada hasil yang jelas dan terasa sebagai penutup dari rangkaian yang sama.`);
+ const title=v("idea").trim(), facts=story.facts||titleStoryFacts(title);
+ // Narasi dibangun dari kejadian konkret, bukan kalimat abstrak/template rangkuman.
+ let parts=[facts.opening,facts.cause,facts.climax,facts.ending].filter(Boolean);
  let text=fitLifeNarration(parts,+dur);
+ // Hilangkan bahasa instruksi storyboard bila fallback generik dipakai.
+ text=text.replace(/Perlihatkan /g,"Awalnya, ").replace(/Tunjukkan pemicu konkret yang membuat /g,"Lalu ").replace(/Kembangkan hanya konsekuensi dari pemicu tadi sampai /g,"Setelah itu, ").replace(/Selesaikan inti kejadian /g,"Akhirnya, kejadian ");
  return addNarrationCTA(text,title);
 }
 function prompts(){
@@ -637,7 +652,7 @@ function prompts(){
  const story=buildDynamicStory(idea,n),ctx=story.ctx||{};
  const cameraMotion={"Establishing Wide Shot":"slow dolly in","Wide Shot":"slow controlled dolly","Full Shot":"gentle tracking","Medium Shot":"subtle push in","Medium Close-Up":"subtle dolly in","Close-Up":"very subtle push in","Low Angle":"slow controlled tilt","High Angle":"slow controlled tilt down","Top-Down":"minimal overhead drift","Side Shot":"smooth side tracking","Front Shot":"gentle backward tracking","Back Shot":"smooth follow shot","Over-the-Shoulder":"controlled over-the-shoulder follow","Tracking Shot":"smooth tracking movement"};
  let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
- let h=`<div class="card" id="prompts"><label>🎬 FINAL PROMPTS • STORY LOCK</label><p class="muted">Judul → cerita → satu narasi → scene → image → video. Image adalah starting frame video; ending video menjadi dasar scene berikutnya.</p>`;
+ let h=`<div class="card" id="prompts"><label>🎬 FINAL PROMPTS • STORY LOCK</label><p class="muted">STORY PLAN sudah dikunci lebih dulu. Prompt gambar hanya memvisualkan beat scene; prompt video melanjutkan frame gambar; narasi menceritakan kejadian konkret yang sama.</p>`;
  for(let i=1;i<=n;i++){
    const base=story.scenes[i-1], edited=(document.getElementById("sd"+i)?.value||base.action).trim();
    const angle=(document.getElementById("sc"+i)?.value)||"Medium Shot", movement=cameraMotion[angle]||"smooth controlled camera movement";
