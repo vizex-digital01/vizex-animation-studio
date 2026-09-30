@@ -393,7 +393,7 @@ function pick(i,el){
 
 
 /* ============================================================
-   V53 DEEP DEEP STORY ENGINE
+   V54 DEEP DEEP STORY ENGINE
    Rule: TITLE -> literal facts -> causal spine -> scene beats
          -> continuity validation -> prompts -> narration.
    The engine intentionally prefers a simple coherent story over
@@ -516,6 +516,13 @@ function titleStoryFacts(idea){
    `Pekerjaan mendekati selesai dan perubahan kondisi tempat mulai terlihat.`,
    `Area selesai dibereskan dan hasil akhirnya terlihat jelas.`
   ],
+  food:[
+   `Di ${x.place}, karakter utama masih sendirian dan baru menyiapkan atau membuka SATU porsi makanan yang menjadi inti judul. Belum ada orang lain ikut makan.`,
+   `Karakter utama mulai menikmati porsi yang sama. Jika judul melibatkan teman/orang lain, hanya SATU orang pertama yang boleh menyadari atau mendekat pada tahap ini; belum boleh ikut makan kecuali cerita sudah menyebutnya.`,
+   `Orang lain mulai merespons secara bertahap sesuai cerita. Mereka boleh mendekat atau membawa alat makan jika memang dibutuhkan, tetapi DILARANG menciptakan porsi makanan baru. Semua perkembangan tetap berpusat pada SATU porsi awal.`,
+   `Konsekuensi utama terjadi: lebih banyak orang dapat ikut mengambil dari porsi awal yang sama hanya jika timeline sudah sampai tahap tersebut. Jumlah makanan harus terlihat berkurang secara logis.`,
+   `Payoff: kondisi akhir menunjukkan akibat langsung dari berbagi/makan tersebut. Porsi awal sudah berkurang atau hampir habis; jangan munculkan porsi pengganti baru.`
+  ],
   travel:[
    `Di ${x.place}, karakter sudah bersiap untuk berangkat/pulang sesuai judul.`,
    `Muncul hambatan langsung yang berkaitan dengan keberangkatan, waktu, atau kendaraan.`,
@@ -569,6 +576,58 @@ function validateStoryBeat(action,facts,index,total){
  return x.replace(/\s+/g," ").trim();
 }
 
+
+/* V54 TIMELINE + ENTITY LEDGER
+   A scene may only show facts that have already happened.
+   Counts and prop states are cumulative and cannot spontaneously reset. */
+function inferStoryLedger(idea,facts,total){
+ const q=normStoryText(idea), type=facts.type||classifyTitle(idea);
+ const explicitNumber=(q.match(/\b(\d+)\b/)||[])[1];
+ let mainCount=1, initialSupport=0, initialFood=null;
+ const foodWords=["mie","mi ","ramen","nasi","makanan","kopi","minum","snack","jajan","makan"];
+ const isFood=type==="food"||hasAny(q,foodWords);
+ if(isFood) initialFood=explicitNumber?+explicitNumber:1;
+ return {
+  mainCount,
+  initialSupport,
+  foodCount:initialFood,
+  rules:[
+   "Never show a person before the timeline introduces that person.",
+   "Never show a future action, future reaction, future prop state, or payoff early.",
+   "Never duplicate a unique story prop.",
+   "A consumed quantity can only stay the same or decrease.",
+   "A character who enters remains present unless the story explicitly makes them leave.",
+   "A moved/opened/used object keeps its latest state in later scenes."
+  ]
+ };
+}
+function timelineLockForScene(story,i){
+ const facts=story.facts||{}, ledger=story.ledger||inferStoryLedger(v("idea").trim(),facts,story.scenes?.length||5);
+ const total=story.scenes?.length||5, type=facts.type||"literal";
+ const cur=story.scenes?.[i-1]||{}, prev=story.scenes?.[i-2]||null, next=story.scenes?.[i]||null;
+ let countRule=`Main character count: EXACTLY ${ledger.mainCount}.`;
+ if(type==="food" && ledger.foodCount){
+   if(i===1) countRule+=` Food quantity: EXACTLY ${ledger.foodCount} serving exists in the entire visible story world. Scene 1 must show only that original serving; no extra bowls, cups, packets, plates, or duplicate portions.`;
+   else countRule+=` Food source: the SAME original ${ledger.foodCount} serving from Scene 1. NEVER create another serving, cup, bowl, packet, plate, or replacement portion. Its remaining quantity may only decrease as the story advances.`;
+ }
+ let peopleRule="";
+ if(type==="food"){
+   if(i===1) peopleRule="SCENE 1 PEOPLE LOCK: show ONLY the main character unless the title explicitly says another person is already present. Nobody else is eating.";
+   else if(i===2) peopleRule="EARLY PEOPLE LOCK: introduce at most ONE new supporting person if required by this beat. Do not show the final group yet.";
+   else if(i<total) peopleRule="MID-STORY PEOPLE LOCK: only people already introduced plus the minimum new people required by THIS beat may appear. Do not reveal the final crowd before its beat.";
+   else peopleRule="FINAL PEOPLE LOCK: only now may the final group/payoff be fully visible if the story requires it.";
+ }
+ return [
+   "STRICT TIMELINE LOCK:",
+   `This is Scene ${i} of ${total}.`,
+   prev?`Already happened before this frame: ${prev.action}`:"Nothing from later scenes has happened yet.",
+   `Allowed NOW: ${cur.action||cur.event}.`,
+   next?`FORBIDDEN FUTURE INFORMATION: do NOT show, imply, stage, or pre-position this next event yet: ${next.action||next.event}.`:"No future beat remains; show only the direct aftermath.",
+   countRule,peopleRule,
+   ...ledger.rules
+ ].filter(Boolean).join(" ");
+}
+
 function buildDynamicStory(idea,n){
  const facts=titleStoryFacts(idea),total=Math.max(1,+n||5),beats=interpolateStoryBeats(facts,total),scenes=[];
  const meta=(selectedIdeaMeta&&selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
@@ -583,7 +642,7 @@ function buildDynamicStory(idea,n){
  });
  return {
   theme:"deep literal title-first causal story",
-  scenes,locked:true,facts,
+  scenes,locked:true,facts,ledger:inferStoryLedger(idea,facts,total),
   hook:meta?.hook||facts.opening,payoff:meta?.payoff||facts.ending,
   ctx:{place:facts.place,activity:"hanya aksi yang ada pada causal spine",object:facts.prop,situation:facts.premise,social:"karakter pendukung hanya jika dibutuhkan sebab-akibat",emotion:"reaksi tubuh natural sesuai kejadian"}
  };
@@ -809,8 +868,8 @@ function prompts(){
    const angle=(document.getElementById("sc"+i)?.value)||"Medium Shot", movement=cameraMotion[angle]||"smooth controlled camera movement";
    const prev=i>1?story.scenes[i-2].end:base.start, next=i<n?story.scenes[i].start:"final resolved state";
    const continuity=`TITLE: "${idea}". MAIN CHARACTER: ${chosen}. VISUAL STYLE: ${style}. LOCATION: ${ctx.place}. IMPORTANT PROPS: ${ctx.object}. Keep the character identity, hairstyle, clothing, colors, proportions and accessories exactly as described here.`;
-   const ip=`${v53ContinuityBlock(story,i)} GENERATE A NEW IMAGE NOW FROM TEXT ONLY. This is a self-contained text-to-image prompt. NO uploaded image, reference image, previous image, or external visual input is required. Vertical 9:16. ${continuity} SCENE ${i}/${n}. STORY FUNCTION: ${base.fungsi}. CURRENT PHYSICAL STATE: ${base.start} EXACT VISIBLE EVENT: ${edited} Create one clear frozen moment at the beginning of this scene. Fully render the character from the description in this prompt; do not rely on any previous image. Make body position, direction, pose, hands, feet, held objects and relevant object interaction physically clear. Environment: ${ctx.place}. Include only details required by this exact title and event. Camera: ${angle}; cinematic framing with coherent foreground, middle ground and background. Consistent ${style}, lighting, shadows, depth of field and material quality. Emotion only through posture and body language. If faceless, absolutely no facial features. Render immediately from the written description. Never ask the user to upload an image, reference photo, character sheet, previous frame, or any other visual input. Never tell the user that an image is required. No dialogue, text, subtitle, speech bubble, watermark, logo, random character, random prop, duplicate main character, extra limbs, malformed hands or feet, floating objects, unrelated location, unrelated action, or second storyline.`;
-   const vp=`Vertical 9:16 cinematic animation. START FROM THE GENERATED IMAGE FOR SCENE ${i} AS THE FIRST FRAME. ${continuity} STARTING STATE: ${base.start} ACTION: ${edited} Animate only movement required by this exact action: posture, head direction, hands, feet and relevant object interaction. Objects move only when physically touched or affected. Environment motion stays subtle and logical. CAMERA: ${angle}; ${movement}; smooth readable timing. Continue only the same cause-and-effect event. END STATE: ${base.end} Finish in a position that lets the next beat continue naturally. No speaking, lip-sync, monologue, subtitles, speech bubbles, morphing, teleportation, wardrobe or hairstyle change, random characters, random props, random cutaways, extra limbs, malformed anatomy, floating objects, readable text, watermark or logo.`;
+   const ip=`${timelineLockForScene(story,i)} ${v53ContinuityBlock(story,i)} GENERATE A NEW IMAGE NOW FROM TEXT ONLY. This is a self-contained text-to-image prompt. NO uploaded image, reference image, previous image, or external visual input is required. Vertical 9:16. ${continuity} SCENE ${i}/${n}. STORY FUNCTION: ${base.fungsi}. CURRENT PHYSICAL STATE: ${base.start} EXACT VISIBLE EVENT: ${edited} Create one clear frozen moment at the beginning of this scene. Fully render the character from the description in this prompt; do not rely on any previous image. Make body position, direction, pose, hands, feet, held objects and relevant object interaction physically clear. Environment: ${ctx.place}. Include only details required by THIS EXACT SCENE BEAT. Do not illustrate the full narration, ending, payoff, or later scenes in this frame. Camera: ${angle}; cinematic framing with coherent foreground, middle ground and background. Consistent ${style}, lighting, shadows, depth of field and material quality. Emotion only through posture and body language. If faceless, absolutely no facial features. Render immediately from the written description. Never ask the user to upload an image, reference photo, character sheet, previous frame, or any other visual input. Never tell the user that an image is required. No dialogue, text, subtitle, speech bubble, watermark, logo, random character, random prop, duplicate main character, extra limbs, malformed hands or feet, floating objects, unrelated location, unrelated action, or second storyline.`;
+   const vp=`${timelineLockForScene(story,i)} ${v53VideoMotionBlock(story,i)} Vertical 9:16 cinematic animation. START FROM THE GENERATED IMAGE FOR SCENE ${i} AS THE FIRST FRAME. ${continuity} STARTING STATE: ${base.start} ACTION: ${edited} Animate only movement required by this exact action: posture, head direction, hands, feet and relevant object interaction. Objects move only when physically touched or affected. Environment motion stays subtle and logical. CAMERA: ${angle}; ${movement}; smooth readable timing. Continue only the same cause-and-effect event. END STATE: ${base.end} Finish in a position that lets the next beat continue naturally. No speaking, lip-sync, monologue, subtitles, speech bubbles, morphing, teleportation, wardrobe or hairstyle change, random characters, random props, random cutaways, extra limbs, malformed anatomy, floating objects, readable text, watermark or logo.`;
    txt+=`\nSCENE ${String(i).padStart(2,"0")}\nFUNGSI: ${base.fungsi}\nKONDISI AWAL: ${base.start}\nAKSI: ${edited}\nKONDISI AKHIR: ${base.end}\nANGLE KAMERA: ${angle}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
    h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")} • ${e(base.fungsi)}</h3><b>🎬 KONDISI AWAL → AKSI → KONDISI AKHIR</b><div class="result">AWAL: ${e(base.start)}\n\nAKSI: ${e(edited)}\n\nAKHIR: ${e(base.end)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
  }
@@ -1399,11 +1458,11 @@ verifySimpleSession();
 </script>
 
 
-/* V53 VISUAL CONTINUITY ENGINE
+/* V54 VISUAL CONTINUITY ENGINE
    Keeps character identity stable while forcing every scene to advance visually.
    Identity stays locked; action, pose, blocking, prop-state and camera must progress.
 */
-const V53_VISUAL_RULES = {
+const V54_VISUAL_RULES = {
   identityLock: [
     "same main character identity in every scene",
     "same hairstyle, hair color, outfit, body proportions and distinctive details",
@@ -1460,15 +1519,15 @@ function v53ContinuityBlock(story,sceneIndex){
   const st=v53SceneState(story,sceneIndex);
   return [
     "VISUAL CONTINUITY LOCK:",
-    ...V53_VISUAL_RULES.identityLock.map(x=>"- "+x+"."),
+    ...V54_VISUAL_RULES.identityLock.map(x=>"- "+x+"."),
     "SCENE PROGRESSION LOCK:",
     "- "+st.previous,
     "- "+st.current,
     "- "+st.next,
     "- Camera progression: "+st.camera+".",
-    ...V53_VISUAL_RULES.progressionLock.map(x=>"- "+x+"."),
+    ...V54_VISUAL_RULES.progressionLock.map(x=>"- "+x+"."),
     "ANTI-DUPLICATE COMPOSITION:",
-    ...V53_VISUAL_RULES.antiDuplicate.map(x=>"- "+x+"."),
+    ...V54_VISUAL_RULES.antiDuplicate.map(x=>"- "+x+"."),
     "The new frame must be instantly distinguishable from the previous frame while unmistakably belonging to the same continuous event."
   ].join(" ");
 }
@@ -1503,7 +1562,7 @@ function v53NarrationGuard(text,title){
   return x;
 }
 
-/* V53 prompt compiler notes:
+/* V54 prompt compiler notes:
    A prompt is considered valid only if:
    1. It names the current beat, not merely the overall title.
    2. It carries the previous physical state forward.
@@ -1515,7 +1574,7 @@ function v53NarrationGuard(text,title){
 
 </body></html>
 /*
-V53 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+V54 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
 A. TITLE AUTHORITY
 - The selected title is the highest-level source of truth.
 - The story may infer only the minimum facts required to make the title physically playable.
@@ -1591,7 +1650,7 @@ Before presenting a generated package, conceptually verify:
 */
 
 /*
-V53 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+V54 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
 A. TITLE AUTHORITY
 - The selected title is the highest-level source of truth.
 - The story may infer only the minimum facts required to make the title physically playable.
@@ -1667,7 +1726,7 @@ Before presenting a generated package, conceptually verify:
 */
 
 /*
-V53 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+V54 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
 A. TITLE AUTHORITY
 - The selected title is the highest-level source of truth.
 - The story may infer only the minimum facts required to make the title physically playable.
@@ -1742,4 +1801,4 @@ Before presenting a generated package, conceptually verify:
 10) Were random subplots, objects, locations and people avoided?
 */
 
-<!-- V53 final continuity specification padding: causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity caus -->
+<!-- V54 final continuity specification padding: causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity caus -->
