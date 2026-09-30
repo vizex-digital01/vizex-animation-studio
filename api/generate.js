@@ -66,26 +66,75 @@ LOCKED MAIN CHARACTER: ${String(character).trim()}
 
 Generate the complete production package now.`;
 
-    const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-    const rr = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": process.env.GEMINI_API_KEY
-      },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          temperature: 0.8,
-          maxOutputTokens: 8192
-        }
-      })
-    });
+    // Resilient Gemini routing:
+    // 1) preferred model, 2) stable fallback, 3) lightweight fallback.
+    // Transient 429/5xx errors are retried with exponential backoff.
+    const models = [
+      process.env.GEMINI_MODEL || "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.5-flash-lite"
+    ].filter((m, i, a) => a.indexOf(m) === i);
 
-    const d = await rr.json();
-    if (!rr.ok) return res.status(rr.status).json({ error: d?.error?.message || "Gemini API error." });
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const retryable = status => status === 429 || status >= 500;
+    let d = null;
+    let lastStatus = 502;
+    let lastError = "Semua model Gemini sedang tidak tersedia.";
+
+    for (const model of models) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let rr;
+        try {
+          rr = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": process.env.GEMINI_API_KEY
+              },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                  responseMimeType: "application/json",
+                  responseSchema: schema,
+                  temperature: 0.8,
+                  maxOutputTokens: 8192
+                }
+              })
+            }
+          );
+          d = await rr.json();
+        } catch (networkErr) {
+          lastStatus = 503;
+          lastError = networkErr?.message || "Gangguan jaringan saat menghubungi Gemini.";
+          if (attempt < 2) {
+            await sleep(700 * (2 ** attempt));
+            continue;
+          }
+          break;
+        }
+
+        if (rr.ok) break;
+
+        lastStatus = rr.status;
+        lastError = d?.error?.message || `Gemini API error (${rr.status}).`;
+
+        if (retryable(rr.status) && attempt < 2) {
+          await sleep(700 * (2 ** attempt));
+          continue;
+        }
+        break;
+      }
+
+      if (d?.candidates?.[0]?.content?.parts?.some(p => p?.text)) break;
+    }
+
+    if (!d?.candidates?.[0]?.content?.parts?.some(p => p?.text)) {
+      return res.status(lastStatus).json({
+        error: `${lastError} Vizex sudah mencoba model cadangan otomatis. Coba lagi sebentar lagi.`
+      });
+    }
 
     const raw = (d?.candidates?.[0]?.content?.parts || []).map(p => p?.text || "").join("").trim();
     if (!raw) {
