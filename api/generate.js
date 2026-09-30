@@ -48,8 +48,23 @@ RULES:
 - State carries forward. No teleporting, duplication or reset. Consumables stay the same or decrease unless the story explicitly adds more.
 - If the story starts with one person alone, Scene 1 shows exactly that one person. Introduce supporting people only when the current beat introduces them.
 - Each image_prompt is ONE frozen frame only. Explicitly state exact visible-person count and important prop quantities whenever relevant.
+- IMAGE PROMPT DETAIL STANDARD: every image_prompt must be a production-ready ENGLISH prompt, normally 140-230 words. Describe the locked main character's stable physical identity and outfit, exact visible-person count, each supporting person's distinct appearance when present, facial expression, gaze direction, precise body pose, hand positions, interaction with props, exact prop quantity/state, location, foreground/midground/background, spatial relationships, time of day, key/fill/rim lighting direction and quality, mood, shot size, camera angle, composition, lens/look, depth of field, textures/materials, color palette, visual style, and vertical 9:16 framing.
+- Do NOT pad image prompts with generic adjectives. Every detail must be visually actionable and compatible with the current story state.
+- End every image_prompt with useful continuity constraints: preserve the locked character identity/outfit; do not add unintroduced people or duplicate props; no text, subtitles, watermark, logo, split screen, collage, extra limbs/fingers, deformed hands, or contradictory objects.
+- VIDEO PROMPT DETAIL STANDARD: every video_prompt must be a production-ready ENGLISH motion prompt, normally 120-210 words. Frame 0 must match that scene's image_prompt exactly. Describe the initial pose/object state, then the chronological micro-actions during ONLY this beat: eye/head movement, facial-expression transition, torso/arm/hand motion, prop interaction, supporting-character movement, environmental motion, realistic physics, camera movement, focus behavior, pacing/timing, and the precise end-frame state.
+- Video prompts must NOT redesign the subject, outfit, location, lighting, or props. No teleporting, morphing, object duplication, sudden extra people, time jump, scene transition, montage, or future-story action.
+- The final frame of each video must preserve the scene end_state so continuity can carry into the next scene.
 - Each video_prompt uses that scene image as frame zero and animates ONLY the current beat toward its end_state.
 - Main character identity/outfit remains identical. Supporting people look clearly different.
+- CUSTOMER SELECTION = ABSOLUTE LOCK. The selected VISUAL STYLE and LOCKED MAIN CHARACTER are mandatory production constraints.
+- VISUAL STYLE LOCK: every image_prompt, video_prompt, and cover_prompt MUST explicitly preserve the exact customer-selected visual style. Never switch, blend, reinterpret, or drift into another style/medium between scenes.
+- CHARACTER LOCK: whenever the main character is visible, preserve the exact supplied identity: age impression, hairstyle/hair shape, facial identity, body/proportions, outfit pieces/silhouette, and accessories or absence of accessories.
+- Never redesign, recolor, replace, add accessories, or change the locked outfit unless the story explicitly requires a visible wardrobe change.
+- Pose, expression, gaze, action, framing, and camera angle MAY change; locked identity, outfit, and selected visual style MUST NOT.
+- Supporting characters must look clearly different from the main character while remaining in the SAME selected visual style.
+- Every image_prompt must restate enough of the selected style and locked character description to work as a standalone image-generation prompt with no memory of previous scenes.
+- Every video_prompt must explicitly preserve the selected visual style, character identity, outfit, materials, and proportions from frame zero through the final frame.
+- cover_prompt must use the SAME selected visual style and, when the main character appears, the SAME locked character identity/outfit.
 - Image/video/cover prompts are ENGLISH. Story states/actions, narration, caption, hook, payoff and cover_text are natural INDONESIAN.
 - Narration is a continuous first-person spoken story, natural gue/lo style when suitable, retelling the SAME events in scene order.
 - Never expose engine language in narration: do not say karakter utama, tampilkan, scene, timeline, prompt, penyebab langsung, respons harus, or production instructions.
@@ -61,8 +76,9 @@ RULES:
 TITLE: ${String(title).trim()}
 SCENES: ${n}
 DURATION: ${dur} seconds
-VISUAL STYLE: ${String(style || "")}
-LOCKED MAIN CHARACTER: ${String(character).trim()}
+VISUAL STYLE (ABSOLUTE CUSTOMER LOCK): ${String(style || "")}
+LOCKED MAIN CHARACTER (ABSOLUTE CUSTOMER LOCK): ${String(character).trim()}
+IMPORTANT: Treat both selections above as immutable constraints across every scene, image prompt, video prompt, and cover prompt.
 
 Generate the complete production package now.`;
 
