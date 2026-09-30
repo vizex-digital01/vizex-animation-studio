@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/app.js": {
-      "includeFiles": "private/app.html"
-    }
-  }
-}
