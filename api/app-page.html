@@ -390,61 +390,297 @@ function pick(i,el){
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="lock"><label>🔒 KUNCI KARAKTER</label><div class="result">${e(lock)}</div><div class="actions"><button class="primary" onclick="scenes()">Buat Storyboard</button></div></div>`);
  document.getElementById("lock").scrollIntoView({behavior:"smooth"});
 }
-function buildDynamicStory(idea,n){
- const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
- const p=meta?.profile||null;
 
- // If the idea came from Idea Generator, lock the whole storyboard to the
- // exact subcontext that created the title. Do not re-interpret it generically.
- if(p && p.kind==="life" && p.en && p.raw){
-   const opening=`Opening hook: in ${p.en.place||"the concept-specific location"}, during ${p.en.moment||"the relevant moment"}, the main character is naturally ${p.en.activity||"performing the concept-specific activity"}. ${p.en.object} is clearly visible and the exact situation begins: ${p.en.situation}. ${p.en.person} reacts naturally in the same environment.`;
-   const middle=[
-    `Continue the SAME event in ${p.en.place}. The main character responds directly to "${p.en.situation}" while continuing ${p.en.activity}. Keep ${p.en.object} relevant to the action; do not introduce an unrelated location, object, or new story.`,
-    `Escalate the SAME situation naturally. ${p.en.person} becomes involved and ${p.en.social}. Show cause-and-effect from the opening, not a separate event. Keep the environment and daily-life context consistent.`,
-    `Show the consequence of "${p.en.situation}". The main character adjusts their action, interacts with ${p.en.object}, and the supporting characters keep behaving naturally. The scene must visibly move toward the promised payoff.`,
-    `Resolution setup: the original problem/event is almost resolved. Keep the exact same concept, characters, key object, and location logic. Make the emotional tone feel ${p.en.emotion}.`
-   ];
-   const ending=`PAYOFF scene: resolve the SAME event introduced in Scene 1. ${p.en.social}. End with a clear visual result that feels ${p.en.emotion} and directly pays off "${p.en.situation}". Do not switch to a different story, location, or unrelated prop.`;
 
-   let out=[];
-   for(let i=0;i<n;i++){
-     if(i===0) out.push(opening);
-     else if(i===n-1) out.push(ending);
-     else out.push(middle[(i-1)%middle.length]);
-   }
-   return {theme:p.world||"concept-locked",scenes:out,locked:true};
- }
+/* ============================================================
+   V55 DEEP DEEP STORY ENGINE
+   Rule: TITLE -> literal facts -> causal spine -> scene beats
+         -> continuity validation -> prompts -> narration.
+   The engine intentionally prefers a simple coherent story over
+   inventing extra locations, props, characters, or subplots.
+   ============================================================ */
+const STORY_STOPWORDS=new Set(("yang dan di ke dari untuk sama dengan karena jadi bikin buat kalau pas saat waktu hari ini itu gue aku lo kamu kita mereka orang satu ada nggak gak ga banget malah terus akhirnya awalnya".split(" ")));
 
- // Fallback for manually typed ideas.
- const q=idea.toLowerCase();
- let theme="general", loc=["a location directly implied by the title"], props=["the key object directly implied by the title"];
- if(/pondok|santri|pesantren|asrama/.test(q)){theme="pondok";loc=["dormitory bedroom","boarding school corridor","study room","boarding school courtyard"];props=["the exact object mentioned or implied by the title","daily boarding-school belongings"];}
- else if(/kantor|kerja|fresh graduate|meeting|bos/.test(q)){theme="kantor";loc=["work desk","meeting room","office pantry","office elevator"];props=["the exact work object implied by the title","laptop or work item only when relevant"];}
- else if(/sekolah|kelas|murid|sma|smp|kuliah|kampus/.test(q)){theme="sekolah/kampus";loc=["classroom","campus classroom","hallway","cafeteria"];props=["the exact school object implied by the title","school belongings only when relevant"];}
- else if(/rumah|keluarga|ibu|ayah|orang tua/.test(q)){theme="keluarga/rumah";loc=["the exact room implied by the title","family home"];props=["the exact household object implied by the title"];}
- const patterns=[
-  (L,P)=>`Opening: visually establish the exact situation described by "${idea}" in ${L}. Use ${P} only if it directly belongs to the title. Show the event already starting, not a generic pose.`,
-  (L,P)=>`Continue the exact same event from the previous scene in ${L}. Show a direct consequence of "${idea}". Do not invent a second story.`,
-  (L,P)=>`Escalate the same situation from "${idea}" through a believable action and interaction. Keep all objects and people relevant to the title.`,
-  (L,P)=>`Move toward the payoff of "${idea}". Show a clear cause-and-effect result from the opening action.`,
-  (L,P)=>`Final payoff: resolve the exact situation promised by "${idea}" with a clear visual outcome.`
- ];
- let out=[];
- for(let i=0;i<n;i++){
-   let idx=i===0?0:(i===n-1?4:Math.min(i,3));
-   out.push(patterns[idx](loc[i%loc.length],props[i%props.length]));
- }
- return {theme,scenes:out,locked:false};
+function normStoryText(x){
+ return String(x||"").toLowerCase()
+  .replace(/[“”"'`]/g,"")
+  .replace(/[^\p{L}\p{N}\s-]/gu," ")
+  .replace(/\s+/g," ").trim();
 }
-function scenes(){
- let n=+v("n"),idea=v("idea"),story=buildDynamicStory(idea,n);
- let cameras=["Wide establishing shot","Medium tracking shot","Close-up object insert","Dolly In","Over-the-shoulder composition","Low Angle","Static symmetrical shot"];
- let h=`<div class="card" id="story"><label>EDITOR STORYBOARD • VISUAL DINAMIS</label><p class="muted">Konteks terdeteksi: ${story.theme}. Storyboard sekarang dikunci ke konsep judul yang dipilih. Scene 1 mengikuti Visual Hook, scene tengah hanya mengembangkan kejadian yang sama, dan scene terakhir wajib membayar Payoff. Tidak boleh pindah ke cerita, lokasi, atau objek yang tidak relevan.</p>`;
- for(let i=1;i<=n;i++){
-   h+=`<div class="scene"><b>Scene ${i}</b><textarea id="sd${i}">${e(story.scenes[i-1])}</textarea><label>KAMERA</label><select id="sc${i}">${cameras.map((c,j)=>`<option${j===(i-1)%cameras.length?" selected":""}>${c}</option>`).join("")}</select></div>`;
+function storyKeywords(title){
+ return [...new Set(normStoryText(title).split(" ").filter(w=>w.length>2&&!STORY_STOPWORDS.has(w)))];
+}
+function hasAny(q,arr){return arr.some(x=>q.includes(x))}
+function firstMatch(q,arr,fallback=""){return arr.find(x=>q.includes(x))||fallback}
+
+function extractTitleLogic(idea){
+ const title=String(idea||"").trim(),q=normStoryText(title),kw=storyKeywords(title);
+ const time=firstMatch(q,["tengah malam","subuh","pagi","siang","sore","malam","akhir pekan","weekend"],"waktu paling logis dari judul");
+ const place=firstMatch(q,["kamar pondok","kamar asrama","kamar kos","pondok","pesantren","asrama","kos","kelas","sekolah","kampus","kantor","tempat kerja","rumah","dapur","kamar mandi","kamar","lapangan","stasiun","halte","kereta","bus","bandara","jalan","warung","kafe","masjid"],"satu lokasi paling logis yang tersirat judul");
+ const mood=firstMatch(q,["panik","malu","kesal","ngeselin","lucu","rame","ramai","sepi","takut","capek","senang","sedih","canggung","heboh"],"reaksi natural sesuai kejadian");
+ const relation=firstMatch(q,["teman sekamar","teman","musyrif","guru","dosen","atasan","bos","orang tua","ibu","ayah","adik","kakak"],"hanya karakter pendukung yang mutlak diperlukan");
+ const subject=firstMatch(q,["satu orang","teman","anak","guru","musyrif","gue","aku","kita","semua orang","satu pondok","satu kelas"],"karakter utama");
+ return {title,q,kw,time,place,mood,relation,subject};
+}
+
+function classifyTitle(idea){
+ const x=extractTitleLogic(idea),q=x.q;
+ if(hasAny(q,["telat","terlambat"])) return "late";
+ if(hasAny(q,["kesiangan","telat bangun","susah dibangunin","susah dibangunkan","ketiduran"])) return "oversleep";
+ if(hasAny(q,["hilang","kehilangan","nggak ketemu","gak ketemu"])) return "lost";
+ if(hasAny(q,["lupa","ketinggalan"])) return "forgot";
+ if(hasAny(q,["rame","ramai","berisik"])&&hasAny(q,["malam","kamar","pondok","asrama","kos"])) return "night_noise";
+ if(hasAny(q,["antri","antre","antrian","antrean"])) return "queue";
+ if(hasAny(q,["hujan","kehujanan"])) return "rain";
+ if(hasAny(q,["lapar","makan","masak","sahur","buka puasa"])) return "food";
+ if(hasAny(q,["ujian","ulangan","tugas","deadline"])) return "deadline";
+ if(hasAny(q,["piket","bersih","beres-beres","beres beres"])) return "chores";
+ if(hasAny(q,["pulang","berangkat","pergi","ketinggalan bus","ketinggalan kereta"])) return "travel";
+ return "literal";
+}
+
+function titleStoryFacts(idea){
+ const x=extractTitleLogic(idea),type=classifyTitle(idea),t=x.title;
+ let f={
+  type,title:t,place:x.place,time:x.time,
+  prop:"tidak ada properti wajib; gunakan hanya benda yang secara fisik diperlukan oleh kejadian",
+  premise:t,
+  opening:`Di ${x.place}, pada ${x.time}, tampilkan keadaan paling dekat sebelum inti kejadian "${t}" terjadi. Jangan buat aktivitas pembuka yang tidak berhubungan.`,
+  cause:`Inti kejadian "${t}" mulai terjadi secara konkret. Tampilkan penyebab langsung yang paling sederhana dan paling masuk akal.`,
+  response:`Karakter merespons penyebab itu dengan tindakan fisik yang wajar. Respons harus masih berada pada masalah yang sama.`,
+  climax:`Konsekuensi langsung dari kejadian "${t}" mencapai titik paling jelas. Jangan menambah konflik kedua.`,
+  ending:`Masalah utama mendapat hasil atau penyelesaian yang langsung menjawab "${t}". Jangan membuka subplot baru.`,
+  forbidden:["subplot baru","lokasi baru tanpa sebab","properti random","karakter random","konflik kedua","kejadian yang hanya filler"]
+ };
+ const presets={
+  late:[
+   `Di ${x.place}, kegiatan yang tersirat judul sudah hampir dimulai dan orang-orang yang memang perlu hadir sudah siap, tetapi satu orang belum muncul atau belum siap.`,
+   `Waktu makin mepet. Kelompok menyadari satu orang tertinggal lalu mengecek keberadaannya tanpa meninggalkan konteks utama.`,
+   `Orang yang terlambat ditemukan atau akhirnya muncul. Ia langsung buru-buru menyelesaikan hal yang membuatnya tertahan.`,
+   `Keterlambatan satu orang membuat kelompok ikut menunggu, terburu-buru, atau terlambat beberapa saat.`,
+   `Kelompok akhirnya melanjutkan kegiatan bersama; akibat keterlambatan terlihat jelas dan kejadian selesai.`
+  ],
+  oversleep:[
+   `Di ${x.place}, waktu kegiatan sudah dekat sementara satu orang masih tertidur dan yang lain sudah bersiap.`,
+   `Seseorang mencoba membangunkannya dengan cara wajar, tetapi ia belum langsung merespons.`,
+   `Usaha membangunkan menjadi lebih mendesak karena waktu terus berjalan.`,
+   `Orang itu akhirnya sadar, melihat situasi, lalu bangun terburu-buru.`,
+   `Ia mulai bersiap dan kegiatan yang sempat tertahan akhirnya bisa dilanjutkan.`
+  ],
+  lost:[
+   `Karakter berada di ${x.place} dan hendak melakukan tujuan yang tersirat judul, lalu menyadari benda penting yang disebut/tersirat judul tidak ada.`,
+   `Ia memeriksa tempat terakhir yang paling masuk akal, satu area demi satu area, tanpa teleportasi.`,
+   `Pencarian menyempit setelah ada petunjuk fisik yang wajar dari lingkungan atau ingatan tindakan sebelumnya.`,
+   `Benda ditemukan di tempat yang masuk akal atau penyebab kehilangan menjadi jelas.`,
+   `Karakter mengambil kembali benda itu dan melanjutkan tujuan awalnya.`
+  ],
+  forgot:[
+   `Karakter sudah memulai atau hampir memulai kegiatan di ${x.place}, lalu sadar ada hal penting yang tertinggal atau terlupa.`,
+   `Kesadaran itu menghentikan langkah berikutnya dan memaksa karakter mengecek kembali hal yang terlupa.`,
+   `Karakter kembali atau mengambil tindakan paling singkat untuk memperbaiki kelupaan itu.`,
+   `Hal yang terlupa berhasil didapat atau konsekuensinya diterima secara langsung.`,
+   `Karakter melanjutkan kegiatan dengan kondisi yang sudah jelas, tanpa konflik baru.`
+  ],
+  night_noise:[
+   `Malam hari di ${x.place}; sebagian penghuni hendak istirahat, tetapi beberapa masih terjaga.`,
+   `Aktivitas kecil dari yang masih terjaga memancing respons penghuni lain sehingga kamar justru makin ramai.`,
+   `Respons saling menyambung: makin banyak penghuni ikut bereaksi pada aktivitas malam yang sama.`,
+   `Keramaian mencapai puncak, lalu ada alasan natural untuk berhenti atau menurunkan volume.`,
+   `Aktivitas mereda, penghuni kembali ke tempat masing-masing, dan kamar perlahan tenang.`
+  ],
+  queue:[
+   `Di ${x.place}, karakter sudah berada dalam antrean untuk tujuan yang jelas.`,
+   `Antrean bergerak lebih lambat atau terganggu oleh satu penyebab yang masih relevan dengan antrean.`,
+   `Karakter dan orang di dekatnya merespons keterlambatan antrean secara natural.`,
+   `Giliran karakter akhirnya mendekat dan penyebab hambatan mulai selesai.`,
+   `Karakter mendapat giliran atau menyelesaikan tujuan antreannya.`
+  ],
+  rain:[
+   `Karakter berada di ${x.place} saat kondisi masih memungkinkan aktivitas berjalan normal.`,
+   `Hujan mulai turun dan langsung mengganggu aktivitas yang sedang dilakukan.`,
+   `Karakter mencari perlindungan atau menyesuaikan tindakan menggunakan benda yang memang tersedia secara logis.`,
+   `Hujan/konsekuensinya mencapai titik paling merepotkan lalu mulai bisa ditangani.`,
+   `Karakter berhasil melanjutkan atau menutup aktivitas dengan kondisi setelah hujan yang jelas.`
+  ],
+  deadline:[
+   `Di ${x.place}, karakter sedang menghadapi tugas/ujian/deadline yang disebut atau tersirat judul.`,
+   `Waktu atau beban pekerjaan mulai menjadi masalah konkret.`,
+   `Karakter fokus menyelesaikan bagian paling penting, bukan melakukan aktivitas lain.`,
+   `Tekanan mencapai puncak tepat sebelum batas waktu atau hasil keluar.`,
+   `Tugas diserahkan, ujian selesai, atau hasil langsung dari deadline terlihat.`
+  ],
+  chores:[
+   `Di ${x.place}, karakter memulai tugas bersih-bersih/piket yang memang menjadi inti judul.`,
+   `Satu bagian pekerjaan memunculkan hambatan kecil yang masih berasal dari tugas yang sama.`,
+   `Karakter menyelesaikan hambatan itu sambil melanjutkan pekerjaan utama.`,
+   `Pekerjaan mendekati selesai dan perubahan kondisi tempat mulai terlihat.`,
+   `Area selesai dibereskan dan hasil akhirnya terlihat jelas.`
+  ],
+  food:[
+   `Di ${x.place}, karakter utama masih sendirian dan baru menyiapkan atau membuka SATU porsi makanan yang menjadi inti judul. Belum ada orang lain ikut makan.`,
+   `Karakter utama mulai menikmati porsi yang sama. Jika judul melibatkan teman/orang lain, hanya SATU orang pertama yang boleh menyadari atau mendekat pada tahap ini; belum boleh ikut makan kecuali cerita sudah menyebutnya.`,
+   `Orang lain mulai merespons secara bertahap sesuai cerita. Mereka boleh mendekat atau membawa alat makan jika memang dibutuhkan, tetapi DILARANG menciptakan porsi makanan baru. Semua perkembangan tetap berpusat pada SATU porsi awal.`,
+   `Konsekuensi utama terjadi: lebih banyak orang dapat ikut mengambil dari porsi awal yang sama hanya jika timeline sudah sampai tahap tersebut. Jumlah makanan harus terlihat berkurang secara logis.`,
+   `Payoff: kondisi akhir menunjukkan akibat langsung dari berbagi/makan tersebut. Porsi awal sudah berkurang atau hampir habis; jangan munculkan porsi pengganti baru.`
+  ],
+  travel:[
+   `Di ${x.place}, karakter sudah bersiap untuk berangkat/pulang sesuai judul.`,
+   `Muncul hambatan langsung yang berkaitan dengan keberangkatan, waktu, atau kendaraan.`,
+   `Karakter mengambil tindakan paling logis untuk tetap bisa melanjutkan perjalanan.`,
+   `Hambatan mencapai titik penentu: berhasil dikejar, terlewat, atau harus menunggu.`,
+   `Perjalanan berlanjut atau konsekuensi akhirnya terlihat jelas.`
+  ]
+ };
+ if(presets[type]){
+  [f.opening,f.cause,f.response,f.climax,f.ending]=presets[type];
  }
- h+=`<div class="actions"><button class="primary" onclick="prompts()">Buat Paket Konten Lengkap</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h);document.getElementById("story").scrollIntoView({behavior:"smooth"});
+ return f;
+}
+
+function interpolateStoryBeats(facts,total){
+ const spine=[
+  {fungsi:"HOOK / KONDISI AWAL",action:facts.opening},
+  {fungsi:"PEMICU",action:facts.cause},
+  {fungsi:"RESPONS",action:facts.response},
+  {fungsi:"KLIMAKS / KONSEKUENSI",action:facts.climax},
+  {fungsi:"PAYOFF / PENYELESAIAN",action:facts.ending}
+ ];
+ if(total<=1) return [{fungsi:"CERITA UTUH",action:spine.map(x=>x.action).join(" ")}];
+ if(total===2) return [
+  {fungsi:"HOOK + PEMICU",action:`${facts.opening} ${facts.cause}`},
+  {fungsi:"KLIMAKS + PAYOFF",action:`${facts.response} ${facts.climax} ${facts.ending}`}
+ ];
+ if(total===3) return [
+  {fungsi:"HOOK / PEMICU",action:`${facts.opening} ${facts.cause}`},
+  {fungsi:"RESPONS / KLIMAKS",action:`${facts.response} ${facts.climax}`},
+  {fungsi:"PAYOFF",action:facts.ending}
+ ];
+ if(total===4) return [
+  spine[0],spine[1],{fungsi:"RESPONS + KLIMAKS",action:`${facts.response} ${facts.climax}`},spine[4]
+ ];
+ if(total===5) return spine;
+ const out=[];
+ for(let i=0;i<total;i++){
+  const pos=i/(total-1)*4,lo=Math.floor(pos),hi=Math.min(4,Math.ceil(pos));
+  if(lo===hi) out.push({...spine[lo]});
+  else out.push({fungsi:`PERKEMBANGAN ${i+1}`,action:`Lanjutkan secara konkret dari ${spine[lo].action} Menuju ${spine[hi].action} Jangan menyelesaikan kejadian terlalu cepat.`});
+ }
+ return out;
+}
+
+function validateStoryBeat(action,facts,index,total){
+ let x=String(action||"").trim();
+ const banned=["aktivitas seperti biasa","orang-orang di sekitar","momen kecil","situasinya makin terasa nyata","bergerak dari satu hal ke hal berikutnya","ngurus detail kecil"];
+ banned.forEach(b=>{x=x.replace(new RegExp(b,"gi"),"")});
+ if(!x) x=index===0?facts.opening:index===total-1?facts.ending:facts.response;
+ return x.replace(/\s+/g," ").trim();
+}
+
+
+/* V55 TIMELINE + ENTITY LEDGER
+   A scene may only show facts that have already happened.
+   Counts and prop states are cumulative and cannot spontaneously reset. */
+function inferStoryLedger(idea,facts,total){
+ const q=normStoryText(idea), type=facts.type||classifyTitle(idea);
+ const explicitNumber=(q.match(/\b(\d+)\b/)||[])[1];
+ let mainCount=1, initialSupport=0, initialFood=null;
+ const foodWords=["mie","mi ","ramen","nasi","makanan","kopi","minum","snack","jajan","makan"];
+ const isFood=type==="food"||hasAny(q,foodWords);
+ if(isFood) initialFood=explicitNumber?+explicitNumber:1;
+ return {
+  mainCount,
+  initialSupport,
+  foodCount:initialFood,
+  rules:[
+   "Never show a person before the timeline introduces that person.",
+   "Never show a future action, future reaction, future prop state, or payoff early.",
+   "Never duplicate a unique story prop.",
+   "A consumed quantity can only stay the same or decrease.",
+   "A character who enters remains present unless the story explicitly makes them leave.",
+   "A moved/opened/used object keeps its latest state in later scenes."
+  ]
+ };
+}
+function timelineLockForScene(story,i){
+ const facts=story.facts||{}, ledger=story.ledger||inferStoryLedger(v("idea").trim(),facts,story.scenes?.length||5);
+ const total=story.scenes?.length||5, type=facts.type||"literal";
+ const cur=story.scenes?.[i-1]||{}, prev=story.scenes?.[i-2]||null, next=story.scenes?.[i]||null;
+ let countRule=`Main character count: EXACTLY ${ledger.mainCount}.`;
+ if(type==="food" && ledger.foodCount){
+   if(i===1) countRule+=` Food quantity: EXACTLY ${ledger.foodCount} serving exists in the entire visible story world. Scene 1 must show only that original serving; no extra bowls, cups, packets, plates, or duplicate portions.`;
+   else countRule+=` Food source: the SAME original ${ledger.foodCount} serving from Scene 1. NEVER create another serving, cup, bowl, packet, plate, or replacement portion. Its remaining quantity may only decrease as the story advances.`;
+ }
+ let peopleRule="";
+ if(type==="food"){
+   if(i===1) peopleRule="SCENE 1 PEOPLE LOCK: show ONLY the main character unless the title explicitly says another person is already present. Nobody else is eating.";
+   else if(i===2) peopleRule="EARLY PEOPLE LOCK: introduce at most ONE new supporting person if required by this beat. Do not show the final group yet.";
+   else if(i<total) peopleRule="MID-STORY PEOPLE LOCK: only people already introduced plus the minimum new people required by THIS beat may appear. Do not reveal the final crowd before its beat.";
+   else peopleRule="FINAL PEOPLE LOCK: only now may the final group/payoff be fully visible if the story requires it.";
+ }
+ return [
+   "STRICT TIMELINE LOCK:",
+   `This is Scene ${i} of ${total}.`,
+   prev?`Already happened before this frame: ${prev.action}`:"Nothing from later scenes has happened yet.",
+   `Allowed NOW: ${cur.action||cur.event}.`,
+   next?`FORBIDDEN FUTURE INFORMATION: do NOT show, imply, stage, or pre-position this next event yet: ${next.action||next.event}.`:"No future beat remains; show only the direct aftermath.",
+   countRule,peopleRule,
+   ...ledger.rules
+ ].filter(Boolean).join(" ");
+}
+
+function buildDynamicStory(idea,n){
+ const facts=titleStoryFacts(idea),total=Math.max(1,+n||5),beats=interpolateStoryBeats(facts,total),scenes=[];
+ const meta=(selectedIdeaMeta&&selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
+ let prev=`Lokasi ${facts.place}; waktu ${facts.time}; karakter, pakaian, dan benda relevan sudah berada pada kondisi awal yang logis.`;
+ beats.forEach((b,i)=>{
+  const action=validateStoryBeat(b.action,facts,i,total);
+  const end=i===total-1
+   ?`Akibat langsung dari inti judul sudah terlihat dan cerita selesai tanpa subplot baru.`
+   :`Posisi karakter dan benda setelah aksi Scene ${i+1} dipertahankan sebagai kondisi fisik awal Scene ${i+2}.`;
+  scenes.push({index:i+1,fungsi:b.fungsi,start:prev,action,end,event:action});
+  prev=end;
+ });
+ return {
+  theme:"deep literal title-first causal story",
+  scenes,locked:true,facts,ledger:inferStoryLedger(idea,facts,total),
+  hook:meta?.hook||facts.opening,payoff:meta?.payoff||facts.ending,
+  ctx:{place:facts.place,activity:"hanya aksi yang ada pada causal spine",object:facts.prop,situation:facts.premise,social:"karakter pendukung hanya jika dibutuhkan sebab-akibat",emotion:"reaksi tubuh natural sesuai kejadian"}
+ };
+}
+
+function narrationSentence(x){
+ return String(x||"")
+  .replace(/^Di ([^,]+), /i,"Di $1, ")
+  .replace(/^Tampilkan /i,"")
+  .replace(/^Inti kejadian .*? mulai terjadi secara konkret\.\s*/i,"")
+  .replace(/^Masalah utama /i,"Akhirnya, masalah ")
+  .replace(/Jangan[^.]*\./gi,"")
+  .replace(/tanpa subplot baru/gi,"")
+  .replace(/\s+/g," ").trim();
+}
+function buildLockedNarration(story,dur){
+ const facts=story.facts||titleStoryFacts(v("idea").trim());
+ const raw=[facts.opening,facts.cause,facts.response,facts.climax,facts.ending].map(narrationSentence).filter(Boolean);
+ const unique=raw.filter((x,i,a)=>i===0||normStoryText(x)!==normStoryText(a[i-1]));
+ let text=fitLifeNarration(unique,+dur)
+  .replace(/kejadian "[^"]+"/gi,"kejadian itu")
+  .replace(/inti judul/gi,"kejadian itu")
+  .replace(/\s+/g," ").trim();
+ return addNarrationCTA(text,v("idea").trim());
+}
+
+function scenes(){
+ let idea=v("idea").trim(); if(!idea)return alert("Masukkan judul/ide dulu.");
+ if(!chosen)return alert("Pilih karakter dulu.");
+ let n=+v("n"),story=buildDynamicStory(idea,n);
+ let camera=["Establishing Wide Shot","Medium Tracking Shot","Medium Close-Up","Over-the-Shoulder","Wide Payoff Shot"];
+ let h=`<div class="card" id="storyboard"><label>🧠 STORY PLAN • LOGIC LOCK</label><p class="muted">DEEP STORY ENGINE: cerita dibangun dulu dari sebab → akibat → klimaks → ending. Cek Aksi/Kejadian di bawah; prompt baru dibuat setelah alurnya masuk akal.</p>`;
+ story.scenes.forEach((s,i)=>{
+   let cam=camera[Math.min(camera.length-1,Math.floor(i*camera.length/Math.max(1,n)))];
+   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(s.fungsi)}</h3><b>Kondisi Awal</b><div class="result">${e(s.start)}</div><br><b>Aksi / Kejadian</b><textarea id="sd${i+1}">${e(s.action)}</textarea><br><br><b>Kondisi Akhir</b><div class="result">${e(s.end)}</div><br><label>ANGLE KAMERA</label><select id="sc${i+1}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option ${x===cam?"selected":""}>${x}</option>`).join("")}</select></div>`;
+ });
+ h+=`<div class="actions"><button class="primary" onclick="prompts()">✨ Generate Prompt Gambar + Video + Narasi</button></div></div>`;
+ flow.insertAdjacentHTML("beforeend",h); document.getElementById("storyboard").scrollIntoView({behavior:"smooth"});
 }
 
 function fitLifeNarration(parts,dur){
@@ -621,54 +857,117 @@ function buildLifeNarration(idea,dur){
  }
  return fitLifeNarration(p,dur);
 }
-function prompts(){
- let n=+v("n"),style=v("style"),idea=v("idea");
- let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nKUNCI KARAKTER: ${chosen}\n\n`;
- let h=`<div class="card" id="prompts"><label>🎬 PAKET KONTEN LENGKAP</label><p class="muted">Semua output sekarang memakai CONCEPT LOCK. Judul, Visual Hook, storyboard, Prompt Gambar, Prompt Video, Narasi, dan Payoff harus menjadi satu kejadian yang sama. Prompt tidak boleh mengganti lokasi, objek, aktivitas, atau konflik dengan adegan generik.</p>`;
- for(let i=1;i<=n;i++){
-   let d=v("sd"+i),c=v("sc"+i);
-   let meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
-   let conceptLock=meta?.profile?.kind==="life" && meta.profile.en
-     ? `CONCEPT LOCK — world: ${meta.profile.world||"life"}; location/context: ${meta.profile.en.place||"concept-specific location"}; ongoing activity: ${meta.profile.en.activity||"concept-specific activity"}; key object: ${meta.profile.en.object||"concept-specific object"}; central situation: ${meta.profile.en.situation||idea}; supporting interaction: ${meta.profile.en.social||"natural supporting interaction"}; intended tone: ${meta.profile.en.emotion||"natural"}.`
-     : `CONCEPT LOCK — follow the title and this exact storyboard beat without inventing a different event.`;
-   let ip=`Vertical 9:16, ${style}. ${conceptLock} MAIN CHARACTER: ${chosen}. THIS IMAGE MUST DEPICT ONLY THIS SCENE BEAT: ${d}. Do not replace the location, action, key object, supporting interaction, or outcome with a generic slice-of-life scene. Every visible detail must support the same title concept. The main character must be actively living through the exact event, not posing for the camera. Show natural interaction with the key object and environment. If supporting people appear, they must participate only in the same event and look clearly different from the main character through hairstyle, height, posture, silhouette, outfit shape, and body language. Keep the location logically consistent with the concept. Scene ${i} of ${n}. Camera: ${c}. Cinematic but natural framing, candid body language, believable everyday clutter only when relevant to this exact setting, strong cause-and-effect storytelling, consistent main-character design. If the main character is faceless, keep the face completely featureless. No unrelated props, no unrelated location, no second storyline, no duplicate main character, no readable text, no watermark.`;
-   let vp=`Animate Scene ${i} as a cinematic vertical 9:16 shot that is STRICTLY LOCKED to the same concept. ${conceptLock} Animate ONLY this storyboard beat: ${d}. The motion must continue the exact cause-and-effect chain from the title; do not introduce a new activity, new location, random prop, or unrelated interaction. Main character: ${chosen}. Camera: ${c}. Let the main character naturally perform the exact task required by this scene, with believable hand movement, walking, sitting, handling the key object, reacting to the same situation, and interacting with the same supporting people when relevant. Supporting characters must have independent but concept-relevant actions and must look different from the main character. Preserve continuity with adjacent scenes: the same event should progress from hook → escalation → consequence → payoff. Environmental motion is allowed only when it belongs to this exact setting and event. No filler action, no generic walking shot, no unrelated cutaway, no idle mannequin posing, no synchronized crowd movement, no morphing, no duplicate main character, no extra limbs, no unwanted facial features, no readable text, no watermark.`;
-   txt+=`\nSCENE ${i}\nVISUAL: ${d}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
-   h+=`<div class="scene">
-<h3>SCENE ${i}</h3>
-<b>VISUAL / CERITA</b>
-<div class="result">${e(d)}</div>
-<button class="mini" data-copy="${encodeURIComponent(d)}" onclick="copyEncoded(this)">📋 Salin Scene</button>
-<br><br>
-<b>🖼️ PROMPT GAMBAR</b>
-<div class="result">${e(ip)}</div>
-<button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button>
-<br><br>
-<b>🎥 PROMPT VIDEO</b>
-<div class="result">${e(vp)}</div>
-<button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button>
-</div>`;
+
+/* ============================================================
+   V55 ISOLATED SCENE PROMPT COMPILER
+   Critical rule: image Scene N receives ONLY information that is
+   visually legal in Scene N. Future beats/payoff are never copied
+   into the image prompt. Negative rules mention categories only,
+   not the content of future scenes.
+   ============================================================ */
+function sceneVisibleCounts(story,i){
+ const facts=story.facts||{},type=facts.type||classifyTitle(v("idea").trim());
+ let peopleMin=1,peopleMax=1,food=facts.type==="food"?(story.ledger?.foodCount||1):null;
+ if(type==="food"){
+   if(i===1){peopleMin=1;peopleMax=1;}
+   else if(i===2){peopleMin=1;peopleMax=2;}
+   else {peopleMin=1;peopleMax=Math.max(2,i);}
  }
- let cover=`Vertical 9:16 cover / thumbnail, ${style}. Same locked character: ${chosen}. Completely faceless. Create one instantly readable hero composition representing "${idea}". Strong expressive body language, cinematic lighting, clear focal point, visually striking but uncluttered environment, strong depth and composition. Preserve exact hairstyle, wardrobe, body proportions, materials and character identity from the animation. Leave clean negative space for an optional title to be added later. No text generated inside image, no watermark, no malformed anatomy, no extra limbs.`;
- let caption=`Ada hal-hal yang saat dijalani terasa biasa, tapi setelah waktunya lewat justru jadi yang paling dirindukan. ✨\n\n${idea}\n\nKadang bukan kejadian besarnya yang terus kita ingat, tapi detail-detail kecil di dalamnya.\n\nKalau kamu pernah ngalamin hal yang sama, bagian mana yang paling bikin nostalgia? 👀\n\n#animation #storytelling #nostalgia #3danimation #facelesscontent`;
- let dur=+v("duration");
- let fullNarr=addNarrationCTA(buildLifeNarration(idea,dur),idea);
- txt+=`\nNARASI UTUH (${dur} DETIK)\n${fullNarr}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
- project=txt; lastNarration=fullNarr; lastCover=cover; lastCaption=caption; addVizexHistory("Paket Animasi",idea);
- h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Narasi satu naskah utuh, sudut pandang pengalaman, mengikuti durasi video, dan ditutup CTA singkat yang menyesuaikan konteks.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
- h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER</label><div class="result">${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
- h+=`<div class="card" style="margin-top:18px"><label>✍️ CAPTION</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
- h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h);
- document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
+ return {peopleMin,peopleMax,food};
+}
+function isolateVisibleAction(action){
+ return String(action||"")
+   .replace(/Jangan[^.]*\./gi,"")
+   .replace(/DILARANG[^.]*\./gi,"")
+   .replace(/jika timeline[^.]*\./gi,"")
+   .replace(/hanya jika[^.]*\./gi,"")
+   .replace(/\s+/g," ").trim();
+}
+function isolatedSceneSpec(story,i){
+ const scene=story.scenes[i-1]||{}, facts=story.facts||{}, c=sceneVisibleCounts(story,i);
+ const type=facts.type||classifyTitle(v("idea").trim());
+ let visible=isolateVisibleAction(scene.action||scene.event);
+ let exact="";
+ if(type==="food"){
+   if(i===1) exact=`EXACT VISIBLE INVENTORY: exactly 1 main character, exactly ${c.food||1} original serving of food, zero supporting people, zero extra servings. The main character is alone.`;
+   else if(i===2) exact=`EXACT VISIBLE INVENTORY: the same original serving only; maximum 2 people total. At most one supporting person may have entered. No duplicate food serving.`;
+   else exact=`VISIBLE INVENTORY: preserve the SAME original food source from earlier scenes. Never duplicate the food source. Any people visible must be justified by this current beat only.`;
+ }
+ return {
+   visible,
+   exact,
+   camera:v53CameraPlan(i,story.scenes.length||5),
+   state:i===1?"Initial physical state only.":`Continue the physical state inherited from Scene ${i-1}; do not reset consumed, opened, moved, or used objects.`
+ };
+}
+function compileIsolatedImagePrompt({story,i,n,idea,chosen,style,angle,edited}){
+ const sp=isolatedSceneSpec(story,i);
+ return [
+  "GENERATE A NEW IMAGE NOW FROM TEXT ONLY.",
+  "THIS PROMPT DESCRIBES ONE FRAME ONLY. DO NOT INFER OR ILLUSTRATE THE REST OF THE STORY.",
+  `SCENE ${i} OF ${n}.`,
+  `TITLE CONTEXT: "${idea}".`,
+  `MAIN CHARACTER IDENTITY LOCK: ${chosen}.`,
+  `VISUAL STYLE LOCK: ${style}.`,
+  `LOCATION LOCK: ${story.ctx?.place||story.facts?.place||"the title-implied location"}.`,
+  sp.state,
+  sp.exact,
+  `ONLY VISIBLE EVENT IN THIS FRAME: ${isolateVisibleAction(edited)||sp.visible}.`,
+  `CAMERA FOR THIS FRAME: ${angle||sp.camera}.`,
+  "Hard rule: depict only the current visible event. Do not summarize the story visually.",
+  "Hard rule: do not add people merely because the title implies a social outcome.",
+  "Hard rule: do not add food portions, bowls, cups, packets, plates, utensils, furniture, or props unless this exact frame requires them.",
+  "Hard rule: never duplicate a unique prop or food serving.",
+  "Hard rule: no future payoff, no later-scene crowd, no pre-staged reaction, no future object state.",
+  "Keep character identity stable, but make pose and blocking specific to this exact action.",
+  "If faceless, keep the face completely featureless.",
+  "No text, subtitles, speech bubbles, watermark, logo, duplicate main character, malformed anatomy, extra limbs, floating objects, unrelated action, unrelated location, or second storyline.",
+  "Do not ask for an uploaded image or reference photo. Render immediately."
+ ].filter(Boolean).join(" ");
+}
+function compileIsolatedVideoPrompt({story,i,n,idea,chosen,style,angle,movement,edited}){
+ const sp=isolatedSceneSpec(story,i);
+ const scene=story.scenes[i-1]||{};
+ return [
+  `SCENE ${i} OF ${n}. Vertical 9:16 cinematic animation.`,
+  "Use the generated image for THIS scene as frame zero.",
+  `TITLE CONTEXT: "${idea}". MAIN CHARACTER: ${chosen}. STYLE: ${style}.`,
+  sp.exact,
+  `ANIMATE ONLY THIS ACTION: ${isolateVisibleAction(edited)||sp.visible}.`,
+  `CAMERA: ${angle||sp.camera}; ${movement}.`,
+  `END STATE: ${scene.end||"finish only the current beat"}.`,
+  "Do not introduce any person, prop, food serving, reaction, or payoff that belongs to a later beat.",
+  "Do not reset or duplicate props. Consumed quantity may only decrease.",
+  "No teleportation, morphing, costume change, random cutaway, lip-sync, subtitles, speech bubbles, watermark, or logo."
+ ].filter(Boolean).join(" ");
 }
 
-
-
-
-
-
-
+function prompts(){
+ let n=+v("n"),style=v("style"),idea=v("idea").trim();
+ const story=buildDynamicStory(idea,n),ctx=story.ctx||{};
+ const cameraMotion={"Establishing Wide Shot":"slow dolly in","Wide Shot":"slow controlled dolly","Full Shot":"gentle tracking","Medium Shot":"subtle push in","Medium Close-Up":"subtle dolly in","Close-Up":"very subtle push in","Low Angle":"slow controlled tilt","High Angle":"slow controlled tilt down","Top-Down":"minimal overhead drift","Side Shot":"smooth side tracking","Front Shot":"gentle backward tracking","Back Shot":"smooth follow shot","Over-the-Shoulder":"controlled over-the-shoulder follow","Tracking Shot":"smooth tracking movement"};
+ let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
+ let h=`<div class="card" id="prompts"><label>🎬 FINAL PROMPTS • STORY LOCK</label><p class="muted">STORY PLAN sudah dikunci lebih dulu. Prompt gambar hanya memvisualkan beat scene; prompt video melanjutkan frame gambar; narasi menceritakan kejadian konkret yang sama.</p>`;
+ for(let i=1;i<=n;i++){
+   const base=story.scenes[i-1], edited=(document.getElementById("sd"+i)?.value||base.action).trim();
+   const angle=(document.getElementById("sc"+i)?.value)||"Medium Shot", movement=cameraMotion[angle]||"smooth controlled camera movement";
+   const prev=i>1?story.scenes[i-2].end:base.start, next=i<n?story.scenes[i].start:"final resolved state";
+   const continuity=`TITLE: "${idea}". MAIN CHARACTER: ${chosen}. VISUAL STYLE: ${style}. LOCATION: ${ctx.place}. IMPORTANT PROPS: ${ctx.object}. Keep the character identity, hairstyle, clothing, colors, proportions and accessories exactly as described here.`;
+   const ip=compileIsolatedImagePrompt({story,i,n,idea,chosen,style,angle,edited});
+   const vp=compileIsolatedVideoPrompt({story,i,n,idea,chosen,style,angle,movement,edited});
+   txt+=`\nSCENE ${String(i).padStart(2,"0")}\nFUNGSI: ${base.fungsi}\nKONDISI AWAL: ${base.start}\nAKSI: ${edited}\nKONDISI AKHIR: ${base.end}\nANGLE KAMERA: ${angle}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
+   h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")} • ${e(base.fungsi)}</h3><b>🎬 KONDISI AWAL → AKSI → KONDISI AKHIR</b><div class="result">AWAL: ${e(base.start)}\n\nAKSI: ${e(edited)}\n\nAKHIR: ${e(base.end)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
+ }
+ let dur=+v("duration"),fullNarr=buildLockedNarration(story,dur);
+ let cover=`Vertical 9:16 cover, ${style}. Same locked main character: ${chosen}. Represent only the core event of the title \"${idea}\" in ${ctx.place}. Preserve the same wardrobe, identity, key prop (${ctx.object}), lighting logic and visual world. Strong readable body language, cinematic composition, no generated text, no watermark, no logo.`;
+ let caption=`${idea}\n\nSatu kejadian, satu alur, dari hook sampai payoff. ✨\n\n#animation #storytelling #3danimation #facelesscontent`;
+ txt+=`\nNARASI UTUH (${dur} DETIK)\n${fullNarr}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
+ project=txt;lastNarration=fullNarr;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Satu narasi saja. Scene hanya membagi visual; narasi mengikuti urutan kejadian yang sama.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
+ h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER</label><div class="result">${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
+ h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
+ flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
+}
 
 function generatePremiumIdeas(){
  const topic=(v("ideaNiche")||"").trim();
@@ -1242,4 +1541,349 @@ async function logoutVizex(){
 }
 verifySimpleSession();
 </script>
+
+
+/* V55 VISUAL CONTINUITY ENGINE
+   Keeps character identity stable while forcing every scene to advance visually.
+   Identity stays locked; action, pose, blocking, prop-state and camera must progress.
+*/
+const V55_VISUAL_RULES = {
+  identityLock: [
+    "same main character identity in every scene",
+    "same hairstyle, hair color, outfit, body proportions and distinctive details",
+    "same face setting; if faceless, remain completely featureless",
+    "supporting characters keep their own distinct silhouettes and outfits"
+  ],
+  progressionLock: [
+    "never redraw the previous scene composition",
+    "every scene must show a new physical action or a clearly advanced phase of the same action",
+    "change body pose, hand position, gaze/body direction and character blocking when the beat changes",
+    "carry forward the exact physical result of the previous scene",
+    "props must preserve state changes: opened stays opened, moved stays moved, eaten stays reduced, spilled stays spilled",
+    "do not reset characters or props to an earlier state"
+  ],
+  antiDuplicate: [
+    "no repeated group tableau",
+    "no repeated everyone-sitting-and-looking pose",
+    "no repeated camera distance in consecutive scenes unless story logic requires it",
+    "no generic posing for camera",
+    "no duplicate main character",
+    "no random extra people, props, food, furniture, locations or subplots"
+  ]
+};
+
+function v53CameraPlan(i,total){
+  const plans = [
+    "wide establishing shot showing spatial relationships and the exact starting state",
+    "medium action shot emphasizing the trigger and changed blocking",
+    "medium-close reaction/action shot emphasizing hands, body movement and cause-effect",
+    "dynamic close or over-the-shoulder shot emphasizing the climax without changing location",
+    "resolved medium-wide shot showing the physical aftermath and payoff"
+  ];
+  if(total<=1) return plans[2];
+  const idx=Math.max(0,Math.min(4,Math.round((i-1)/(total-1)*4)));
+  return plans[idx];
+}
+
+function v53SceneState(story,sceneIndex){
+  const scenes=story?.scenes||[];
+  const cur=scenes[sceneIndex-1]||{};
+  const prev=scenes[sceneIndex-2]||null;
+  const next=scenes[sceneIndex]||null;
+  return {
+    previous: prev ? `Previous physical state: ${prev.end||prev.action||prev.event}.` :
+      "Previous physical state: none; establish the exact initial state.",
+    current: `Current beat: ${cur.action||cur.event||"advance the title event literally"}.`,
+    next: next ? `Do not perform the next beat yet: ${next.action||next.event}.` :
+      "This is the payoff scene; show the final physical consequence only.",
+    camera: v53CameraPlan(sceneIndex, scenes.length||5)
+  };
+}
+
+function v53ContinuityBlock(story,sceneIndex){
+  const st=v53SceneState(story,sceneIndex);
+  return [
+    "VISUAL CONTINUITY LOCK:",
+    ...V55_VISUAL_RULES.identityLock.map(x=>"- "+x+"."),
+    "SCENE PROGRESSION LOCK:",
+    "- "+st.previous,
+    "- "+st.current,
+    "- "+st.next,
+    "- Camera progression: "+st.camera+".",
+    ...V55_VISUAL_RULES.progressionLock.map(x=>"- "+x+"."),
+    "ANTI-DUPLICATE COMPOSITION:",
+    ...V55_VISUAL_RULES.antiDuplicate.map(x=>"- "+x+"."),
+    "The new frame must be instantly distinguishable from the previous frame while unmistakably belonging to the same continuous event."
+  ].join(" ");
+}
+
+function v53VideoMotionBlock(story,sceneIndex){
+  const st=v53SceneState(story,sceneIndex);
+  return [
+    "VIDEO CONTINUITY:",
+    "Use the generated image for this scene as the exact starting frame.",
+    "Preserve character identity, outfit, environment, lighting and prop design.",
+    st.current,
+    "Animate only movements that logically complete this beat.",
+    "Movement must create a visible state change before the shot ends.",
+    "Do not reset poses or props. Do not jump to another location. Do not introduce new people or objects.",
+    "End on a state that can physically continue into the next scene.",
+    st.next
+  ].join(" ");
+}
+
+function v53NarrationGuard(text,title){
+  let x=String(text||"").replace(/\s+/g," ").trim();
+  const bad=[
+    /awalnya gue kira hari itu bakal berjalan biasa aja\.?/gi,
+    /gue tetap menjalani aktivitas seperti biasa\.?/gi,
+    /bergerak dari satu hal ke hal berikutnya\.?/gi,
+    /ngurus detail kecil yang biasanya nggak terlalu dipikirin\.?/gi,
+    /situasinya pelan-pelan jadi makin terasa nyata\.?/gi
+  ];
+  bad.forEach(r=>x=x.replace(r,""));
+  x=x.replace(/\s+/g," ").trim();
+  if(!x) x=`${title}. Kejadiannya berkembang dari pemicu, respons, sampai akibat akhirnya secara langsung.`;
+  return x;
+}
+
+/* V55 prompt compiler notes:
+   A prompt is considered valid only if:
+   1. It names the current beat, not merely the overall title.
+   2. It carries the previous physical state forward.
+   3. It forbids the next beat from appearing early.
+   4. It locks identity separately from pose/composition.
+   5. It changes at least two of: action, pose, blocking, prop state, camera.
+   6. It contains no instruction to upload/reference another image for text-to-image generation.
+*/
+
 </body></html>
+/*
+V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+A. TITLE AUTHORITY
+- The selected title is the highest-level source of truth.
+- The story may infer only the minimum facts required to make the title physically playable.
+- Never replace a specific title event with a generic daily-life montage.
+- Every scene must answer: what changed because of the title event?
+
+B. CAUSAL STORY SPINE
+- Scene 1 establishes only the state required for the trigger.
+- Scene 2 exposes the trigger or first irreversible change.
+- Middle scenes show direct response and escalation from that same trigger.
+- Penultimate beat shows the strongest consequence.
+- Final beat resolves or lands the title's promised payoff.
+- No second conflict may appear merely to make the story feel busier.
+
+C. CHARACTER IDENTITY
+- Identity attributes are immutable across all scenes.
+- Pose is not identity. Pose must change when the action changes.
+- Supporting characters must remain visually separable from the main character.
+- A group scene must not accidentally clone the main character.
+
+D. ENVIRONMENT CONTINUITY
+- One event keeps one coherent geography unless the title explicitly requires travel.
+- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
+- Lighting progresses only when elapsed time in the story justifies it.
+- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
+
+E. PROP STATE MEMORY
+- Each important prop has a state before and after every beat.
+- State transitions are irreversible unless a scene explicitly reverses them.
+- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
+- Do not respawn a consumed, discarded or broken object.
+
+F. COMPOSITION PROGRESSION
+- Consecutive scenes should not share the same character arrangement and camera framing.
+- Visual variety must come from story progression, not random scenery changes.
+- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
+- Camera changes cannot hide continuity errors.
+
+G. IMAGE PROMPT CONTRACT
+- Every image prompt is standalone text-to-image.
+- Never ask for an uploaded reference.
+- State identity lock separately from scene-state instructions.
+- State previous physical state, current action, and forbidden future action.
+- Describe only visible information useful to the current frame.
+- Avoid abstract narrative words when a physical action can express the same idea.
+
+H. VIDEO PROMPT CONTRACT
+- Treat the scene image as frame zero.
+- Motion starts from exactly the depicted pose and prop state.
+- Specify who moves, what moves, direction, tempo and end state.
+- No teleporting, costume changes, spontaneous new props or new characters.
+- End state must be compatible with the next scene.
+
+I. NARRATION CONTRACT
+- Narration tells the same event shown by the scene sequence.
+- Prefer concrete event language over filler.
+- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
+- The narration may compress scenes but cannot contradict their order.
+- CTA appears only after the story has actually landed.
+
+J. FINAL SELF-CHECK
+Before presenting a generated package, conceptually verify:
+1) Can every scene be traced to the title?
+2) Does every scene physically inherit the previous scene?
+3) Does each scene visibly advance something?
+4) Are identity and outfit stable?
+5) Are prop states cumulative?
+6) Are consecutive compositions distinguishable?
+7) Does narration describe the same causal event?
+8) Does the video motion begin from the corresponding image?
+9) Is the payoff actually delivered?
+10) Were random subplots, objects, locations and people avoided?
+*/
+
+/*
+V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+A. TITLE AUTHORITY
+- The selected title is the highest-level source of truth.
+- The story may infer only the minimum facts required to make the title physically playable.
+- Never replace a specific title event with a generic daily-life montage.
+- Every scene must answer: what changed because of the title event?
+
+B. CAUSAL STORY SPINE
+- Scene 1 establishes only the state required for the trigger.
+- Scene 2 exposes the trigger or first irreversible change.
+- Middle scenes show direct response and escalation from that same trigger.
+- Penultimate beat shows the strongest consequence.
+- Final beat resolves or lands the title's promised payoff.
+- No second conflict may appear merely to make the story feel busier.
+
+C. CHARACTER IDENTITY
+- Identity attributes are immutable across all scenes.
+- Pose is not identity. Pose must change when the action changes.
+- Supporting characters must remain visually separable from the main character.
+- A group scene must not accidentally clone the main character.
+
+D. ENVIRONMENT CONTINUITY
+- One event keeps one coherent geography unless the title explicitly requires travel.
+- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
+- Lighting progresses only when elapsed time in the story justifies it.
+- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
+
+E. PROP STATE MEMORY
+- Each important prop has a state before and after every beat.
+- State transitions are irreversible unless a scene explicitly reverses them.
+- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
+- Do not respawn a consumed, discarded or broken object.
+
+F. COMPOSITION PROGRESSION
+- Consecutive scenes should not share the same character arrangement and camera framing.
+- Visual variety must come from story progression, not random scenery changes.
+- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
+- Camera changes cannot hide continuity errors.
+
+G. IMAGE PROMPT CONTRACT
+- Every image prompt is standalone text-to-image.
+- Never ask for an uploaded reference.
+- State identity lock separately from scene-state instructions.
+- State previous physical state, current action, and forbidden future action.
+- Describe only visible information useful to the current frame.
+- Avoid abstract narrative words when a physical action can express the same idea.
+
+H. VIDEO PROMPT CONTRACT
+- Treat the scene image as frame zero.
+- Motion starts from exactly the depicted pose and prop state.
+- Specify who moves, what moves, direction, tempo and end state.
+- No teleporting, costume changes, spontaneous new props or new characters.
+- End state must be compatible with the next scene.
+
+I. NARRATION CONTRACT
+- Narration tells the same event shown by the scene sequence.
+- Prefer concrete event language over filler.
+- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
+- The narration may compress scenes but cannot contradict their order.
+- CTA appears only after the story has actually landed.
+
+J. FINAL SELF-CHECK
+Before presenting a generated package, conceptually verify:
+1) Can every scene be traced to the title?
+2) Does every scene physically inherit the previous scene?
+3) Does each scene visibly advance something?
+4) Are identity and outfit stable?
+5) Are prop states cumulative?
+6) Are consecutive compositions distinguishable?
+7) Does narration describe the same causal event?
+8) Does the video motion begin from the corresponding image?
+9) Is the payoff actually delivered?
+10) Were random subplots, objects, locations and people avoided?
+*/
+
+/*
+V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
+A. TITLE AUTHORITY
+- The selected title is the highest-level source of truth.
+- The story may infer only the minimum facts required to make the title physically playable.
+- Never replace a specific title event with a generic daily-life montage.
+- Every scene must answer: what changed because of the title event?
+
+B. CAUSAL STORY SPINE
+- Scene 1 establishes only the state required for the trigger.
+- Scene 2 exposes the trigger or first irreversible change.
+- Middle scenes show direct response and escalation from that same trigger.
+- Penultimate beat shows the strongest consequence.
+- Final beat resolves or lands the title's promised payoff.
+- No second conflict may appear merely to make the story feel busier.
+
+C. CHARACTER IDENTITY
+- Identity attributes are immutable across all scenes.
+- Pose is not identity. Pose must change when the action changes.
+- Supporting characters must remain visually separable from the main character.
+- A group scene must not accidentally clone the main character.
+
+D. ENVIRONMENT CONTINUITY
+- One event keeps one coherent geography unless the title explicitly requires travel.
+- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
+- Lighting progresses only when elapsed time in the story justifies it.
+- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
+
+E. PROP STATE MEMORY
+- Each important prop has a state before and after every beat.
+- State transitions are irreversible unless a scene explicitly reverses them.
+- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
+- Do not respawn a consumed, discarded or broken object.
+
+F. COMPOSITION PROGRESSION
+- Consecutive scenes should not share the same character arrangement and camera framing.
+- Visual variety must come from story progression, not random scenery changes.
+- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
+- Camera changes cannot hide continuity errors.
+
+G. IMAGE PROMPT CONTRACT
+- Every image prompt is standalone text-to-image.
+- Never ask for an uploaded reference.
+- State identity lock separately from scene-state instructions.
+- State previous physical state, current action, and forbidden future action.
+- Describe only visible information useful to the current frame.
+- Avoid abstract narrative words when a physical action can express the same idea.
+
+H. VIDEO PROMPT CONTRACT
+- Treat the scene image as frame zero.
+- Motion starts from exactly the depicted pose and prop state.
+- Specify who moves, what moves, direction, tempo and end state.
+- No teleporting, costume changes, spontaneous new props or new characters.
+- End state must be compatible with the next scene.
+
+I. NARRATION CONTRACT
+- Narration tells the same event shown by the scene sequence.
+- Prefer concrete event language over filler.
+- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
+- The narration may compress scenes but cannot contradict their order.
+- CTA appears only after the story has actually landed.
+
+J. FINAL SELF-CHECK
+Before presenting a generated package, conceptually verify:
+1) Can every scene be traced to the title?
+2) Does every scene physically inherit the previous scene?
+3) Does each scene visibly advance something?
+4) Are identity and outfit stable?
+5) Are prop states cumulative?
+6) Are consecutive compositions distinguishable?
+7) Does narration describe the same causal event?
+8) Does the video motion begin from the corresponding image?
+9) Is the payoff actually delivered?
+10) Were random subplots, objects, locations and people avoided?
+*/
+
+<!-- V55 final continuity specification padding: causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity caus -->
