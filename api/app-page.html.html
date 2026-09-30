@@ -392,31 +392,59 @@ function pick(i,el){
 }
 function buildDynamicStory(idea,n){
  const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
- const p=meta?.profile||null;
- const ctx=p?.en||{};
- const place=ctx.place||"the location directly implied by the title";
- const activity=ctx.activity||"the activity directly implied by the title";
- const object=ctx.object||"the key object directly implied by the title";
- const situation=ctx.situation||idea;
- const social=ctx.social||"natural supporting interaction relevant to the event";
- const emotion=ctx.emotion||"natural and cinematic";
- const person=ctx.person||"supporting people only when required by the title";
- const phases=[
-  `OPENING / VISUAL HOOK — Establish ${place}. The main character is already ${activity}. Make the title event immediately readable through action: ${situation}. Keep ${object} visible only when relevant. End with a physical action or discovery that naturally starts the next scene.`,
-  `DEVELOPMENT — Continue directly from the previous ending in the same story. The main character reacts physically to ${situation} while continuing ${activity}. ${person} may react through body language only. No dialogue. End with the situation becoming more difficult or more interesting.`,
-  `ESCALATION — Show clear cause-and-effect from the previous scene. The same event intensifies through ${social}. Keep the same character identity, wardrobe, important props, time, weather, and environment unless a visible transition justifies a change.`,
-  `CONSEQUENCE — Show the direct result of the escalation. The main character must actively deal with ${object} or the central situation. Move visually toward the promised payoff; do not start a second storyline.`,
-  `RESOLUTION / PAYOFF — Resolve the exact event promised by the title: ${situation}. Give a clear visual result with a ${emotion} feeling. The final pose/action must feel earned by the previous scenes.`
- ];
- let scenes=[];
- for(let i=0;i<n;i++){
-   let phase;
-   if(i===0) phase=phases[0];
-   else if(i===n-1) phase=phases[4];
-   else { const t=(i)/(Math.max(1,n-1)); phase=t<.45?phases[1]:t<.75?phases[2]:phases[3]; }
-   scenes.push(phase);
+ const p=meta?.profile||null, ctx=p?.en||{}, raw=p?.raw||{};
+ const place=ctx.place||raw.place||"lokasi yang secara langsung tersirat oleh judul";
+ const activity=ctx.activity||raw.activity||"aktivitas yang secara langsung tersirat oleh judul";
+ const object=ctx.object||raw.object||"properti penting yang memang disebut/tersirat oleh judul";
+ const situation=ctx.situation||raw.situation||idea;
+ const social=ctx.social||raw.social||"reaksi pendukung yang hanya berkaitan dengan kejadian utama";
+ const emotion=ctx.emotion||raw.emotion||"natural sesuai perkembangan kejadian";
+ const hook=meta?.hook||`Mulai langsung dari momen yang membuat judul \"${idea}\" terbaca secara visual.`;
+ const payoff=meta?.payoff||`Tutup dengan akibat atau penyelesaian yang langsung menjawab kejadian \"${idea}\".`;
+ const total=Math.max(1,+n||5), scenes=[];
+ let previousEnd=`Karakter utama sudah berada di ${place}, menjalani ${activity}; keadaan, waktu, pakaian, properti, dan posisi awal dibuat jelas.`;
+ for(let i=1;i<=total;i++){
+   const t=(i-1)/Math.max(1,total-1);
+   let fungsi,aksi,endState;
+   if(i===1){
+     fungsi="Opening / Hook";
+     aksi=`Perlihatkan ${hook} Kejadian utama \"${situation}\" mulai terlihat melalui aksi nyata, bukan dialog.`;
+     endState=`Karakter utama menyadari atau mulai terdampak oleh \"${situation}\"; posisi karakter dan ${object} tetap jelas untuk dilanjutkan.`;
+   }else if(i===total){
+     fungsi="Ending / Payoff";
+     aksi=`Lanjutkan persis dari kondisi sebelumnya lalu selesaikan \"${situation}\". ${payoff}`;
+     endState=`Kejadian utama selesai secara visual; hasil akhirnya jelas, logis, dan tetap berada dalam dunia cerita yang sama.`;
+   }else if(t<0.45){
+     fungsi="Perkembangan";
+     aksi=`Karakter utama merespons akibat langsung dari \"${situation}\" sambil tetap menjalani ${activity}. Jika ada karakter pendukung, reaksinya hanya mendukung kejadian ini: ${social}.`;
+     endState=`Masalah/kejadian berkembang satu langkah secara sebab-akibat; tidak ada lokasi, karakter, atau properti baru yang tidak diperlukan.`;
+   }else if(t<0.78){
+     fungsi="Klimaks / Eskalasi";
+     aksi=`Konsekuensi dari scene sebelumnya mencapai titik paling penting. Karakter utama aktif menghadapi \"${situation}\" dan berinteraksi logis dengan ${object}.`;
+     endState=`Aksi klimaks menghasilkan kondisi yang secara langsung membuka jalan menuju penyelesaian.`;
+   }else{
+     fungsi="Konsekuensi menuju Ending";
+     aksi=`Tunjukkan akibat langsung dari klimaks tanpa membuka cerita baru. Karakter utama bergerak menuju penyelesaian \"${situation}\".`;
+     endState=`Kondisi sudah siap untuk payoff akhir; semua properti, posisi, waktu, dan lingkungan tetap konsisten.`;
+   }
+   scenes.push({index:i,fungsi,start:previousEnd,action:aksi,end:endState,event:`${fungsi}: ${aksi}`});
+   previousEnd=endState;
  }
- return {theme:p?.world||"title-locked cinematic story",scenes,locked:true,ctx:{place,activity,object,situation,social,emotion,person}};
+ return {theme:p?.world||"title-locked cinematic story",scenes,locked:true,hook,payoff,ctx:{place,activity,object,situation,social,emotion}};
+}
+
+function scenes(){
+ let idea=v("idea").trim(); if(!idea)return alert("Masukkan judul/ide dulu.");
+ if(!chosen)return alert("Pilih karakter dulu.");
+ let n=+v("n"),story=buildDynamicStory(idea,n);
+ let camera=["Establishing Wide Shot","Medium Tracking Shot","Medium Close-Up","Over-the-Shoulder","Wide Payoff Shot"];
+ let h=`<div class="card" id="storyboard"><label>🎞️ STORYBOARD TERKUNCI KE JUDUL</label><p class="muted">Kondisi akhir scene sebelumnya otomatis menjadi dasar scene berikutnya. Edit hanya kalau memang dibutuhkan cerita.</p>`;
+ story.scenes.forEach((s,i)=>{
+   let cam=camera[Math.min(camera.length-1,Math.floor(i*camera.length/Math.max(1,n)))];
+   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(s.fungsi)}</h3><b>Kondisi Awal</b><div class="result">${e(s.start)}</div><br><b>Aksi / Kejadian</b><textarea id="sd${i+1}">${e(s.action)}</textarea><br><br><b>Kondisi Akhir</b><div class="result">${e(s.end)}</div><br><label>ANGLE KAMERA</label><select id="sc${i+1}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option ${x===cam?"selected":""}>${x}</option>`).join("")}</select></div>`;
+ });
+ h+=`<div class="actions"><button class="primary" onclick="prompts()">✨ Generate Prompt Gambar + Video + Narasi</button></div></div>`;
+ flow.insertAdjacentHTML("beforeend",h); document.getElementById("storyboard").scrollIntoView({behavior:"smooth"});
 }
 
 function fitLifeNarration(parts,dur){
@@ -593,55 +621,43 @@ function buildLifeNarration(idea,dur){
  }
  return fitLifeNarration(p,dur);
 }
+function buildLockedNarration(story,dur){
+ const c=story.ctx||{}, title=v("idea").trim();
+ const meta=(selectedIdeaMeta && selectedIdeaMeta.title===title)?selectedIdeaMeta:null;
+ let parts=[];
+ parts.push(meta?.hook||`Awalnya semuanya terlihat biasa, sampai kejadian \"${title}\" benar-benar mulai terjadi.`);
+ if(story.scenes.length>2) parts.push(`Dari situ, situasinya berkembang pelan-pelan. Karakter utama tetap menjalani ${c.activity}, tapi setiap aksi membawa akibat berikutnya.`);
+ if(story.scenes.length>3) parts.push(`Kejadian itu makin terasa ketika ${c.situation}, dan semua yang terjadi tetap berpusat pada momen yang sama.`);
+ parts.push(meta?.payoff||`Pada akhirnya, kejadian \"${title}\" sampai pada hasil yang jelas dan terasa sebagai penutup dari rangkaian yang sama.`);
+ let text=fitLifeNarration(parts,+dur);
+ return addNarrationCTA(text,title);
+}
 function prompts(){
- let n=+v("n"),style=v("style"),idea=v("idea");
- const story=buildDynamicStory(idea,n);
- const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
- const ctx=story.ctx||{};
- const cameraPlan=[
-  ["Establishing wide shot","slow dolly in"],
-  ["Medium side tracking shot","smooth tracking movement"],
-  ["Medium close-up / detail insert","subtle dolly in"],
-  ["Over-the-shoulder or high-angle shot","controlled pan following the action"],
-  ["Wide payoff shot","slow dolly out"]
- ];
+ let n=+v("n"),style=v("style"),idea=v("idea").trim();
+ const story=buildDynamicStory(idea,n),ctx=story.ctx||{};
+ const cameraMotion={"Establishing Wide Shot":"slow dolly in","Wide Shot":"slow controlled dolly","Full Shot":"gentle tracking","Medium Shot":"subtle push in","Medium Close-Up":"subtle dolly in","Close-Up":"very subtle push in","Low Angle":"slow controlled tilt","High Angle":"slow controlled tilt down","Top-Down":"minimal overhead drift","Side Shot":"smooth side tracking","Front Shot":"gentle backward tracking","Back Shot":"smooth follow shot","Over-the-Shoulder":"controlled over-the-shoulder follow","Tracking Shot":"smooth tracking movement"};
  let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
- let h=`<div class="card" id="prompts"><label>🎬 CERITA VISUAL SINEMATIK</label><p class="muted">Judul sekarang menjadi sumber utama cerita. Semua scene tersambung kronologis, tanpa dialog, dengan Character Lock, Environment Lock, Image→Video continuity, dan transisi yang jelas.</p>`;
- let narrationBeats=[];
+ let h=`<div class="card" id="prompts"><label>🎬 FINAL PROMPTS • STORY LOCK</label><p class="muted">Judul → cerita → satu narasi → scene → image → video. Image adalah starting frame video; ending video menjadi dasar scene berikutnya.</p>`;
  for(let i=1;i<=n;i++){
-   const d=v("sd"+i)||story.scenes[i-1];
-   const prev=i>1?(v("sd"+(i-1))||story.scenes[i-2]):"the opening state implied by the title";
-   const next=i<n?(v("sd"+(i+1))||story.scenes[i]):"the final resolved state";
-   const cp=cameraPlan[Math.min(cameraPlan.length-1,Math.floor((i-1)*cameraPlan.length/Math.max(1,n)))];
-   const selectedCamera=v("sc"+i)||cp[0];
-   const angle=selectedCamera||cp[0], movement=cp[1];
-   const continuity=`TITLE LOCK: ${idea}. Same main character, same hairstyle, body proportions, outfit colors/materials and accessories. Same visual style: ${style}. Preserve important environment geometry, time, weather and key props unless the story visibly changes them.`;
-   const transition=i<n?`End this shot in a physical state that can directly begin Scene ${i+1}: ${next}`:`End on the clear visual payoff/resolution of the title.`;
-   const ip=`Vertical 9:16. ${style}. ${continuity} SCENE ${i}/${n} — INITIAL STILL FRAME: ${d} The image must show the exact beginning state of this scene, logically continuing from Scene ${Math.max(1,i-1)}. Main character: ${chosen}. Location: ${ctx.place||"as required by the title"}. Activity: ${ctx.activity||"as required by the title"}. Key object: ${ctx.object||"only the relevant key object"}. Show emotion only through posture, gesture and body language; no speaking. Camera angle/framing: ${angle}. Cinematic composition, physically believable blocking, detailed environment, consistent lighting and depth of field, natural relevant props only. If faceless, keep the face completely featureless. No dialogue, no subtitle, no speech bubble, no readable text, no random character, no unrelated prop, no teleportation, no duplicate main character, no watermark.`;
-   const vp=`Vertical 9:16 cinematic animation. START FROM THE IMAGE PROMPT STATE EXACTLY — do not skip ahead. ${continuity} SCENE ${i}/${n}: ${d} Animate the main character from that exact starting pose with clear body, hand and foot movement appropriate to the action. Animate ${ctx.object||"relevant objects"} only when physically affected by the action. Add subtle environment motion only when logical. Camera: ${angle}; camera movement: ${movement}; movement should be smooth, realistic and readable. No dialogue, lip-sync, monologue, subtitle, speech bubble or character speaking to camera. ${transition} The final position, direction, held objects and environment state must logically connect to the next scene. No morphing, no teleportation, no random cutaway, no unrelated action, no extra limbs, no duplicate main character, no readable text, no watermark.`;
-   const cerita=`${d} Transisi: ${transition}`;
-   narrationBeats.push(i===1?(meta?.hook||`Awalnya, ${idea}.`):i===n?(meta?.payoff||`Akhirnya kejadian itu sampai ke hasil yang jelas.`):`Situasinya terus berkembang dari kejadian sebelumnya tanpa pindah ke cerita lain.`);
-   txt+=`\nSCENE ${String(i).padStart(2,"0")}\nCERITA: ${cerita}\nANGLE KAMERA: ${angle}\nGERAKAN KAMERA: ${movement}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\nTRANSISI: ${transition}\n`;
-   h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")}</h3><b>🎞️ CERITA</b><div class="result">${e(cerita)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button><br><br><b>➡️ TRANSISI</b><div class="result">${e(transition)}</div></div>`;
+   const base=story.scenes[i-1], edited=(document.getElementById("sd"+i)?.value||base.action).trim();
+   const angle=(document.getElementById("sc"+i)?.value)||"Medium Shot", movement=cameraMotion[angle]||"smooth controlled camera movement";
+   const prev=i>1?story.scenes[i-2].end:base.start, next=i<n?story.scenes[i].start:"final resolved state";
+   const continuity=`TITLE LOCK: \"${idea}\". CHARACTER LOCK: ${chosen}. VISUAL STYLE LOCK: ${style}. ENVIRONMENT LOCK: ${ctx.place}; preserve architecture, layout, time, weather, lighting and relevant props. PROP LOCK: ${ctx.object}. Keep the exact same main-character identity, hairstyle, clothing, colors, proportions and accessories.`;
+   const ip=`Vertical 9:16. ${continuity} SCENE ${i}/${n}. FUNCTION: ${base.fungsi}. CONTINUITY FROM PREVIOUS SCENE: ${prev} INITIAL STATE: ${base.start} EXACT EVENT TO DEPICT: ${edited} The frame must show the BEGINNING of this scene before the video movement develops. Main character position, body direction, pose, hands, feet, held objects and relationship to ${ctx.object} must be physically clear. Environment/location: ${ctx.place}. Ongoing activity: ${ctx.activity}. Camera: ${angle}, intentional cinematic framing and composition with coherent foreground, middle ground and background. Consistent lighting, shadows, depth of field, material and rendering quality. Emotion only through posture and body language. If faceless, absolutely no eyes, eyebrows, eyelashes, nose, nostrils, mouth, lips, ears or face-like shadows. No dialogue, text, subtitle, speech bubble, watermark, logo, random character, random prop, duplicate main character, extra limbs, malformed hands/feet, floating objects, teleportation, sudden location/time/weather/lighting change.`;
+   const vp=`Vertical 9:16 cinematic animation. USE THE IMAGE PROMPT AS THE EXACT STARTING FRAME. ${continuity} SCENE ${i}/${n}. START: ${base.start} MOVEMENT: ${edited} Animate only logical body movement: posture shift, head direction, hands, feet and object interaction required by this action. Objects move only when physically touched or affected. Environment motion stays subtle and logical. CAMERA: ${angle}; ${movement}; smooth readable timing, no random camera move. DEVELOPMENT: continue the same cause-and-effect event without adding a second storyline. END POSITION: ${base.end} The final character position, direction, held objects, prop state, environment, time and lighting must make Scene ${i<n?i+1:"ending"} begin naturally from: ${next}. No speaking, lip-sync, monologue, subtitles, speech bubbles, morphing, teleportation, wardrobe/hairstyle change, character appearing/disappearing, random cutaway, extra limbs, malformed anatomy, floating objects, readable text, watermark or logo.`;
+   txt+=`\nSCENE ${String(i).padStart(2,"0")}\nFUNGSI: ${base.fungsi}\nKONDISI AWAL: ${base.start}\nAKSI: ${edited}\nKONDISI AKHIR: ${base.end}\nANGLE KAMERA: ${angle}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
+   h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")} • ${e(base.fungsi)}</h3><b>🎬 KONDISI AWAL → AKSI → KONDISI AKHIR</b><div class="result">AWAL: ${e(base.start)}\n\nAKSI: ${e(edited)}\n\nAKHIR: ${e(base.end)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
  }
- let dur=+v("duration");
- let baseNarr=buildLifeNarration(idea,dur);
- let fullNarr=addNarrationCTA(baseNarr,idea);
- let cover=`Vertical 9:16 cover / thumbnail, ${style}. Same locked main character: ${chosen}. Create one instantly readable hero composition representing the exact title: "${idea}". Preserve character identity, wardrobe, environment logic and key object from the story. Strong cinematic body language, clear focal point, no generated text, no watermark.`;
+ let dur=+v("duration"),fullNarr=buildLockedNarration(story,dur);
+ let cover=`Vertical 9:16 cover, ${style}. Same locked main character: ${chosen}. Represent only the core event of the title \"${idea}\" in ${ctx.place}. Preserve the same wardrobe, identity, key prop (${ctx.object}), lighting logic and visual world. Strong readable body language, cinematic composition, no generated text, no watermark, no logo.`;
  let caption=`${idea}\n\nSatu kejadian, satu alur, dari hook sampai payoff. ✨\n\n#animation #storytelling #3danimation #facelesscontent`;
  txt+=`\nNARASI UTUH (${dur} DETIK)\n${fullNarr}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
- project=txt; lastNarration=fullNarr; lastCover=cover; lastCaption=caption; addVizexHistory("Paket Animasi",idea);
- h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Satu narasi gabungan yang mengikuti alur scene dari pembukaan sampai payoff.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
+ project=txt;lastNarration=fullNarr;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Satu narasi saja. Scene hanya membagi visual; narasi mengikuti urutan kejadian yang sama.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER</label><div class="result">${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h);
- document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
+ flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
-
-
-
-
-
 
 function generatePremiumIdeas(){
  const topic=(v("ideaNiche")||"").trim();
