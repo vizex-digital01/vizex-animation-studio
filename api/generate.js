@@ -66,7 +66,7 @@ LOCKED MAIN CHARACTER: ${String(character).trim()}
 
 Generate the complete production package now.`;
 
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
     const rr = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: {
