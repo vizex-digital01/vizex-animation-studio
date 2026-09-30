@@ -1,0 +1,25 @@
+VIZEX V45 — UPLOAD SEMUA
+
+1. Extract ZIP ini.
+2. Buka repo GitHub lo.
+3. Klik Add file > Upload files.
+4. Drag SEMUA isi folder ini ke GitHub.
+5. Kalau ditanya replace file lama, lanjutkan / overwrite.
+6. Commit changes.
+7. Tunggu Vercel deploy otomatis.
+8. Refresh website pakai Ctrl + Shift + R.
+
+Folder penting:
+- api/
+- assets/
+- private/
+
+File penting:
+- index.html
+- package.json
+- .gitignore
+- .env.example
+
+Environment Variable Vercel TIDAK perlu dibuat ulang:
+- SESSION_SECRET
+- CUSTOMERS_JSON

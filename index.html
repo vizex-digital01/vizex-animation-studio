@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vizex Studio — Login</title>
+<style>
+:root{--bg:#f6efe4;--card:#fffaf2;--line:#d8c8b6;--text:#2f241b;--muted:#7b6a5b;--purple:#c4976b;--purple2:#d2a679;--green:#22c55e;--danger:#fca5a5}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:
+radial-gradient(circle at 15% 15%,rgba(210,166,121,.20),transparent 30%),
+radial-gradient(circle at 85% 85%,rgba(184,137,91,.14),transparent 35%),var(--bg);
+color:var(--text);font:14px Inter,system-ui,Arial}
+.wrap{width:min(460px,100%)}
+.card{background:rgba(255,250,242,.98);border:1px solid var(--line);border-radius:24px;padding:28px;box-shadow:0 30px 80px rgba(92,67,45,.12)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #c99768;box-shadow:0 8px 22px rgba(92,67,45,.14)}
+.logo{font-size:28px;font-weight:950;letter-spacing:-.03em}.logo b{color:#c18d5d}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.status{display:inline-flex;align-items:center;gap:7px;border:1px solid #cfbca7;border-radius:999px;padding:6px 9px;color:#5f5144;font-size:11px;background:#f3e7d7}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(34,197,94,.35)}
+h1{font-size:34px;line-height:1.05;margin:28px 0 8px;letter-spacing:-.03em}
+p{color:var(--muted);line-height:1.6;margin:0}
+label{display:block;font-size:11px;font-weight:900;letter-spacing:.05em;margin:18px 0 8px}
+input{width:100%;background:#fffdf8;color:#2f241b;border:1px solid #cdbba7;border-radius:12px;padding:14px;font:inherit;outline:none}
+input:focus{border-color:#c4976b;box-shadow:0 0 0 3px rgba(184,137,91,.14)}
+button{width:100%;margin-top:18px;border:0;border-radius:12px;background:linear-gradient(135deg,#e8c59e,#c99768);color:#2f241b;font-weight:900;padding:14px;cursor:pointer;font-size:15px}
+button:hover{filter:brightness(1.06)}
+.err{min-height:20px;color:var(--danger);font-size:12px;margin-top:10px}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.linkbtn{display:flex;justify-content:center;align-items:center;text-decoration:none;text-align:center;border:1px solid #c5b099;border-radius:11px;padding:11px;color:#4d4035;background:#f3e7d7;font-weight:800;font-size:12px}
+.buy{border-color:#b8895b;background:#efe0cf}
+.license{margin-top:16px;padding:12px 13px;border:1px solid #d6c5b1;border-radius:12px;background:#f3e7d7;color:#7b6a5b;font-size:11px;line-height:1.55}
+.footer{display:flex;justify-content:space-between;gap:8px;margin-top:14px;color:#8d7a68;font-size:10px}
+@media(max-width:480px){.card{padding:22px}.links{grid-template-columns:1fr}.topline{align-items:flex-start}.status{white-space:nowrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="topline">
+      <div class="brand">
+      <img src="/assets/vizex-logo.png" class="brand-logo" alt="Vizex Studio logo">
+      <div class="logo">vizex<b>.studio</b></div>
+    </div>
+      <div class="status"><span class="dot"></span> Sistem Online</div>
+    </div>
+
+    <h1>Masuk ke Tools</h1>
+    <p>Masukkan email dan kode akses yang diberikan admin Vizex.</p>
+
+    <label>EMAIL</label>
+    <input id="email" type="email" autocomplete="email" placeholder="nama@email.com">
+
+    <label>KODE AKSES</label>
+    <input id="code" type="password" autocomplete="current-password" placeholder="Masukkan kode akses" onkeydown="if(event.key==='Enter')login()">
+
+    <div class="err" id="err"></div>
+    <button id="loginBtn" onclick="login()">Masuk</button>
+
+    <div class="links">
+      <a class="linkbtn buy" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20mau%20beli%20akses." target="_blank" rel="noopener">🛒 Beli Akses</a>
+      <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20butuh%20bantuan%20login." target="_blank" rel="noopener">💬 Hubungi Admin</a>
+    </div>
+
+    <div class="license">🔒 Lisensi akses hanya untuk pemilik akun. Dilarang menjual ulang, membagikan akses, atau mendistribusikan tools tanpa izin.</div>
+
+    <div class="footer">
+      <span>Vizex Studio v1.0</span>
+      <span>Licensed Access</span>
+    </div>
+  </div>
+</div>
+
+<script>
+async function login(){
+ const err=document.getElementById("err");
+ const btn=document.getElementById("loginBtn");
+ err.textContent="Memeriksa...";
+ btn.disabled=true;
+ try{
+   const r=await fetch("/api/login",{
+     method:"POST",
+     credentials:"include",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({
+       email:document.getElementById("email").value.trim(),
+       code:document.getElementById("code").value.trim()
+     })
+   });
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok){err.textContent=d.error||"Login gagal";return}
+   location.href="/api/app";
+ }catch(e){
+   err.textContent="Tidak bisa terhubung ke server.";
+ }finally{
+   btn.disabled=false;
+ }
+}
+</script>
+</body>
+</html>

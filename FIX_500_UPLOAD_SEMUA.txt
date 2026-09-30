@@ -1,0 +1,18 @@
+V46 FIX 500
+
+Masalah 500 terjadi di fungsi /api/app.
+Fix ini memaksa Vercel menyertakan private/app.html ke function bundle.
+
+UPLOAD SEMUA ISI ZIP INI KE ROOT REPO GITHUB, terutama:
+- api/app.js
+- vercel.json
+- private/app.html
+
+Setelah Commit:
+1. Tunggu Vercel deployment terbaru Ready.
+2. Login lagi.
+3. Kalau browser menyimpan halaman lama, Ctrl + Shift + R.
+
+Environment Variable tetap:
+- SESSION_SECRET
+- CUSTOMERS_JSON
