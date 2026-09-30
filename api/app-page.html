@@ -1617,16 +1617,11 @@ function v53VideoMotionBlock(story,sceneIndex){
 
 function v53NarrationGuard(text,title){
   let x=String(text||"").replace(/\s+/g," ").trim();
-  const bad=[
-    /awalnya gue kira hari itu bakal berjalan biasa aja\.?/gi,
-    /gue tetap menjalani aktivitas seperti biasa\.?/gi,
-    /bergerak dari satu hal ke hal berikutnya\.?/gi,
-    /ngurus detail kecil yang biasanya nggak terlalu dipikirin\.?/gi,
-    /situasinya pelan-pelan jadi makin terasa nyata\.?/gi
-  ];
-  bad.forEach(r=>x=x.replace(r,""));
-  x=x.replace(/\s+/g," ").trim();
-  if(!x) x=`${title}. Kejadiannya berkembang dari pemicu, respons, sampai akibat akhirnya secara langsung.`;
+  if(!x) return "";
+  // Do NOT rewrite story content here. Narration must remain the narration
+  // generated from the title-first causal story; this guard only cleans spacing.
+  const hasCTA=/(pernah|kalau lo|menurut lo|ceritain|komen|komentar|versi lo|gimana menurut)/i.test(x);
+  if(!hasCTA) x += " Pernah ngalamin juga? Ceritain versi lo di komentar.";
   return x;
 }
 
