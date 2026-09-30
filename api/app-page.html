@@ -1524,23 +1524,6 @@ function copyEncoded(el){
  try{ copyText(decodeURIComponent(el.dataset.copy||"")); }
  catch(err){ copyText(el.dataset.copy||""); }
 }
-</script>
-<script>
-async function verifySimpleSession(){
-  try{
-    const r=await fetch("/api/me",{credentials:"include"});
-    if(!r.ok){location.replace("/");return;}
-    const d=await r.json();
-    const tag=document.getElementById("userTag");
-    if(tag)tag.textContent=(d.name||d.email)+" • "+(d.plan||"PRO");
-  }catch(e){location.replace("/");}
-}
-async function logoutVizex(){
-  try{await fetch("/api/logout",{method:"POST",credentials:"include"});}catch(e){}
-  location.replace("/");
-}
-verifySimpleSession();
-</script>
 
 
 /* V55 VISUAL CONTINUITY ENGINE
@@ -1657,233 +1640,23 @@ function v53NarrationGuard(text,title){
    6. It contains no instruction to upload/reference another image for text-to-image generation.
 */
 
+</script>
+<script>
+async function verifySimpleSession(){
+  try{
+    const r=await fetch("/api/me",{credentials:"include"});
+    if(!r.ok){location.replace("/");return;}
+    const d=await r.json();
+    const tag=document.getElementById("userTag");
+    if(tag)tag.textContent=(d.name||d.email)+" • "+(d.plan||"PRO");
+  }catch(e){location.replace("/");}
+}
+async function logoutVizex(){
+  try{await fetch("/api/logout",{method:"POST",credentials:"include"});}catch(e){}
+  location.replace("/");
+}
+verifySimpleSession();
+</script>
+
+
 </body></html>
-/*
-V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
-A. TITLE AUTHORITY
-- The selected title is the highest-level source of truth.
-- The story may infer only the minimum facts required to make the title physically playable.
-- Never replace a specific title event with a generic daily-life montage.
-- Every scene must answer: what changed because of the title event?
-
-B. CAUSAL STORY SPINE
-- Scene 1 establishes only the state required for the trigger.
-- Scene 2 exposes the trigger or first irreversible change.
-- Middle scenes show direct response and escalation from that same trigger.
-- Penultimate beat shows the strongest consequence.
-- Final beat resolves or lands the title's promised payoff.
-- No second conflict may appear merely to make the story feel busier.
-
-C. CHARACTER IDENTITY
-- Identity attributes are immutable across all scenes.
-- Pose is not identity. Pose must change when the action changes.
-- Supporting characters must remain visually separable from the main character.
-- A group scene must not accidentally clone the main character.
-
-D. ENVIRONMENT CONTINUITY
-- One event keeps one coherent geography unless the title explicitly requires travel.
-- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
-- Lighting progresses only when elapsed time in the story justifies it.
-- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
-
-E. PROP STATE MEMORY
-- Each important prop has a state before and after every beat.
-- State transitions are irreversible unless a scene explicitly reverses them.
-- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
-- Do not respawn a consumed, discarded or broken object.
-
-F. COMPOSITION PROGRESSION
-- Consecutive scenes should not share the same character arrangement and camera framing.
-- Visual variety must come from story progression, not random scenery changes.
-- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
-- Camera changes cannot hide continuity errors.
-
-G. IMAGE PROMPT CONTRACT
-- Every image prompt is standalone text-to-image.
-- Never ask for an uploaded reference.
-- State identity lock separately from scene-state instructions.
-- State previous physical state, current action, and forbidden future action.
-- Describe only visible information useful to the current frame.
-- Avoid abstract narrative words when a physical action can express the same idea.
-
-H. VIDEO PROMPT CONTRACT
-- Treat the scene image as frame zero.
-- Motion starts from exactly the depicted pose and prop state.
-- Specify who moves, what moves, direction, tempo and end state.
-- No teleporting, costume changes, spontaneous new props or new characters.
-- End state must be compatible with the next scene.
-
-I. NARRATION CONTRACT
-- Narration tells the same event shown by the scene sequence.
-- Prefer concrete event language over filler.
-- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
-- The narration may compress scenes but cannot contradict their order.
-- CTA appears only after the story has actually landed.
-
-J. FINAL SELF-CHECK
-Before presenting a generated package, conceptually verify:
-1) Can every scene be traced to the title?
-2) Does every scene physically inherit the previous scene?
-3) Does each scene visibly advance something?
-4) Are identity and outfit stable?
-5) Are prop states cumulative?
-6) Are consecutive compositions distinguishable?
-7) Does narration describe the same causal event?
-8) Does the video motion begin from the corresponding image?
-9) Is the payoff actually delivered?
-10) Were random subplots, objects, locations and people avoided?
-*/
-
-/*
-V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
-A. TITLE AUTHORITY
-- The selected title is the highest-level source of truth.
-- The story may infer only the minimum facts required to make the title physically playable.
-- Never replace a specific title event with a generic daily-life montage.
-- Every scene must answer: what changed because of the title event?
-
-B. CAUSAL STORY SPINE
-- Scene 1 establishes only the state required for the trigger.
-- Scene 2 exposes the trigger or first irreversible change.
-- Middle scenes show direct response and escalation from that same trigger.
-- Penultimate beat shows the strongest consequence.
-- Final beat resolves or lands the title's promised payoff.
-- No second conflict may appear merely to make the story feel busier.
-
-C. CHARACTER IDENTITY
-- Identity attributes are immutable across all scenes.
-- Pose is not identity. Pose must change when the action changes.
-- Supporting characters must remain visually separable from the main character.
-- A group scene must not accidentally clone the main character.
-
-D. ENVIRONMENT CONTINUITY
-- One event keeps one coherent geography unless the title explicitly requires travel.
-- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
-- Lighting progresses only when elapsed time in the story justifies it.
-- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
-
-E. PROP STATE MEMORY
-- Each important prop has a state before and after every beat.
-- State transitions are irreversible unless a scene explicitly reverses them.
-- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
-- Do not respawn a consumed, discarded or broken object.
-
-F. COMPOSITION PROGRESSION
-- Consecutive scenes should not share the same character arrangement and camera framing.
-- Visual variety must come from story progression, not random scenery changes.
-- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
-- Camera changes cannot hide continuity errors.
-
-G. IMAGE PROMPT CONTRACT
-- Every image prompt is standalone text-to-image.
-- Never ask for an uploaded reference.
-- State identity lock separately from scene-state instructions.
-- State previous physical state, current action, and forbidden future action.
-- Describe only visible information useful to the current frame.
-- Avoid abstract narrative words when a physical action can express the same idea.
-
-H. VIDEO PROMPT CONTRACT
-- Treat the scene image as frame zero.
-- Motion starts from exactly the depicted pose and prop state.
-- Specify who moves, what moves, direction, tempo and end state.
-- No teleporting, costume changes, spontaneous new props or new characters.
-- End state must be compatible with the next scene.
-
-I. NARRATION CONTRACT
-- Narration tells the same event shown by the scene sequence.
-- Prefer concrete event language over filler.
-- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
-- The narration may compress scenes but cannot contradict their order.
-- CTA appears only after the story has actually landed.
-
-J. FINAL SELF-CHECK
-Before presenting a generated package, conceptually verify:
-1) Can every scene be traced to the title?
-2) Does every scene physically inherit the previous scene?
-3) Does each scene visibly advance something?
-4) Are identity and outfit stable?
-5) Are prop states cumulative?
-6) Are consecutive compositions distinguishable?
-7) Does narration describe the same causal event?
-8) Does the video motion begin from the corresponding image?
-9) Is the payoff actually delivered?
-10) Were random subplots, objects, locations and people avoided?
-*/
-
-/*
-V55 IMPLEMENTATION CONTRACT — FINAL CONTINUITY RULESET
-A. TITLE AUTHORITY
-- The selected title is the highest-level source of truth.
-- The story may infer only the minimum facts required to make the title physically playable.
-- Never replace a specific title event with a generic daily-life montage.
-- Every scene must answer: what changed because of the title event?
-
-B. CAUSAL STORY SPINE
-- Scene 1 establishes only the state required for the trigger.
-- Scene 2 exposes the trigger or first irreversible change.
-- Middle scenes show direct response and escalation from that same trigger.
-- Penultimate beat shows the strongest consequence.
-- Final beat resolves or lands the title's promised payoff.
-- No second conflict may appear merely to make the story feel busier.
-
-C. CHARACTER IDENTITY
-- Identity attributes are immutable across all scenes.
-- Pose is not identity. Pose must change when the action changes.
-- Supporting characters must remain visually separable from the main character.
-- A group scene must not accidentally clone the main character.
-
-D. ENVIRONMENT CONTINUITY
-- One event keeps one coherent geography unless the title explicitly requires travel.
-- Doors, windows, tables, beds, food, bags, tools and other visible anchors retain their relative logic.
-- Lighting progresses only when elapsed time in the story justifies it.
-- The environment may become messier/cleaner/wetter/emptier only as a consequence of shown actions.
-
-E. PROP STATE MEMORY
-- Each important prop has a state before and after every beat.
-- State transitions are irreversible unless a scene explicitly reverses them.
-- Quantity must progress logically: food eaten decreases; containers opened stay open; objects moved remain at the new position.
-- Do not respawn a consumed, discarded or broken object.
-
-F. COMPOSITION PROGRESSION
-- Consecutive scenes should not share the same character arrangement and camera framing.
-- Visual variety must come from story progression, not random scenery changes.
-- Establishing -> action -> reaction/detail -> climax -> aftermath is the default camera rhythm.
-- Camera changes cannot hide continuity errors.
-
-G. IMAGE PROMPT CONTRACT
-- Every image prompt is standalone text-to-image.
-- Never ask for an uploaded reference.
-- State identity lock separately from scene-state instructions.
-- State previous physical state, current action, and forbidden future action.
-- Describe only visible information useful to the current frame.
-- Avoid abstract narrative words when a physical action can express the same idea.
-
-H. VIDEO PROMPT CONTRACT
-- Treat the scene image as frame zero.
-- Motion starts from exactly the depicted pose and prop state.
-- Specify who moves, what moves, direction, tempo and end state.
-- No teleporting, costume changes, spontaneous new props or new characters.
-- End state must be compatible with the next scene.
-
-I. NARRATION CONTRACT
-- Narration tells the same event shown by the scene sequence.
-- Prefer concrete event language over filler.
-- Do not invent motivations, backstory or outcomes absent from the title/causal spine.
-- The narration may compress scenes but cannot contradict their order.
-- CTA appears only after the story has actually landed.
-
-J. FINAL SELF-CHECK
-Before presenting a generated package, conceptually verify:
-1) Can every scene be traced to the title?
-2) Does every scene physically inherit the previous scene?
-3) Does each scene visibly advance something?
-4) Are identity and outfit stable?
-5) Are prop states cumulative?
-6) Are consecutive compositions distinguishable?
-7) Does narration describe the same causal event?
-8) Does the video motion begin from the corresponding image?
-9) Is the payoff actually delivered?
-10) Were random subplots, objects, locations and people avoided?
-*/
-
-<!-- V55 final continuity specification padding: causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity causal-continuity caus -->
