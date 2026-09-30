@@ -692,6 +692,20 @@ function naturalFoodNarration(story,dur){
  return addNarrationCTA(fitLifeNarration(parts,+dur),idea);
 }
 
+
+/* V59 CTA VARIATION ENGINE */
+function ctaSeed(text,salt=0){let h=salt|0;for(const ch of String(text||""))h=((h<<5)-h+ch.charCodeAt(0))|0;return Math.abs(h)}
+function storyCTA(title,kind="narration"){
+ const t=normStoryText(title);
+ let n=["Pernah ngalamin yang kayak gini juga? Ceritain versi lo.","Kalau lo ada di posisi ini, bakal ngapain?","Ada yang pernah ngalamin kejadian serupa?","Menurut lo, bagian paling relate yang mana?","Kalau punya cerita yang mirip, ceritain di komentar.","Kalau ini kejadian ke lo, reaksi pertama lo apa?"];
+ let c=["Relate nggak? Drop cerita lo di komentar 👇","Kalau pernah ngalamin, ceritain versi lo 👇","Tag teman yang paling mungkin bikin kejadian kayak gini 😭","Lo bakal bereaksi gimana kalau ada di situasi ini?","Tim pernah ngalamin atau belum? 👀","Bagian mana yang paling relate buat lo?","Punya cerita yang lebih chaos? Tulis di komentar 😂","Save kalau kejadian kayak gini terlalu relate buat dilupain."];
+ if(/mie|makan|ramen|nasi|jajan|kopi|minum|snack/.test(t)){
+  n.push("Kalau makanan lo tiba-tiba jadi jatah rame-rame, lo ikhlas nggak?","Pernah niat makan sendiri tapi malah berakhir makan bareng juga?");
+  c.push("Tag teman yang kalau lihat makanan langsung ikut nimbrung 😂","Kalau satu porsi berubah jadi jatah satu kamar, masih rela berbagi nggak? 😭");
+ }
+ const pool=kind==="caption"?c:n; return pool[ctaSeed(title,kind==="caption"?7919:3571)%pool.length];
+}
+
 function buildLockedNarration(story,dur){
  const facts=story.facts||titleStoryFacts(v("idea").trim());
  if(facts.type==="food") return naturalFoodNarration(story,dur);
@@ -723,7 +737,7 @@ function scenes(){
 }
 
 function fitLifeNarration(parts,dur){
- const target={15:34,30:68,45:100,60:132}[dur]||68;
+ const target={15:32,30:65,45:98,60:130}[dur]||65;
  let out=[];
  let words=0;
  for(const part of parts){
@@ -750,18 +764,7 @@ function buildConceptNarration(profile,dur){
  return fitLifeNarration(lines,dur);
 }
 
-function narrationCTA(idea){
- const q=String(idea||"").toLowerCase();
- if(/bumi|planet|sains|edukasi|sejarah|geologi|gempa|fisika|kimia|biologi/.test(q))
-   return "Kalau baru tahu, simpan biar nggak lupa.";
- if(/ai|affiliate|bisnis|freelance|freelancer|klien|client|penghasilan/.test(q))
-   return "Kalau lagi di fase yang sama, simpan dan coba pelan-pelan.";
- if(/gaming|game|gamer/.test(q))
-   return "Kalau pernah ngalamin juga, ngaku di komentar.";
- if(/travel|liburan|perjalanan|wisata/.test(q))
-   return "Kalau pernah ngalamin juga, ceritain versi perjalanan lo.";
- return "Pernah ngalamin juga? Ceritain versi lo di komentar.";
-}
+function narrationCTA(idea){return storyCTA(idea,"narration")}
 function addNarrationCTA(text,idea){
  const cta=narrationCTA(idea);
  const base=String(text||"").trim();
@@ -998,12 +1001,22 @@ function prompts(){
    h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")} • ${e(base.fungsi)}</h3><b>🎬 KONDISI AWAL → AKSI → KONDISI AKHIR</b><div class="result">AWAL: ${e(base.start)}\n\nAKSI: ${e(edited)}\n\nAKHIR: ${e(base.end)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
  }
  let dur=+v("duration"),fullNarr=buildLockedNarration(story,dur);
- let cover=`Vertical 9:16 cover, ${style}. Same locked main character: ${chosen}. Represent only the core event of the title \"${idea}\" in ${ctx.place}. Preserve the same wardrobe, identity, key prop (${ctx.object}), lighting logic and visual world. Strong readable body language, cinematic composition, no generated text, no watermark, no logo.`;
- let caption=`${idea}\n\nSatu kejadian, satu alur, dari hook sampai payoff. ✨\n\n#animation #storytelling #3danimation #facelesscontent`;
+ const coverText=idea.length<=58?idea:(idea.slice(0,58).replace(/\s+\S*$/,"")+"…");
+ let cover=`Create a vertical 9:16 social-media video cover / thumbnail. STORY TITLE: "${idea}". VISUAL STYLE: ${style}. SAME LOCKED MAIN CHARACTER: ${chosen}. Same story world and location: ${ctx.place}. Use one strong curiosity-driven visual moment that represents the title without spoiling the ending. DISPLAY THIS EXACT HEADLINE AS LARGE, CLEAR, LEGIBLE TEXT: "${coverText}". Make the headline highly readable on a phone screen, bold clean typography, strong contrast, short line breaks, safe margins, and do not cover the main character or key action. The visual must stay truthful to the title. Do not add extra headline words, fake logos, watermark, UI, subtitles, random people, random props, or a second storyline.`;
+ let caption=`${idea}
+
+${story.hook||"Kejadian kecil yang awalnya biasa, ternyata punya cerita sendiri."}
+
+${story.payoff||"Ujungnya justru jadi momen yang paling keinget."}
+
+${storyCTA(idea,"caption")}
+
+#animation #storytelling #3danimation #facelesscontent`;
  txt+=`\nNARASI UTUH (${dur} DETIK)\n${fullNarr}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
  project=txt;lastNarration=fullNarr;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi",idea);
  h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Satu narasi saja. Scene hanya membagi visual; narasi mengikuti urutan kejadian yang sama.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER</label><div class="result">${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
+ h+=`<div class="card" style="margin-top:18px"><label>📝 CAPTION</label><p class="muted">Caption mengikuti judul, hook, dan payoff cerita yang sama.</p><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
