@@ -648,24 +648,63 @@ function buildDynamicStory(idea,n){
  };
 }
 
+
 function narrationSentence(x){
  return String(x||"")
-  .replace(/^Di ([^,]+), /i,"Di $1, ")
-  .replace(/^Tampilkan /i,"")
-  .replace(/^Inti kejadian .*? mulai terjadi secara konkret\.\s*/i,"")
-  .replace(/^Masalah utama /i,"Akhirnya, masalah ")
-  .replace(/Jangan[^.]*\./gi,"")
-  .replace(/tanpa subplot baru/gi,"")
+  .replace(/\bkarakter utama\b/gi,"gue")
+  .replace(/\bkarakter\b/gi,"gue")
+  .replace(/\bSATU\b/g,"satu")
+  .replace(/DILARANG[^.]*\.?/gi,"")
+  .replace(/Jangan[^.]*\.?/gi,"")
+  .replace(/jika judul[^.]*\.?/gi,"")
+  .replace(/hanya .*?boleh[^.]*\.?/gi,"")
+  .replace(/belum boleh[^.]*\.?/gi,"")
+  .replace(/sesuai judul/gi,"")
+  .replace(/pada tahap ini/gi,"")
   .replace(/\s+/g," ").trim();
 }
+
+function naturalFoodNarration(story,dur){
+ const facts=story.facts||{};
+ const idea=v("idea").trim();
+ const place=facts.place||story.ctx?.place||"kamar";
+ const prop=(facts.prop && !/benda utama/i.test(facts.prop))?facts.prop:"makanan";
+ const q=normStoryText(idea);
+
+ // Narration follows the EVENT, never the engine instructions.
+ // Use first-person spoken language; "karakter utama" is forbidden in final narration.
+ let parts=[];
+ if(/mie|mi\b|ramen/.test(q)){
+   parts=[
+    `Awalnya gue cuma pengen makan mie sendiri di ${place}.`,
+    `Baru gue buka dan mulai makan, ada satu orang yang sadar.`,
+    `Nggak lama, yang lain mulai ikut mendekat dan suasananya jadi rame.`,
+    `Mereka ikut ngambil dari porsi yang tadinya gue siapin buat sendiri, jadi mienya makin sedikit.`,
+    `Ujung-ujungnya gue cuma kebagian sedikit, tapi malah jadi momen makan bareng yang seru.`
+   ];
+ } else {
+   const beats=(story.scenes||[]).map(x=>narrationSentence(x.action||x.event)).filter(Boolean);
+   parts=beats.map((x,i)=>{
+     if(i===0) return x.replace(/^Di ([^,]+), gue/i,"Di $1, gue");
+     return x;
+   });
+ }
+ return addNarrationCTA(fitLifeNarration(parts,+dur),idea);
+}
+
 function buildLockedNarration(story,dur){
  const facts=story.facts||titleStoryFacts(v("idea").trim());
- const raw=[facts.opening,facts.cause,facts.response,facts.climax,facts.ending].map(narrationSentence).filter(Boolean);
+ if(facts.type==="food") return naturalFoodNarration(story,dur);
+
+ const raw=[facts.opening,facts.cause,facts.response,facts.climax,facts.ending]
+   .map(narrationSentence).filter(Boolean);
  const unique=raw.filter((x,i,a)=>i===0||normStoryText(x)!==normStoryText(a[i-1]));
  let text=fitLifeNarration(unique,+dur)
-  .replace(/kejadian "[^"]+"/gi,"kejadian itu")
-  .replace(/inti judul/gi,"kejadian itu")
-  .replace(/\s+/g," ").trim();
+   .replace(/\bkarakter utama\b/gi,"gue")
+   .replace(/\bkarakter\b/gi,"gue")
+   .replace(/kejadian "[^"]+"/gi,"kejadian itu")
+   .replace(/inti judul/gi,"kejadian itu")
+   .replace(/\s+/g," ").trim();
  return addNarrationCTA(text,v("idea").trim());
 }
 
