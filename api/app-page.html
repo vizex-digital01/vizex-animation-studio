@@ -693,7 +693,7 @@ function naturalFoodNarration(story,dur){
 }
 
 
-/* V59 CTA VARIATION ENGINE */
+/* V61 GPT CTA VARIATION ENGINE */
 function ctaSeed(text,salt=0){let h=salt|0;for(const ch of String(text||""))h=((h<<5)-h+ch.charCodeAt(0))|0;return Math.abs(h)}
 function storyCTA(title,kind="narration"){
  const t=normStoryText(title);
@@ -706,36 +706,100 @@ function storyCTA(title,kind="narration"){
  const pool=kind==="caption"?c:n; return pool[ctaSeed(title,kind==="caption"?7919:3571)%pool.length];
 }
 
+function spokenTitle(title){
+ return String(title||"").trim().replace(/[.!?]+$/,"");
+}
+function narrationSceneBudget(dur,sceneCount){
+ const words={15:34,30:68,45:102,60:136}[+dur]||68;
+ return {words,perScene:Math.max(6,Math.round(words/Math.max(1,sceneCount)))};
+}
+function cleanSpokenBeat(x){
+ return String(x||"")
+  .replace(/\bkarakter utama\b/gi,"gue")
+  .replace(/\bkarakter\b/gi,"gue")
+  .replace(/pada waktu paling logis dari judul/gi,"")
+  .replace(/tampilkan/gi,"")
+  .replace(/inti kejadian itu/gi,"kejadian itu")
+  .replace(/secara konkret/gi,"")
+  .replace(/penyebab langsung yang paling sederhana dan paling masuk akal/gi,"penyebabnya")
+  .replace(/respons harus masih berada pada masalah yang sama/gi,"")
+  .replace(/sesuai judul/gi,"")
+  .replace(/DILARANG[^.]*\.?/gi,"")
+  .replace(/Jangan[^.]*\.?/gi,"")
+  .replace(/\b(scene|timeline|prompt|lock|allowed|forbidden|supporting)\b/gi,"")
+  .replace(/\s+/g," ").replace(/\s+([,.!?])/g,"$1").trim();
+}
+function titleFirstNarration(story,dur){
+ const title=spokenTitle(v("idea"));
+ const scenes=story?.scenes||[];
+ const n=scenes.length||5;
+ const budget=narrationSceneBudget(dur,n);
+ const q=normStoryText(title);
+
+ // Specialized natural language for common lived-experience themes.
+ let parts=[];
+ if(/mie|mi\b|ramen/.test(q)){
+  parts=["Awalnya gue cuma pengen makan mie sendiri.","Baru mulai makan, satu teman sadar dan langsung mendekat.","Nggak lama, yang lain ikut nimbrung.","Porsi yang tadinya buat gue sendiri akhirnya jadi rebutan rame-rame.","Ujungnya gue cuma kebagian sedikit, tapi malah jadi momen yang seru."];
+ } else if(/telat|terlambat/.test(q)){
+  parts=[`Hari itu gue telat, dan dari situ ${title.toLowerCase()} benar-benar mulai kerasa.`,`Begitu gue datang, situasinya langsung berubah dan orang-orang di sekitar ikut bereaksi.`,`Gue berusaha ngikutin keadaan tanpa bikin semuanya makin ribet.`,`Makin lama, efek dari keterlambatan itu makin kelihatan.`,`Akhirnya kejadian itu selesai dengan konsekuensi yang memang datang dari gue telat tadi.`];
+ } else if(/hujan|kehujanan/.test(q)){
+  parts=[`Awalnya gue cuma jalan seperti biasa, sampai hujan mulai turun.`,`Dalam beberapa saat keadaan berubah dan gue harus langsung cari cara buat ngadepin hujannya.`,`Apa yang gue lakuin setelah itu bikin kejadian terus berkembang.`,`Situasinya makin terasa ketika efek hujannya mulai kelihatan di sekitar gue.`,`Akhirnya gue sampai di ujung kejadian dengan kondisi yang benar-benar beda dari awal.`];
+ } else {
+  // For arbitrary titles, anchor every spoken beat to the actual title and use
+  // cleaned scene beats only when they contain concrete, non-instructional content.
+  const cleaned=scenes.map(sc=>cleanSpokenBeat(sc.action||sc.event)).filter(x=>x && x.length>8);
+  const generic=/keadaan paling dekat|kejadian itu mulai|penyebabnya|merespons|masalah yang sama|tindakan fisik yang wajar/i;
+  const usable=cleaned.filter(x=>!generic.test(x));
+  parts=[
+   `Gue ngalamin ini: ${title}.`,
+   usable[1]||`Awalnya kejadian itu mulai dari situasi yang langsung berhubungan sama "${title}".`,
+   usable[2]||`Dari situ gue bereaksi, dan kejadiannya mulai berkembang.`,
+   usable[3]||`Situasinya makin terasa karena akibat dari kejadian tadi mulai muncul.`,
+   usable[4]||`Akhirnya semuanya sampai ke hasil yang memang berasal dari kejadian "${title}".`
+  ];
+ }
+ parts=parts.slice(0,n);
+ let text=parts.join(" ").replace(/\s+/g," ").trim();
+
+ // Duration controls amount of spoken content. Never expose technical scene rules.
+ const target=budget.words;
+ let words=text.split(/\s+/);
+ if(words.length>target+12) text=words.slice(0,target).join(" ").replace(/[,;:]?$/,"")+".";
+ // For longer durations, expand by describing progression rather than repeating filler.
+ if(words.length<target*0.62 && +dur>=45){
+   text+=` Yang bikin kejadian ini terasa adalah perubahan dari awal sampai akhir terjadi pelan-pelan, bukan langsung lompat ke hasilnya. Setiap reaksi muncul karena kejadian sebelumnya.`;
+ }
+ return `${text} ${storyCTA(title,"narration")}`.trim();
+}
 function buildLockedNarration(story,dur){
- const facts=story.facts||titleStoryFacts(v("idea").trim());
- if(facts.type==="food") return naturalFoodNarration(story,dur);
-
- const raw=[facts.opening,facts.cause,facts.response,facts.climax,facts.ending]
-   .map(narrationSentence).filter(Boolean);
- const unique=raw.filter((x,i,a)=>i===0||normStoryText(x)!==normStoryText(a[i-1]));
- let text=fitLifeNarration(unique,+dur)
-   .replace(/\bkarakter utama\b/gi,"gue")
-   .replace(/\bkarakter\b/gi,"gue")
-   .replace(/kejadian "[^"]+"/gi,"kejadian itu")
-   .replace(/inti judul/gi,"kejadian itu")
-   .replace(/\s+/g," ").trim();
- return addNarrationCTA(text,v("idea").trim());
+ return titleFirstNarration(story,dur);
 }
 
-function scenes(){
- let idea=v("idea").trim(); if(!idea)return alert("Masukkan judul/ide dulu.");
- if(!chosen)return alert("Pilih karakter dulu.");
- let n=+v("n"),story=buildDynamicStory(idea,n);
- let camera=["Establishing Wide Shot","Medium Tracking Shot","Medium Close-Up","Over-the-Shoulder","Wide Payoff Shot"];
- let h=`<div class="card" id="storyboard"><label>🧠 STORY PLAN • LOGIC LOCK</label><p class="muted">DEEP STORY ENGINE: cerita dibangun dulu dari sebab → akibat → klimaks → ending. Cek Aksi/Kejadian di bawah; prompt baru dibuat setelah alurnya masuk akal.</p>`;
- story.scenes.forEach((s,i)=>{
-   let cam=camera[Math.min(camera.length-1,Math.floor(i*camera.length/Math.max(1,n)))];
-   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(s.fungsi)}</h3><b>Kondisi Awal</b><div class="result">${e(s.start)}</div><br><b>Aksi / Kejadian</b><textarea id="sd${i+1}">${e(s.action)}</textarea><br><br><b>Kondisi Akhir</b><div class="result">${e(s.end)}</div><br><label>ANGLE KAMERA</label><select id="sc${i+1}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option ${x===cam?"selected":""}>${x}</option>`).join("")}</select></div>`;
- });
- h+=`<div class="actions"><button class="primary" onclick="prompts()">✨ Generate Prompt Gambar + Video + Narasi</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h); document.getElementById("storyboard").scrollIntoView({behavior:"smooth"});
+async function scenes(){
+ const idea=v("idea").trim();if(!idea)return alert("Masukkan judul/ide dulu.");if(!chosen)return alert("Pilih karakter dulu.");
+ const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";
+ document.getElementById(lid)?.remove();
+ flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX GPT ENGINE</label><div class="result">GPT lagi menyusun SATU alur dari judul → ${n} scene → prompt gambar/video → narasi ${dur} detik → caption → cover.\n\nTunggu sebentar...</div></div>`);
+ document.getElementById(lid).scrollIntoView({behavior:"smooth"});
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});
+  const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);
+  let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
+  let h=`<div class="card" id="prompts"><label>✨ VIZEX GPT • FINAL STORY PACKAGE</label><p class="muted">Semua bagian dibuat GPT dari satu alur yang sama.</p><div class="result">HOOK: ${e(data.hook||"")}\n\nPAYOFF: ${e(data.payoff||"")}</div>`;
+  (data.scenes||[]).forEach((sc,i)=>{
+   txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;
+   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function)}</h3><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state)}\n\nAKSI: ${e(sc.action)}\n\nAKHIR: ${e(sc.end_state)}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
+  });
+  const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";
+  txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
+  project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi GPT",idea);
+  h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Narasi mengikuti urutan kejadian yang sama dan durasi yang dipilih.</p><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
+  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
+  h+=`<div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
+  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
+  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
+ }catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ GPT GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div><p class="muted">Cek OPENAI_API_KEY di Vercel Production lalu Redeploy.</p></div>`)}
 }
-
 function fitLifeNarration(parts,dur){
  const target={15:32,30:65,45:98,60:130}[dur]||65;
  let out=[];
