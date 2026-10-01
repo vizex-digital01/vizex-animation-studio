@@ -1,56 +1,19 @@
 const sceneSchema={type:"object",additionalProperties:false,properties:{function:{type:"string"},start_state:{type:"string"},action:{type:"string"},end_state:{type:"string"},camera:{type:"string"},outfit:{type:"string"},outfit_change_reason:{type:"string"},image_prompt:{type:"string"},video_prompt:{type:"string"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
 const packageSchema={type:"object",additionalProperties:false,properties:{title:{type:"string"},hook:{type:"string"},payoff:{type:"string"},narration:{type:"string"},caption:{type:"string"},cover_text:{type:"string"},cover_prompt:{type:"string"},scenes:{type:"array",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function retryMs(msg,headers){
- const h=Number(headers?.get?.("retry-after"));
- if(Number.isFinite(h)&&h>0)return Math.min(12000,Math.max(400,h*1000));
- const m=String(msg||"").match(/try again in\s*([\d.]+)\s*(ms|s)/i);
- if(m){const v=Number(m[1]);return Math.min(12000,Math.max(400,m[2].toLowerCase()==="s"?v*1000:v))}
- return 1800;
-}
-async function groqCall(payload){
- return fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify(payload)});
-}
-async function askGroq(system,user,schema,name,max=3200){
- const primaryModel=process.env.GROQ_MODEL||"openai/gpt-oss-120b";
- const fallbackModel="openai/gpt-oss-20b";
- let model=primaryModel;
- const payload={model,messages:[{role:"system",content:system},{role:"user",content:user}],response_format:{type:"json_schema",json_schema:{name,strict:true,schema}},max_completion_tokens:max,reasoning_effort:"medium"};
- let rr=await groqCall(payload),d=await rr.json();
- if(rr.status===429){
-  await sleep(retryMs(d?.error?.message,rr.headers));
-  rr=await groqCall(payload);d=await rr.json();
- }
- if(!rr.ok){
-  let msg=d?.error?.message||"Groq API error.";
-  const accessFail=rr.status===403||rr.status===404||/model.*(not found|unavailable|permission|access|deprecat)/i.test(msg);
-  if(accessFail&&model!==fallbackModel){
-   model=fallbackModel;
-   payload.model=model;
-   rr=await groqCall(payload);d=await rr.json();
-   if(rr.status===429){await sleep(retryMs(d?.error?.message,rr.headers));rr=await groqCall(payload);d=await rr.json()}
-   if(rr.ok){
-    const raw=d?.choices?.[0]?.message?.content?.trim();
-    if(!raw)throw new Error("Groq tidak mengembalikan output.");
-    return JSON.parse(raw);
-   }
-   msg=d?.error?.message||msg;
-  }
-  const failed=String(d?.error?.failed_generation||"").trim();
-  if(/schema|failed_generation|does not match/i.test(msg)){
-   const repair={...payload,messages:[{role:"system",content:system+"\nReturn complete valid JSON. Never omit required fields; every scene needs function,start_state,action,end_state,camera,outfit,outfit_change_reason,image_prompt,video_prompt."},{role:"user",content:user+(failed?`\nRepair this invalid attempt:\n${failed.slice(0,6000)}`:"")}]};
-   let r2=await groqCall(repair),d2=await r2.json();
-   if(r2.status===429){await sleep(retryMs(d2?.error?.message,r2.headers));r2=await groqCall(repair);d2=await r2.json()}
-   if(!r2.ok)throw new Error(d2?.error?.message||msg);
-   const fixed=d2?.choices?.[0]?.message?.content?.trim();
-   if(!fixed)throw new Error("Groq tidak mengembalikan output setelah repair.");
-   return JSON.parse(fixed);
-  }
-  throw new Error(msg);
- }
- const raw=d?.choices?.[0]?.message?.content?.trim();
- if(!raw)throw new Error("Groq tidak mengembalikan output.");
- return JSON.parse(raw);
+function geminiSchema(x){if(Array.isArray(x))return x.map(geminiSchema);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=geminiSchema(v);return o}
+async function askGemini(system,user,schema,name,max=3600){
+ const model=process.env.GEMINI_MODEL||"gemini-3.8-flash",key=process.env.GEMINI_API_KEY;
+ if(!key)throw new Error("GEMINI_API_KEY belum diatur.");
+ const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+ const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{temperature:.72,topP:.9,maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"medium"}}};
+ const call=()=>fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+ let r=await call(),d=await r.json();
+ if(r.status===429){await sleep(2500);r=await call();d=await r.json()}
+ if(!r.ok)throw new Error(d?.error?.message||"Gemini API error.");
+ const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+ if(!raw)throw new Error("Gemini tidak mengembalikan output.");
+ return JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim());
 }
 function coreRules(n,dur){return `You direct Vizex short-form stories. TITLE is absolute source of truth.
 WORK ORDER: silently decide one simple story spine from TITLE first (setup -> trigger -> consequence -> payoff). Then derive every scene from that SAME spine. Only after all scenes are fixed, write narration/caption/cover from those scenes. Never create a second version of the story in narration.
@@ -83,7 +46,7 @@ COVER: English visual prompt; Indonesian short cover_text; intriguing, truthful,
 FINAL CHECK BEFORE JSON: (1) title and payoff are the same story, (2) every action is possible from its start_state, (3) previous end_state -> next start_state, (4) people/prop/food quantities never jump, (5) identity stays locked, (6) outfit and wet/dirty/damage condition follow story causally, (7) camera is one allowed preset only, (8) narration contains ZERO unsupported person/object/event and sounds naturally spoken Indonesian, (9) caption is not a narration rewrite and contains ZERO unsupported facts, (10) image/video prompts depict exactly their scene with no future leakage. Silently repair any failure before returning JSON.`}
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
- if(!process.env.GROQ_API_KEY)return res.status(500).json({error:"GROQ_API_KEY belum terpasang di Vercel."});
+ if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const body=req.body||{}, action=String(body.action||"generate");
   const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
@@ -94,7 +57,7 @@ export default async function handler(req,res){
    if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
    const system=coreRules(n,dur)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
-   const result=await askGroq(system,user,packageSchema,"vizex_finalized_package",3600);
+   const result=await askGemini(system,user,packageSchema,"vizex_finalized_package",3600);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
    return res.status(200).json(result);
   }
@@ -103,7 +66,7 @@ export default async function handler(req,res){
    const draft=body.draft||{};
    const system=coreRules(n,dur)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
-   const scene=await askGroq(system,user,sceneSchema,"vizex_scene_revision",1400);return res.status(200).json({scene});
+   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",1400);return res.status(200).json({scene});
   }
   const system=coreRules(n,dur);
   const user=`TITLE:${title}
@@ -112,7 +75,7 @@ DURATION:${dur}s
 STYLE:${style}
 IDENTITY:${character}
 Generate one coherent package. Infer outfit from story context; saved outfit is fallback only.`;
-  const result=await askGroq(system,user,packageSchema,"vizex_animation_package",3600);
+  const result=await askGemini(system,user,packageSchema,"vizex_animation_package",3600);
   if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Groq menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
   return res.status(200).json(result);
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}

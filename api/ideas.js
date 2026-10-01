@@ -7,7 +7,7 @@ const ideaSchema={type:"object",additionalProperties:false,properties:{
 
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
- if(!process.env.GROQ_API_KEY)return res.status(500).json({error:"GROQ_API_KEY belum terpasang di Vercel."});
+ if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const {topic,audience,count,history}=req.body||{};
   const niche=String(topic||"").trim();
@@ -37,23 +37,18 @@ PREVIOUS TITLES TO AVOID:
 ${old.length?old.map((x,i)=>`${i+1}. ${x}`).join("\n"):"None yet."}
 
 Create exactly ${n} fresh ideas now.`;
-  const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-   method:"POST",
-   headers:{"Authorization":`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
-   body:JSON.stringify({
-    model:process.env.GROQ_MODEL||"openai/gpt-oss-20b",
-    messages:[{role:"system",content:system},{role:"user",content:user}],
-    response_format:{type:"json_schema",json_schema:{name:"vizex_varied_ideas",strict:true,schema:ideaSchema}},
-    max_completion_tokens:8000,
-    reasoning_effort:"low"
-   })
+  const clean=x=>{if(Array.isArray(x))return x.map(clean);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=clean(v);return o};
+  const model=process.env.GEMINI_IDEAS_MODEL||process.env.GEMINI_MODEL||"gemini-3.8-flash";
+  const rr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{temperature:.95,topP:.95,maxOutputTokens:3000,responseMimeType:"application/json",responseSchema:clean(ideaSchema),thinkingConfig:{thinkingLevel:"low"}}})
   });
   const d=await rr.json();
-  if(!rr.ok)return res.status(rr.status).json({error:d?.error?.message||"Groq API error."});
-  const raw=d?.choices?.[0]?.message?.content?.trim();
-  if(!raw)return res.status(502).json({error:"Groq tidak mengembalikan ide."});
-  const result=JSON.parse(raw);
-  if(!Array.isArray(result.ideas)||!result.ideas.length)return res.status(502).json({error:"Format ide Groq tidak valid."});
+  if(!rr.ok)return res.status(rr.status).json({error:d?.error?.message||"Gemini API error."});
+  const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+  if(!raw)return res.status(502).json({error:"Gemini tidak mengembalikan ide."});
+  const result=JSON.parse(raw.replace(/^```json\\s*/i,"").replace(/```$/,"").trim());
+  if(!Array.isArray(result.ideas)||!result.ideas.length)return res.status(502).json({error:"Format ide Gemini tidak valid."});
   return res.status(200).json({ideas:result.ideas.slice(0,n)});
  }catch(err){
   console.error(err);
