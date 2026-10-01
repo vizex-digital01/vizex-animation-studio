@@ -159,7 +159,7 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
     <button class="mini" onclick="logoutVizex()">Keluar</button>
     </div></div>
 
-<section class="tool on" id="create"><h1>Buat Animasi</h1><p class="muted">Ide → gaya visual → karakter → kunci karakter → storyboard → prompt → ekspor.</p>
+<section class="tool on" id="create"><div id="vizexAnimLimitReminder" style="margin:10px 0 14px;padding:11px 13px;border:1px solid rgba(120,90,50,.22);border-radius:12px;background:rgba(255,248,235,.75);font-size:12px;line-height:1.5"><b>💡 Pengingat AI</b><br>Setelah Generate Animasi, tunggu ±20 detik sebelum mencoba lagi. Jangan spam tombol; Regenerate Scene juga memakai request Gemini.</div><h1>Buat Animasi</h1><p class="muted">Ide → gaya visual → karakter → kunci karakter → storyboard → prompt → ekspor.</p>
 <div class="card"><div class="grid"><div><label>IDE</label><textarea id="idea" placeholder="Contoh: Alumni pondok mendengar bel lama..."></textarea></div><div><label>JUMLAH SCENE</label><select id="n"><option>3</option><option selected>5</option><option>7</option><option>10</option></select><br><br><label>DURASI VIDEO / NARASI</label><select id="duration"><option value="15">15 detik</option><option value="30" selected>30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select><br><br><label>GAYA VISUAL</label><select id="style"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div></div><div class="actions">
 <button class="primary" onclick="concept()">Generate Concept + Karakter</button>
 <button class="mini ghost" onclick="saveCurrentProject()">💾 Simpan Proyek</button>
@@ -188,9 +188,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
       <select id="ideaCount">
         <option value="5">5 ide</option>
         <option value="10" selected>10 ide</option>
-        <option value="15">15 ide</option>
-        <option value="20">20 ide</option>
-        <option value="30">30 ide</option>
+        
+        
+        
       </select>
     </div>
   </div>
@@ -889,6 +889,12 @@ function renderV9Storyboard(){
 async function v9RegenerateScene(i){
  if(!V9_PACKAGE)return;const btn=document.querySelector(`#v9scene${i} button`),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="⏳ Regenerate..."}
  try{
+  if(window.__vizexAnimBusy)return alert("Generate Animasi masih diproses / cooldown aktif.");
+  const __vizexNow=Date.now(),__vizexUntil=Number(localStorage.getItem("vizexAnimCooldownUntil")||0);
+  if(__vizexNow<__vizexUntil)return alert(`Tunggu ${Math.ceil((__vizexUntil-__vizexNow)/1000)} detik sebelum Generate Animasi lagi supaya tidak cepat kena limit Gemini.`);
+  window.__vizexAnimBusy=true;
+  localStorage.setItem("vizexAnimCooldownUntil",String(__vizexNow+20000));
+  setTimeout(()=>{window.__vizexAnimBusy=false},20000);
   const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"regenerate_scene",title:v("idea").trim(),sceneCount:+v("n"),duration:+v("duration"),style:v("style"),character:chosen,sceneIndex:i,package:V9_PACKAGE,draft:v9Draft(i)})});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Generator error (${r.status})`);V9_PACKAGE.scenes[i]=d.scene;renderV9Storyboard();document.getElementById(`v9scene${i}`)?.scrollIntoView({behavior:"smooth",block:"center"});
  }catch(err){alert(err.message||String(err));if(btn){btn.disabled=false;btn.textContent=old}}
@@ -1200,7 +1206,13 @@ ${storyCTA(idea,"caption")}
  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
 
+let vizexIdeaBusy=false,vizexIdeaCooldownUntil=0;
 async function generatePremiumIdeas(){
+ if(vizexIdeaBusy)return;
+ const _now=Date.now();
+ if(_now<vizexIdeaCooldownUntil){alert(`Tunggu ${Math.ceil((vizexIdeaCooldownUntil-_now)/1000)} detik sebelum generate lagi.`);return}
+ vizexIdeaBusy=true; vizexIdeaCooldownUntil=_now+15000;
+ setTimeout(()=>{vizexIdeaBusy=false},15000);
  const topic=(v("ideaNiche")||"").trim(), audience=(v("ideaAudienceText")||"").trim(), count=+(v("ideaCount")||10);
  if(!topic)return alert("Masukkan NICHE / TOPIK dulu.");
  const out=document.getElementById("premiumIdeaResults");
