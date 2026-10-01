@@ -6,11 +6,16 @@ async function askGemini(system,user,schema,name,max=3600){
  const model=process.env.GEMINI_MODEL||"gemini-3.8-flash",key=process.env.GEMINI_API_KEY;
  if(!key)throw new Error("GEMINI_API_KEY belum diatur.");
  const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
- const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{temperature:.72,topP:.9,maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"medium"}}};
+ const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"medium"}}};
  const call=()=>fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
  let r=await call(),d=await r.json();
- if(r.status===429){await sleep(2500);r=await call();d=await r.json()}
- if(!r.ok)throw new Error(d?.error?.message||"Gemini API error.");
+ if(r.status===429||r.status===503){await sleep(1400);r=await call();d=await r.json()}
+ if((r.status===429||r.status===503)&&model!=="gemini-3.7-flash"){
+  await sleep(900);
+  const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${encodeURIComponent(key)}`;
+  r=await fetch(fallbackUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});d=await r.json();
+ }
+ if(!r.ok)throw new Error(d?.error?.message||"Gemini sedang sibuk. Coba lagi sebentar.");
  const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
  if(!raw)throw new Error("Gemini tidak mengembalikan output.");
  return JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim());
