@@ -237,7 +237,22 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
   <div class="card" id="adminCustomerCard" style="display:none">
     <label>🛡️ KELOLA CUSTOMER • ADMIN</label>
     <p class="muted">Aktif/nonaktifkan akun, ubah batas perangkat, dan cabut semua sesi customer. Password asli tidak pernah ditampilkan.</p>
-    <div class="actions"><button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button></div>
+    <div class="actions">
+      <button class="primary" onclick="toggleAddCustomerForm()">＋ Tambah Customer</button>
+      <button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button>
+    </div>
+    <div id="addCustomerForm" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--l);border-radius:13px;background:#fffdf8">
+      <label>➕ CUSTOMER BARU</label>
+      <div class="grid" style="margin-top:12px">
+        <div><label>NAMA / BRAND</label><input id="newCustomerName" placeholder="Contoh: Customer 2"></div>
+        <div><label>EMAIL LOGIN</label><input id="newCustomerEmail" type="email" placeholder="customer2@gmail.com"></div>
+        <div><label>PASSWORD / KODE AKSES</label><input id="newCustomerPassword" type="password" placeholder="Minimal 8 karakter"></div>
+        <div><label>PAKET</label><select id="newCustomerPlan"><option value="PRO">PRO</option><option value="BASIC">BASIC</option><option value="PREMIUM">PREMIUM</option></select></div>
+        <div><label>BATAS PERANGKAT</label><select id="newCustomerDevices"><option value="1">1 perangkat</option><option value="2">2 perangkat</option><option value="3">3 perangkat</option><option value="5">5 perangkat</option><option value="10">10 perangkat</option></select></div>
+      </div>
+      <div class="actions"><button class="primary" onclick="createAdminCustomer()">Buat Customer</button><button class="mini ghost" onclick="toggleAddCustomerForm(false)">Batal</button></div>
+      <p class="muted" id="newCustomerMsg"></p>
+    </div>
     <div id="adminCustomerList"></div>
   </div>
 
@@ -1404,6 +1419,30 @@ async function loadActiveSessions(){
 }
 async function revokeDevice(id){if(!confirm("Keluarkan perangkat ini dari akun?"))return;try{await accountJSON("/api/revoke-session",{method:"POST",body:JSON.stringify({session_id:id})});await loadActiveSessions()}catch(e){alert(e.message)}}
 async function logoutAllDevices(){if(!confirm("Keluar dari semua perangkat termasuk perangkat ini?"))return;try{await accountJSON("/api/logout-all",{method:"POST",body:"{}"})}catch(e){}location.replace("/")}
+function toggleAddCustomerForm(force){
+ const el=document.getElementById("addCustomerForm");if(!el)return;
+ const show=typeof force==="boolean"?force:el.style.display==="none";
+ el.style.display=show?"block":"none";
+ if(show){const n=document.getElementById("newCustomerName");if(n)n.focus()}
+}
+async function createAdminCustomer(){
+ const msg=document.getElementById("newCustomerMsg");
+ const name=document.getElementById("newCustomerName").value.trim();
+ const email=document.getElementById("newCustomerEmail").value.trim().toLowerCase();
+ const password=document.getElementById("newCustomerPassword").value;
+ const plan=document.getElementById("newCustomerPlan").value;
+ const max_devices=Number(document.getElementById("newCustomerDevices").value)||1;
+ if(!name||!email||!password){msg.textContent="Nama, email, dan password wajib diisi.";return}
+ if(password.length<8){msg.textContent="Password minimal 8 karakter.";return}
+ msg.textContent="Membuat customer...";
+ try{
+  const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({action:"create",name,email,password,plan,max_devices})});
+  msg.textContent=`Customer ${d.customer?.email||email} berhasil dibuat.`;
+  ["newCustomerName","newCustomerEmail","newCustomerPassword"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("newCustomerPlan").value="PRO";document.getElementById("newCustomerDevices").value="1";
+  await loadAdminCustomers();
+ }catch(err){msg.textContent=err.message}
+}
 async function loadAdminCustomers(){
  const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
  try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button></div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
