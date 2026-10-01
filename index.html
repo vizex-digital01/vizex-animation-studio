@@ -5,74 +5,102 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vizex Studio — Login</title>
 <style>
-:root{--bg:#f6efe4;--card:#fffaf2;--line:#d8c8b6;--text:#2f241b;--muted:#7b6a5b;--purple:#c4976b;--purple2:#d2a679;--green:#22c55e;--danger:#fca5a5}
+:root{--bg:#f6efe4;--panel:#fffaf2;--line:#dcc9b4;--text:#2f241b;--muted:#806d5c;--accent:#c58e5d;--accent2:#e6c39b;--soft:#f1e2d0;--green:#22c55e;--danger:#b42318}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:
-radial-gradient(circle at 15% 15%,rgba(210,166,121,.20),transparent 30%),
-radial-gradient(circle at 85% 85%,rgba(184,137,91,.14),transparent 35%),var(--bg);
-color:var(--text);font:14px Inter,system-ui,Arial}
-.wrap{width:min(460px,100%)}
-.card{background:rgba(255,250,242,.98);border:1px solid var(--line);border-radius:24px;padding:28px;box-shadow:0 30px 80px rgba(92,67,45,.12)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-logo{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #c99768;box-shadow:0 8px 22px rgba(92,67,45,.14)}
-.logo{font-size:28px;font-weight:950;letter-spacing:-.03em}.logo b{color:#c18d5d}
-.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.status{display:inline-flex;align-items:center;gap:7px;border:1px solid #cfbca7;border-radius:999px;padding:6px 9px;color:#5f5144;font-size:11px;background:#f3e7d7}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+.shell{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr)}
+.hero{position:relative;overflow:hidden;padding:clamp(36px,6vw,82px);display:flex;flex-direction:column;justify-content:space-between;background:
+radial-gradient(circle at 20% 18%,rgba(230,195,155,.68),transparent 27%),
+radial-gradient(circle at 82% 76%,rgba(197,142,93,.22),transparent 34%),
+linear-gradient(145deg,#f7ead8,#ead3b8)}
+.hero:before,.hero:after{content:"";position:absolute;border:1px solid rgba(116,77,45,.12);border-radius:50%;pointer-events:none}
+.hero:before{width:420px;height:420px;right:-170px;top:-120px}
+.hero:after{width:300px;height:300px;left:-120px;bottom:-120px}
+.brand{display:flex;align-items:center;gap:13px;position:relative;z-index:1}
+.brand img{width:62px;height:62px;border-radius:50%;object-fit:cover;border:2px solid #c58e5d;box-shadow:0 14px 34px rgba(74,49,30,.15)}
+.wordmark{font-size:30px;font-weight:950;letter-spacing:-.045em} .wordmark b{color:#b87945}
+.hero-copy{position:relative;z-index:1;max-width:720px;margin:70px 0}
+.eyebrow{display:inline-flex;padding:8px 12px;border:1px solid rgba(95,63,39,.16);border-radius:999px;background:rgba(255,250,242,.52);font-size:11px;font-weight:900;letter-spacing:.09em}
+.hero h1{font-size:clamp(46px,6vw,84px);line-height:.96;letter-spacing:-.065em;margin:22px 0 22px;max-width:780px}
+.hero h1 em{font-style:normal;color:#a9693b}
+.hero p{font-size:16px;line-height:1.75;color:#695546;max-width:590px}
+.features{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}
+.chip{padding:9px 12px;border-radius:999px;background:rgba(255,250,242,.6);border:1px solid rgba(95,63,39,.13);font-size:12px;font-weight:800}
+.hero-foot{position:relative;z-index:1;color:#806a58;font-size:11px}
+.login-side{display:grid;place-items:center;padding:34px;background:
+radial-gradient(circle at 100% 0,rgba(230,195,155,.20),transparent 30%),#fbf6ee}
+.card{width:min(470px,100%);background:rgba(255,252,246,.96);border:1px solid var(--line);border-radius:28px;padding:34px;box-shadow:0 34px 90px rgba(80,54,34,.13)}
+.mobile-brand{display:none}
+.status{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:#f1e5d5;border:1px solid #d9c5ae;font-size:11px;font-weight:800;color:#695647}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(34,197,94,.35)}
-h1{font-size:34px;line-height:1.05;margin:28px 0 8px;letter-spacing:-.03em}
-p{color:var(--muted);line-height:1.6;margin:0}
-label{display:block;font-size:11px;font-weight:900;letter-spacing:.05em;margin:18px 0 8px}
-input{width:100%;background:#fffdf8;color:#2f241b;border:1px solid #cdbba7;border-radius:12px;padding:14px;font:inherit;outline:none}
-input:focus{border-color:#c4976b;box-shadow:0 0 0 3px rgba(184,137,91,.14)}
-button{width:100%;margin-top:18px;border:0;border-radius:12px;background:linear-gradient(135deg,#e8c59e,#c99768);color:#2f241b;font-weight:900;padding:14px;cursor:pointer;font-size:15px}
-button:hover{filter:brightness(1.06)}
-.err{min-height:20px;color:var(--danger);font-size:12px;margin-top:10px}
-.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.linkbtn{display:flex;justify-content:center;align-items:center;text-decoration:none;text-align:center;border:1px solid #c5b099;border-radius:11px;padding:11px;color:#4d4035;background:#f3e7d7;font-weight:800;font-size:12px}
-.buy{border-color:#b8895b;background:#efe0cf}
-.license{margin-top:16px;padding:12px 13px;border:1px solid #d6c5b1;border-radius:12px;background:#f3e7d7;color:#7b6a5b;font-size:11px;line-height:1.55}
-.footer{display:flex;justify-content:space-between;gap:8px;margin-top:14px;color:#8d7a68;font-size:10px}
-@media(max-width:480px){.card{padding:22px}.links{grid-template-columns:1fr}.topline{align-items:flex-start}.status{white-space:nowrap}}
+.card h2{font-size:38px;line-height:1;margin:25px 0 10px;letter-spacing:-.045em}
+.sub{color:var(--muted);line-height:1.65;margin-bottom:24px}
+label{display:block;font-size:11px;font-weight:950;letter-spacing:.07em;margin:17px 0 8px}
+.field{position:relative}
+input{width:100%;background:#fffdf8;color:var(--text);border:1px solid #cdb9a3;border-radius:14px;padding:15px 46px 15px 14px;font:inherit;outline:none;transition:.2s}
+input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
+.eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:8px;cursor:pointer;font-size:16px}
+.remember{display:flex;align-items:center;gap:8px;margin-top:13px;color:#756252;font-size:12px}
+.remember input{width:15px;height:15px;padding:0;accent-color:#bd8452}
+#loginBtn{width:100%;margin-top:20px;border:0;border-radius:14px;background:linear-gradient(135deg,#e8c49a,#c78e5c);color:#2e2117;font-weight:950;padding:15px;cursor:pointer;font-size:15px;box-shadow:0 10px 24px rgba(166,105,58,.17);transition:.2s}
+#loginBtn:hover{transform:translateY(-1px);filter:brightness(1.02)} #loginBtn:disabled{opacity:.65;cursor:wait;transform:none}
+.err{min-height:20px;color:var(--danger);font-size:12px;margin-top:10px;font-weight:700}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}
+.linkbtn{display:flex;justify-content:center;align-items:center;text-decoration:none;border:1px solid #ccb69f;border-radius:12px;padding:11px;color:#4f4034;background:#f4e8d9;font-weight:850;font-size:12px}
+.security{margin-top:18px;padding:12px 13px;border-radius:13px;background:#f6ecdf;border:1px solid #ddcbb8;color:#786453;font-size:11px;line-height:1.55}
+.social{margin-top:19px;padding-top:16px;border-top:1px solid #ead9c6;display:flex;justify-content:space-between;gap:12px;align-items:center;color:#887362;font-size:11px}
+.social a{color:#a7683b;font-weight:900;text-decoration:none} .social a:hover{text-decoration:underline}
+.success{color:#247a46!important}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.hero{display:none}.login-side{min-height:100vh;padding:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}.mobile-brand img{width:50px;height:50px;border-radius:50%;border:2px solid #c58e5d}.mobile-brand .wordmark{font-size:25px}}
+@media(max-width:480px){.card{padding:25px 20px;border-radius:22px}.card h2{font-size:32px}.links{grid-template-columns:1fr}.social{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <div class="topline">
-      <div class="brand">
-      <img src="/assets/vizex-logo.png" class="brand-logo" alt="Vizex Studio logo">
-      <div class="logo">vizex<b>.studio</b></div>
-    </div>
-      <div class="status"><span class="dot"></span> Sistem Online</div>
-    </div>
-
-    <h1>Masuk ke Tools</h1>
-    <p>Masukkan email dan kode akses yang diberikan admin Vizex.</p>
-
-    <label>EMAIL</label>
-    <input id="email" type="email" autocomplete="email" placeholder="nama@email.com">
-
-    <label>KODE AKSES</label>
-    <input id="code" type="password" autocomplete="current-password" placeholder="Masukkan kode akses" onkeydown="if(event.key==='Enter')login()">
-
-    <div class="err" id="err"></div>
-    <button id="loginBtn" onclick="login()">Masuk</button>
-
-    <div class="links">
-      <a class="linkbtn buy" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20mau%20beli%20akses." target="_blank" rel="noopener">🛒 Beli Akses</a>
-      <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20butuh%20bantuan%20login." target="_blank" rel="noopener">💬 Hubungi Admin</a>
-    </div>
-
-    <div class="license">🔒 Lisensi akses hanya untuk pemilik akun. Dilarang menjual ulang, membagikan akses, atau mendistribusikan tools tanpa izin.</div>
-
-    <div class="footer">
-      <span>Vizex Studio v1.0</span>
-      <span>Licensed Access</span>
-    </div>
+<div class="shell">
+ <section class="hero">
+  <div class="brand"><img src="/assets/vizex-logo.png" alt="Vizex Studio logo"><div class="wordmark">vizex<b>.studio</b></div></div>
+  <div class="hero-copy">
+   <span class="eyebrow">AI VISUAL STORY WORKSPACE</span>
+   <h1>Turn Ideas Into <em>Visual Stories.</em></h1>
+   <p>Dari ide sampai storyboard, karakter konsisten, prompt scene, dan animasi—semuanya dalam satu workspace kreatif.</p>
+   <div class="features"><span class="chip">✦ AI Storyboard</span><span class="chip">◈ Character Consistency</span><span class="chip">✦ Scene Generator</span></div>
   </div>
+  <div class="hero-foot">Create smarter. Stay consistent. Tell better stories.</div>
+ </section>
+
+ <main class="login-side">
+  <div class="card">
+   <div class="mobile-brand"><img src="/assets/vizex-logo.png" alt="Vizex Studio logo"><div class="wordmark">vizex<b>.studio</b></div></div>
+   <div class="status"><span class="dot"></span> Sistem Online</div>
+   <h2>Welcome back 👋</h2>
+   <div class="sub">Masuk untuk melanjutkan proyek dan cerita berikutnya.</div>
+
+   <label>EMAIL</label>
+   <div class="field"><input id="email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
+
+   <label>KODE AKSES</label>
+   <div class="field">
+    <input id="code" type="password" autocomplete="current-password" placeholder="Masukkan kode akses" onkeydown="if(event.key==='Enter')login()">
+    <button class="eye" type="button" onclick="togglePassword()" aria-label="Lihat atau sembunyikan kode akses">👁</button>
+   </div>
+   <label class="remember"><input id="rememberMe" type="checkbox"> Ingat email saya</label>
+
+   <div class="err" id="err"></div>
+   <button id="loginBtn" onclick="premiumLogin()">Masuk ke Vizex →</button>
+
+   <div class="links">
+    <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20mau%20beli%20akses." target="_blank" rel="noopener">🛒 Beli Akses</a>
+    <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20butuh%20bantuan%20login." target="_blank" rel="noopener">💬 Hubungi Admin</a>
+   </div>
+
+   <div class="security">🔒 Akses akun dan sesi perangkat dikelola oleh sistem Vizex. Jangan bagikan kode akses atau akun kepada orang lain.</div>
+   <div class="social"><span>© 2026 Vizex.Digital</span><span>Follow IG: <a href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener noreferrer">@vizex.digital</a></span></div>
+  </div>
+ </main>
 </div>
 
 <script>
+
 function getVizexDeviceId(){
  let id=localStorage.getItem("vizexDeviceId");
  if(!id){id=(crypto.randomUUID?crypto.randomUUID():"dev-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("vizexDeviceId",id)}
@@ -106,6 +134,31 @@ async function login(){
    err.textContent="Tidak bisa terhubung ke server.";
  }finally{
    btn.disabled=false;
+ }
+}
+
+
+function togglePassword(){
+ const el=document.getElementById("code");
+ el.type=el.type==="password"?"text":"password";
+}
+const savedVizexEmail=localStorage.getItem("vizexRememberEmail");
+if(savedVizexEmail){
+ document.getElementById("email").value=savedVizexEmail;
+ document.getElementById("rememberMe").checked=true;
+}
+async function premiumLogin(){
+ const btn=document.getElementById("loginBtn"),err=document.getElementById("err");
+ const email=document.getElementById("email").value.trim();
+ if(document.getElementById("rememberMe").checked) localStorage.setItem("vizexRememberEmail",email);
+ else localStorage.removeItem("vizexRememberEmail");
+ btn.textContent="Memeriksa akses...";
+ await login();
+ if(!err.textContent || err.textContent==="Memeriksa..."){
+   btn.textContent="✓ Berhasil — Membuka Workspace...";
+   err.classList.add("success");
+ } else {
+   btn.textContent="Masuk ke Vizex →";
  }
 }
 </script>
