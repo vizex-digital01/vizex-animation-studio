@@ -14,7 +14,32 @@ async function askGroq(system,user,schema,name,max=9000){
   })
  });
  const d=await rr.json();
- if(!rr.ok)throw new Error(d?.error?.message||"Groq API error.");
+ if(!rr.ok){
+  const msg=d?.error?.message||"Groq API error.";
+  const failed=String(d?.error?.failed_generation||"").trim();
+  const schemaFail=/schema|failed_generation|does not match/i.test(msg);
+  if(schemaFail){
+   const repairSystem=system+`\n\nCRITICAL JSON REPAIR: Your previous output failed the required JSON schema. Return the COMPLETE object again. Do not omit any required property. For every scene include non-empty function, start_state, action, end_state, camera, outfit, outfit_change_reason, image_prompt, and video_prompt.`;
+   const repairUser=user+(failed?`\n\nPREVIOUS INVALID OUTPUT TO REPAIR:\n${failed}`:"");
+   const retry=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+    method:"POST",
+    headers:{"Authorization":`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
+    body:JSON.stringify({
+     model,
+     messages:[{role:"system",content:repairSystem},{role:"user",content:repairUser}],
+     response_format:{type:"json_schema",json_schema:{name,strict:true,schema}},
+     max_completion_tokens:max,
+     reasoning_effort:"low"
+    })
+   });
+   const rd=await retry.json();
+   if(!retry.ok)throw new Error(rd?.error?.message||msg);
+   const repaired=rd?.choices?.[0]?.message?.content?.trim();
+   if(!repaired)throw new Error("Groq tidak mengembalikan output setelah perbaikan schema.");
+   return JSON.parse(repaired);
+  }
+  throw new Error(msg);
+ }
  const raw=d?.choices?.[0]?.message?.content?.trim();
  if(!raw)throw new Error("Groq tidak mengembalikan output.");
  return JSON.parse(raw);
@@ -36,7 +61,7 @@ CHARACTER + OUTFIT ENGINE:
 - If the current scene is the clothing-change beat, make the action and prompts physically clear and non-contradictory.
 PROMPT RULES — PRODUCTION DETAIL:
 - The TITLE is the single source of truth. First build one causal story from the title, then derive every scene, narration, image prompt, video prompt, caption and cover from that SAME story. Never add a random subplot just to make a prompt richer.
-- Each image_prompt is ONE frozen frame only, normally 100-180 useful English words. Detail must come from the current storyboard state, not invented future events.
+- EVERY scene object MUST include ALL nine fields with non-empty strings: function, start_state, action, end_state, camera, outfit, outfit_change_reason, image_prompt, video_prompt. Never omit end_state or any other required field.\n- Each image_prompt is ONE frozen frame only, normally 100-180 useful English words. Detail must come from the current storyboard state, not invented future events.
 - Every image_prompt must naturally specify: exact visible character count; locked main-character identity and distinctive traits; exact CURRENT OUTFIT including colors/material/condition; pose and body language; current action frozen at one readable instant; exact relevant props and quantities; environment/location and spatial placement; time/weather when relevant; lighting direction/quality; composition; camera angle, shot size and lens feel; depth/background; the selected visual style/material rendering; vertical 9:16; continuity constraints; no watermark, no subtitles/text unless explicitly required, no duplicate people/props, no extra limbs.
 - Do not write vague shortcuts such as "same as previous scene", "same character", or "same as image_prompt" inside a final image prompt. Restate the necessary visual continuity explicitly so each prompt can be used independently.
 - Each video_prompt is normally 80-150 useful English words. Treat the scene image as FRAME ZERO, then describe a clean temporal progression: exact starting pose/state -> character motion -> prop/environment reaction -> camera movement -> pacing -> exact end pose/state that becomes the next continuity state.
