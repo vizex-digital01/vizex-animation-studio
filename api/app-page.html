@@ -159,7 +159,7 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
     <button class="mini" onclick="logoutVizex()">Keluar</button>
     </div></div>
 
-<section class="tool on" id="create"><div id="vizexAnimLimitReminder" style="margin:10px 0 14px;padding:11px 13px;border:1px solid rgba(120,90,50,.22);border-radius:12px;background:rgba(255,248,235,.75);font-size:12px;line-height:1.5"><b>💡 Pengingat AI</b><br>Setelah Generate Animasi, tunggu ±20 detik sebelum mencoba lagi. Jangan spam tombol; Regenerate Scene juga memakai request Gemini.</div><h1>Buat Animasi</h1><p class="muted">Ide → gaya visual → karakter → kunci karakter → storyboard → prompt → ekspor.</p>
+<section class="tool on" id="create"><div id="vizexAnimLimitReminder" style="margin:10px 0 14px;padding:11px 13px;border:1px solid rgba(120,90,50,.22);border-radius:12px;background:rgba(255,248,235,.75);font-size:12px;line-height:1.5"><b>💡 Pengingat AI</b><br>Setelah Generate Animasi, tunggu ±20 detik sebelum mencoba lagi. Jangan spam tombol; Regenerate Scene juga memakai request Gemini.</div><div id="vizexCooldownStatus" style="margin:-6px 0 14px;font-size:12px;font-weight:700">✅ AI siap digunakan</div><h1>Buat Animasi</h1><p class="muted">Ide → gaya visual → karakter → kunci karakter → storyboard → prompt → ekspor.</p>
 <div class="card"><div class="grid"><div><label>IDE</label><textarea id="idea" placeholder="Contoh: Alumni pondok mendengar bel lama..."></textarea></div><div><label>JUMLAH SCENE</label><select id="n"><option>3</option><option selected>5</option><option>7</option><option>10</option></select><br><br><label>DURASI VIDEO / NARASI</label><select id="duration"><option value="15">15 detik</option><option value="30" selected>30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select><br><br><label>GAYA VISUAL</label><select id="style"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div></div><div class="actions">
 <button class="primary" onclick="concept()">Generate Concept + Karakter</button>
 <button class="mini ghost" onclick="saveCurrentProject()">💾 Simpan Proyek</button>
@@ -1206,12 +1206,12 @@ ${storyCTA(idea,"caption")}
  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
 
-let vizexIdeaBusy=false,vizexIdeaCooldownUntil=0;
+let vizexIdeaBusy=false; window.vizexIdeaCooldownUntil=0;
 async function generatePremiumIdeas(){
  if(vizexIdeaBusy)return;
  const _now=Date.now();
- if(_now<vizexIdeaCooldownUntil){alert(`Tunggu ${Math.ceil((vizexIdeaCooldownUntil-_now)/1000)} detik sebelum generate lagi.`);return}
- vizexIdeaBusy=true; vizexIdeaCooldownUntil=_now+15000;
+ if(_now<window.vizexIdeaCooldownUntil){alert(`Tunggu ${Math.ceil((window.vizexIdeaCooldownUntil-_now)/1000)} detik sebelum generate lagi.`);return}
+ vizexIdeaBusy=true; window.vizexIdeaCooldownUntil=_now+15000;
  setTimeout(()=>{vizexIdeaBusy=false},15000);
  const topic=(v("ideaNiche")||"").trim(), audience=(v("ideaAudienceText")||"").trim(), count=+(v("ideaCount")||10);
  if(!topic)return alert("Masukkan NICHE / TOPIK dulu.");
@@ -1528,5 +1528,30 @@ async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangka
 async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
 loadCustomerProfile();
+</script>
+
+<script>
+(function(){
+ function tick(){
+  const now=Date.now();
+  const anim=Number(localStorage.getItem("vizexAnimCooldownUntil")||0);
+  const idea=Number(window.vizexIdeaCooldownUntil||0);
+  const el=document.getElementById("vizexCooldownStatus");
+  if(el){
+   const sec=Math.max(0,Math.ceil((anim-now)/1000));
+   el.textContent=sec>0?`⏳ Generate Animasi bisa dipakai lagi dalam ${sec} detik`:"✅ Generate Animasi siap digunakan";
+  }
+  // Update idea generate button text when detectable, while preserving original text.
+  const buttons=[...document.querySelectorAll("button")];
+  const ideaBtn=buttons.find(b=>/generate ide/i.test(b.dataset.originalText||b.textContent||""));
+  if(ideaBtn){
+   if(!ideaBtn.dataset.originalText)ideaBtn.dataset.originalText=ideaBtn.textContent.trim();
+   const remain=Math.max(0,Math.ceil((Number(window.vizexIdeaCooldownUntil||0)-now)/1000));
+   if(remain>0){ideaBtn.disabled=true;ideaBtn.textContent=`Tunggu ${remain} detik...`;}
+   else{ideaBtn.disabled=false;ideaBtn.textContent=ideaBtn.dataset.originalText;}
+  }
+ }
+ setInterval(tick,500); setTimeout(tick,50);
+})();
 </script>
 </body></html>
