@@ -12,15 +12,30 @@ async function groqCall(payload){
  return fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify(payload)});
 }
 async function askGroq(system,user,schema,name,max=3200){
- const model=process.env.GROQ_MODEL||"openai/gpt-oss-20b";
- const payload={model,messages:[{role:"system",content:system},{role:"user",content:user}],response_format:{type:"json_schema",json_schema:{name,strict:true,schema}},max_completion_tokens:max,reasoning_effort:"low"};
+ const primaryModel=process.env.GROQ_MODEL||"openai/gpt-oss-120b";
+ const fallbackModel="openai/gpt-oss-20b";
+ let model=primaryModel;
+ const payload={model,messages:[{role:"system",content:system},{role:"user",content:user}],response_format:{type:"json_schema",json_schema:{name,strict:true,schema}},max_completion_tokens:max,reasoning_effort:"medium"};
  let rr=await groqCall(payload),d=await rr.json();
  if(rr.status===429){
   await sleep(retryMs(d?.error?.message,rr.headers));
   rr=await groqCall(payload);d=await rr.json();
  }
  if(!rr.ok){
-  const msg=d?.error?.message||"Groq API error.";
+  let msg=d?.error?.message||"Groq API error.";
+  const accessFail=rr.status===403||rr.status===404||/model.*(not found|unavailable|permission|access|deprecat)/i.test(msg);
+  if(accessFail&&model!==fallbackModel){
+   model=fallbackModel;
+   payload.model=model;
+   rr=await groqCall(payload);d=await rr.json();
+   if(rr.status===429){await sleep(retryMs(d?.error?.message,rr.headers));rr=await groqCall(payload);d=await rr.json()}
+   if(rr.ok){
+    const raw=d?.choices?.[0]?.message?.content?.trim();
+    if(!raw)throw new Error("Groq tidak mengembalikan output.");
+    return JSON.parse(raw);
+   }
+   msg=d?.error?.message||msg;
+  }
   const failed=String(d?.error?.failed_generation||"").trim();
   if(/schema|failed_generation|does not match/i.test(msg)){
    const repair={...payload,messages:[{role:"system",content:system+"\nReturn complete valid JSON. Never omit required fields; every scene needs function,start_state,action,end_state,camera,outfit,outfit_change_reason,image_prompt,video_prompt."},{role:"user",content:user+(failed?`\nRepair this invalid attempt:\n${failed.slice(0,6000)}`:"")}]};
