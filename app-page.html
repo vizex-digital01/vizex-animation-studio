@@ -20,6 +20,10 @@ button.mini,.mini{background:#eadbc9!important;color:#2f241b!important;border-co
 .brand-side{display:flex;align-items:center;gap:10px!important}
 .side-logo{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #c99768;box-shadow:0 6px 18px rgba(92,67,45,.12);flex:0 0 auto}
 .brand-side span{display:inline-block}
+
+/* V9 Storyboard Editor */
+#v9Storyboard textarea{width:100%;resize:vertical;min-height:82px}#v9Storyboard input{width:100%}#v9Storyboard .scene{scroll-margin-top:90px}
+@media(max-width:768px){#v9Storyboard .grid2{grid-template-columns:1fr!important}#v9Storyboard .actions button{width:100%}#v9Storyboard textarea{font-size:16px}}
 </style>
 <style id="vizex-full-cream-theme">
 :root{
@@ -107,10 +111,47 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
   box-shadow:0 6px 18px rgba(92,67,45,.12)!important
 }
 </style>
-</head><body><div class="app"><aside class="side"><div class="logo brand-side">
+
+<style id="vizex-v8-mobile">
+/* V8 Mobile Responsive — desktop behavior remains unchanged */
+.mobile-menu-btn,.mobile-overlay{display:none}
+@media(max-width:768px){
+ html,body{overflow-x:hidden}
+ body{font-size:14px}
+ .app{display:block;min-height:100vh}
+ .side{position:fixed!important;z-index:10020;left:0;top:0;width:min(82vw,310px);height:100dvh!important;padding:18px 12px!important;border-right:1px solid #d8c8b6!important;border-bottom:0!important;transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;box-shadow:14px 0 36px rgba(61,48,38,.18)!important}
+ body.mobile-nav-open .side{transform:translateX(0)}
+ .brand-side{margin:0 8px 18px!important}.side-logo{width:40px;height:40px}
+ .nav{display:block!important;overflow:visible!important}.nav button{display:block!important;width:100%!important;min-width:0!important;padding:13px 12px!important;margin:4px 0!important;font-size:14px!important}
+ .mobile-overlay{position:fixed;inset:0;z-index:10010;background:rgba(47,36,27,.34);backdrop-filter:blur(2px)}
+ body.mobile-nav-open .mobile-overlay{display:block}
+ .main{padding:14px!important;max-width:none!important;width:100%!important}
+ .head{position:sticky;top:0;z-index:9000;margin:-14px -14px 14px;padding:10px 14px;background:rgba(246,239,228,.94);backdrop-filter:blur(12px);border-bottom:1px solid #d8c8b6;gap:8px}
+ .head>div:first-child b{font-size:13px}.head>div:first-child img{width:30px!important;height:30px!important}
+ .head>div:last-child{gap:6px!important;min-width:0}.head .tag{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 8px;font-size:10px}.head .mini{padding:8px 9px!important}
+ .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 38px;border:1px solid #cfbca7;border-radius:10px;background:#eadbc9;color:#2f241b;font-size:20px;font-weight:900;cursor:pointer}
+ h1{font-size:28px!important;line-height:1.12;margin:18px 0 7px!important}h2{font-size:21px}h3{font-size:15px}
+ .card{padding:14px!important;margin-top:12px!important;border-radius:14px!important}.grid,.grid3{grid-template-columns:1fr!important;gap:10px!important}
+ input,textarea,select{font-size:16px!important;padding:12px!important;min-height:44px}textarea{min-height:110px}
+ .actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}.actions button,.actions .mini,.actions .primary{width:100%!important;min-height:44px!important;font-size:13px!important}
+ .workspace-item{display:block!important;padding:13px!important}.workspace-actions{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;margin-top:12px!important}.workspace-actions button{width:100%!important;min-height:42px!important}
+ .scene{padding:13px!important;margin:10px 0!important;overflow:hidden}.scene .result,.result{font-size:13px;line-height:1.55;overflow-wrap:anywhere;word-break:break-word;max-width:100%}.scene button{width:100%;min-height:42px;margin-top:7px}
+ .statgrid{grid-template-columns:1fr!important}.stat{padding:12px!important}.stat b{font-size:20px!important}
+ #adminCustomerCard .workspace-item{border-radius:12px}
+ #adminCustomerCard .workspace-actions{grid-template-columns:1fr!important}
+ #adminCustomerCard .actions{grid-template-columns:1fr!important}
+ #premiumIdeaResults .saved{padding:13px!important}
+ .choice{padding:13px!important}.choice .mini{width:100%;min-height:42px}
+ .saved{overflow:hidden}.saved .actions{grid-template-columns:1fr!important}
+ .tool{max-width:100%;overflow:hidden}
+ pre,code{white-space:pre-wrap;overflow-wrap:anywhere}
+}
+@media(max-width:390px){.main{padding:11px!important}.head{margin:-11px -11px 12px;padding:9px 11px}.head>div:first-child b{display:none}.head .tag{max-width:105px}h1{font-size:25px!important}.card{padding:12px!important}}
+</style>
+</head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
-    </div><div class="nav" id="nav"></div></aside><main class="main"><div class="head"><div style="display:flex;align-items:center;gap:9px">
+    </div><div class="nav" id="nav"></div></aside><main class="main"><div class="head"><button class="mobile-menu-btn" type="button" aria-label="Buka menu" onclick="toggleMobileNav()">☰</button><div style="display:flex;align-items:center;gap:9px">
       <img src="/assets/vizex-logo.png" alt="Vizex logo" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #c99768">
       <b>Studio Animasi AI</b>
     </div><div style="display:flex;gap:8px;align-items:center">
@@ -147,9 +188,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
       <select id="ideaCount">
         <option value="5">5 ide</option>
         <option value="10" selected>10 ide</option>
-        <option value="15">15 ide</option>
-        <option value="20">20 ide</option>
-        <option value="30">30 ide</option>
+        
+        
+        
       </select>
     </div>
   </div>
@@ -199,24 +240,75 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 
 <section class="tool" id="settings">
   <h1>Pengaturan</h1>
-  <p class="muted">Atur default workflow Vizex supaya setiap bikin proyek baru nggak perlu setting ulang.</p>
+  <p class="muted">Kelola profil customer, keamanan akun, perangkat aktif, dan default workflow Vizex.</p>
+
   <div class="card">
-    <div class="grid">
-      <div><label>DEFAULT JUMLAH SCENE</label>
-        <select id="setScenes"><option>3</option><option>5</option><option>7</option><option>10</option></select>
+    <label>👤 PROFIL CUSTOMER</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>NAMA / BRAND</label><input id="profileName" placeholder="Nama customer atau brand"></div>
+      <div><label>EMAIL LOGIN</label><input id="profileEmail" disabled></div>
+      <div><label>PAKET</label><input id="profilePlan" disabled></div>
+      <div><label>STATUS AKUN</label><input id="profileStatus" disabled></div>
+      <div><label>BATAS PERANGKAT</label><input id="profileDevices" disabled></div>
+      <div><label>BERGABUNG</label><input id="profileCreated" disabled></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="saveCustomerProfile()">Simpan Profil</button></div>
+    <p class="muted" id="profileMsg"></p>
+  </div>
+
+  <div class="card">
+    <label>🔐 AKUN & KEAMANAN</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>PASSWORD SEKARANG</label><input id="currentPassword" type="password" autocomplete="current-password" placeholder="Password/kode akses sekarang"></div>
+      <div><label>PASSWORD BARU</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="changeCustomerPassword()">Ganti Password</button>
+      <button class="mini ghost" onclick="logoutAllDevices()">Keluar dari Semua Perangkat</button>
+    </div>
+    <p class="muted" id="passwordMsg"></p>
+  </div>
+
+  <div class="card">
+    <label>💻 PERANGKAT AKTIF</label>
+    <p class="muted">Akun hanya bisa dipakai sampai batas perangkat pada paket lo. Perangkat lain bisa dikeluarkan dari sini.</p>
+    <div id="activeSessions"><div class="result">Memuat perangkat...</div></div>
+  </div>
+
+  <div class="card" id="adminCustomerCard" style="display:none">
+    <label>🛡️ KELOLA CUSTOMER • ADMIN</label>
+    <p class="muted">Aktif/nonaktifkan akun, ubah batas perangkat, dan cabut semua sesi customer. Password asli tidak pernah ditampilkan.</p>
+    <div class="actions">
+      <button class="primary" onclick="toggleAddCustomerForm()">＋ Tambah Customer</button>
+      <button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button>
+    </div>
+    <div id="addCustomerForm" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--l);border-radius:13px;background:#fffdf8">
+      <label>➕ CUSTOMER BARU</label>
+      <div class="grid" style="margin-top:12px">
+        <div><label>NAMA / BRAND</label><input id="newCustomerName" placeholder="Contoh: Customer 2"></div>
+        <div><label>EMAIL LOGIN</label><input id="newCustomerEmail" type="email" placeholder="customer2@gmail.com"></div>
+        <div><label>PASSWORD / KODE AKSES</label><input id="newCustomerPassword" type="password" placeholder="Minimal 8 karakter"></div>
+        <div><label>PAKET</label><select id="newCustomerPlan"><option value="PRO">PRO</option><option value="BASIC">BASIC</option><option value="PREMIUM">PREMIUM</option></select></div>
+        <div><label>BATAS PERANGKAT</label><select id="newCustomerDevices"><option value="1">1 perangkat</option><option value="2">2 perangkat</option><option value="3">3 perangkat</option><option value="5">5 perangkat</option><option value="10">10 perangkat</option></select></div>
       </div>
-      <div><label>DEFAULT DURASI</label>
-        <select id="setDuration"><option value="15">15 detik</option><option value="30">30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select>
-      </div>
-      <div><label>DEFAULT GAYA VISUAL</label>
-        <select id="setStyle"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select>
-      </div>
+      <div class="actions"><button class="primary" onclick="createAdminCustomer()">Buat Customer</button><button class="mini ghost" onclick="toggleAddCustomerForm(false)">Batal</button></div>
+      <p class="muted" id="newCustomerMsg"></p>
+    </div>
+    <div id="adminCustomerList"></div>
+  </div>
+
+  <div class="card">
+    <label>⚙️ DEFAULT WORKFLOW</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>DEFAULT JUMLAH SCENE</label><select id="setScenes"><option>3</option><option>5</option><option>7</option><option>10</option></select></div>
+      <div><label>DEFAULT DURASI</label><select id="setDuration"><option value="15">15 detik</option><option value="30">30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select></div>
+      <div><label>DEFAULT GAYA VISUAL</label><select id="setStyle"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div>
     </div>
     <div class="actions"><button class="primary" onclick="saveVizexSettings()">Simpan Pengaturan</button></div>
   </div>
+
   <div class="card">
-    <label>DATA LOKAL</label>
-    <p class="muted">Data di bawah cuma tersimpan di browser/perangkat ini.</p>
+    <label>DATA LOKAL</label><p class="muted">Data di bawah cuma tersimpan di browser/perangkat ini.</p>
     <div class="statgrid">
       <div class="stat"><b id="statProjects">0</b><span class="muted">Proyek tersimpan</span></div>
       <div class="stat"><b id="statHistory">0</b><span class="muted">Riwayat generate</span></div>
@@ -231,6 +323,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 
 
 </main></div><script>
+function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
+function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
+window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
 const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
 let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=JSON.parse(localStorage.getItem("chars")||"[]");
 const nav=document.getElementById("nav");
@@ -386,69 +481,442 @@ function concept(){
 function pick(i,el){
  chosen=el.dataset.d;
  document.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
- let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve the exact same hairstyle, outfit, body proportions, accessories, colors, and materials in every scene\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
+ let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve identity, hairstyle, body proportions, distinctive details and face setting in every scene. Outfit is a separate story state and may change only when the title/scene logically requires a clothing change; otherwise keep the previous outfit exactly\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="lock"><label>🔒 KUNCI KARAKTER</label><div class="result">${e(lock)}</div><div class="actions"><button class="primary" onclick="scenes()">Buat Storyboard</button></div></div>`);
  document.getElementById("lock").scrollIntoView({behavior:"smooth"});
 }
-function buildDynamicStory(idea,n){
- const meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
- const p=meta?.profile||null;
 
- // If the idea came from Idea Generator, lock the whole storyboard to the
- // exact subcontext that created the title. Do not re-interpret it generically.
- if(p && p.kind==="life" && p.en && p.raw){
-   const opening=`Opening hook: in ${p.en.place||"the concept-specific location"}, during ${p.en.moment||"the relevant moment"}, the main character is naturally ${p.en.activity||"performing the concept-specific activity"}. ${p.en.object} is clearly visible and the exact situation begins: ${p.en.situation}. ${p.en.person} reacts naturally in the same environment.`;
-   const middle=[
-    `Continue the SAME event in ${p.en.place}. The main character responds directly to "${p.en.situation}" while continuing ${p.en.activity}. Keep ${p.en.object} relevant to the action; do not introduce an unrelated location, object, or new story.`,
-    `Escalate the SAME situation naturally. ${p.en.person} becomes involved and ${p.en.social}. Show cause-and-effect from the opening, not a separate event. Keep the environment and daily-life context consistent.`,
-    `Show the consequence of "${p.en.situation}". The main character adjusts their action, interacts with ${p.en.object}, and the supporting characters keep behaving naturally. The scene must visibly move toward the promised payoff.`,
-    `Resolution setup: the original problem/event is almost resolved. Keep the exact same concept, characters, key object, and location logic. Make the emotional tone feel ${p.en.emotion}.`
-   ];
-   const ending=`PAYOFF scene: resolve the SAME event introduced in Scene 1. ${p.en.social}. End with a clear visual result that feels ${p.en.emotion} and directly pays off "${p.en.situation}". Do not switch to a different story, location, or unrelated prop.`;
 
-   let out=[];
-   for(let i=0;i<n;i++){
-     if(i===0) out.push(opening);
-     else if(i===n-1) out.push(ending);
-     else out.push(middle[(i-1)%middle.length]);
-   }
-   return {theme:p.world||"concept-locked",scenes:out,locked:true};
+/* ============================================================
+   V55 DEEP DEEP STORY ENGINE
+   Rule: TITLE -> literal facts -> causal spine -> scene beats
+         -> continuity validation -> prompts -> narration.
+   The engine intentionally prefers a simple coherent story over
+   inventing extra locations, props, characters, or subplots.
+   ============================================================ */
+const STORY_STOPWORDS=new Set(("yang dan di ke dari untuk sama dengan karena jadi bikin buat kalau pas saat waktu hari ini itu gue aku lo kamu kita mereka orang satu ada nggak gak ga banget malah terus akhirnya awalnya".split(" ")));
+
+function normStoryText(x){
+ return String(x||"").toLowerCase()
+  .replace(/[“”"'`]/g,"")
+  .replace(/[^\p{L}\p{N}\s-]/gu," ")
+  .replace(/\s+/g," ").trim();
+}
+function storyKeywords(title){
+ return [...new Set(normStoryText(title).split(" ").filter(w=>w.length>2&&!STORY_STOPWORDS.has(w)))];
+}
+function hasAny(q,arr){return arr.some(x=>q.includes(x))}
+function firstMatch(q,arr,fallback=""){return arr.find(x=>q.includes(x))||fallback}
+
+function extractTitleLogic(idea){
+ const title=String(idea||"").trim(),q=normStoryText(title),kw=storyKeywords(title);
+ const time=firstMatch(q,["tengah malam","subuh","pagi","siang","sore","malam","akhir pekan","weekend"],"waktu paling logis dari judul");
+ const place=firstMatch(q,["kamar pondok","kamar asrama","kamar kos","pondok","pesantren","asrama","kos","kelas","sekolah","kampus","kantor","tempat kerja","rumah","dapur","kamar mandi","kamar","lapangan","stasiun","halte","kereta","bus","bandara","jalan","warung","kafe","masjid"],"satu lokasi paling logis yang tersirat judul");
+ const mood=firstMatch(q,["panik","malu","kesal","ngeselin","lucu","rame","ramai","sepi","takut","capek","senang","sedih","canggung","heboh"],"reaksi natural sesuai kejadian");
+ const relation=firstMatch(q,["teman sekamar","teman","musyrif","guru","dosen","atasan","bos","orang tua","ibu","ayah","adik","kakak"],"hanya karakter pendukung yang mutlak diperlukan");
+ const subject=firstMatch(q,["satu orang","teman","anak","guru","musyrif","gue","aku","kita","semua orang","satu pondok","satu kelas"],"karakter utama");
+ return {title,q,kw,time,place,mood,relation,subject};
+}
+
+function classifyTitle(idea){
+ const x=extractTitleLogic(idea),q=x.q;
+ if(hasAny(q,["telat","terlambat"])) return "late";
+ if(hasAny(q,["kesiangan","telat bangun","susah dibangunin","susah dibangunkan","ketiduran"])) return "oversleep";
+ if(hasAny(q,["hilang","kehilangan","nggak ketemu","gak ketemu"])) return "lost";
+ if(hasAny(q,["lupa","ketinggalan"])) return "forgot";
+ if(hasAny(q,["rame","ramai","berisik"])&&hasAny(q,["malam","kamar","pondok","asrama","kos"])) return "night_noise";
+ if(hasAny(q,["antri","antre","antrian","antrean"])) return "queue";
+ if(hasAny(q,["hujan","kehujanan"])) return "rain";
+ if(hasAny(q,["lapar","makan","masak","sahur","buka puasa"])) return "food";
+ if(hasAny(q,["ujian","ulangan","tugas","deadline"])) return "deadline";
+ if(hasAny(q,["piket","bersih","beres-beres","beres beres"])) return "chores";
+ if(hasAny(q,["pulang","berangkat","pergi","ketinggalan bus","ketinggalan kereta"])) return "travel";
+ return "literal";
+}
+
+function titleStoryFacts(idea){
+ const x=extractTitleLogic(idea),type=classifyTitle(idea),t=x.title;
+ let f={
+  type,title:t,place:x.place,time:x.time,
+  prop:"tidak ada properti wajib; gunakan hanya benda yang secara fisik diperlukan oleh kejadian",
+  premise:t,
+  opening:`Di ${x.place}, pada ${x.time}, tampilkan keadaan paling dekat sebelum inti kejadian "${t}" terjadi. Jangan buat aktivitas pembuka yang tidak berhubungan.`,
+  cause:`Inti kejadian "${t}" mulai terjadi secara konkret. Tampilkan penyebab langsung yang paling sederhana dan paling masuk akal.`,
+  response:`Karakter merespons penyebab itu dengan tindakan fisik yang wajar. Respons harus masih berada pada masalah yang sama.`,
+  climax:`Konsekuensi langsung dari kejadian "${t}" mencapai titik paling jelas. Jangan menambah konflik kedua.`,
+  ending:`Masalah utama mendapat hasil atau penyelesaian yang langsung menjawab "${t}". Jangan membuka subplot baru.`,
+  forbidden:["subplot baru","lokasi baru tanpa sebab","properti random","karakter random","konflik kedua","kejadian yang hanya filler"]
+ };
+ const presets={
+  late:[
+   `Di ${x.place}, kegiatan yang tersirat judul sudah hampir dimulai dan orang-orang yang memang perlu hadir sudah siap, tetapi satu orang belum muncul atau belum siap.`,
+   `Waktu makin mepet. Kelompok menyadari satu orang tertinggal lalu mengecek keberadaannya tanpa meninggalkan konteks utama.`,
+   `Orang yang terlambat ditemukan atau akhirnya muncul. Ia langsung buru-buru menyelesaikan hal yang membuatnya tertahan.`,
+   `Keterlambatan satu orang membuat kelompok ikut menunggu, terburu-buru, atau terlambat beberapa saat.`,
+   `Kelompok akhirnya melanjutkan kegiatan bersama; akibat keterlambatan terlihat jelas dan kejadian selesai.`
+  ],
+  oversleep:[
+   `Di ${x.place}, waktu kegiatan sudah dekat sementara satu orang masih tertidur dan yang lain sudah bersiap.`,
+   `Seseorang mencoba membangunkannya dengan cara wajar, tetapi ia belum langsung merespons.`,
+   `Usaha membangunkan menjadi lebih mendesak karena waktu terus berjalan.`,
+   `Orang itu akhirnya sadar, melihat situasi, lalu bangun terburu-buru.`,
+   `Ia mulai bersiap dan kegiatan yang sempat tertahan akhirnya bisa dilanjutkan.`
+  ],
+  lost:[
+   `Karakter berada di ${x.place} dan hendak melakukan tujuan yang tersirat judul, lalu menyadari benda penting yang disebut/tersirat judul tidak ada.`,
+   `Ia memeriksa tempat terakhir yang paling masuk akal, satu area demi satu area, tanpa teleportasi.`,
+   `Pencarian menyempit setelah ada petunjuk fisik yang wajar dari lingkungan atau ingatan tindakan sebelumnya.`,
+   `Benda ditemukan di tempat yang masuk akal atau penyebab kehilangan menjadi jelas.`,
+   `Karakter mengambil kembali benda itu dan melanjutkan tujuan awalnya.`
+  ],
+  forgot:[
+   `Karakter sudah memulai atau hampir memulai kegiatan di ${x.place}, lalu sadar ada hal penting yang tertinggal atau terlupa.`,
+   `Kesadaran itu menghentikan langkah berikutnya dan memaksa karakter mengecek kembali hal yang terlupa.`,
+   `Karakter kembali atau mengambil tindakan paling singkat untuk memperbaiki kelupaan itu.`,
+   `Hal yang terlupa berhasil didapat atau konsekuensinya diterima secara langsung.`,
+   `Karakter melanjutkan kegiatan dengan kondisi yang sudah jelas, tanpa konflik baru.`
+  ],
+  night_noise:[
+   `Malam hari di ${x.place}; sebagian penghuni hendak istirahat, tetapi beberapa masih terjaga.`,
+   `Aktivitas kecil dari yang masih terjaga memancing respons penghuni lain sehingga kamar justru makin ramai.`,
+   `Respons saling menyambung: makin banyak penghuni ikut bereaksi pada aktivitas malam yang sama.`,
+   `Keramaian mencapai puncak, lalu ada alasan natural untuk berhenti atau menurunkan volume.`,
+   `Aktivitas mereda, penghuni kembali ke tempat masing-masing, dan kamar perlahan tenang.`
+  ],
+  queue:[
+   `Di ${x.place}, karakter sudah berada dalam antrean untuk tujuan yang jelas.`,
+   `Antrean bergerak lebih lambat atau terganggu oleh satu penyebab yang masih relevan dengan antrean.`,
+   `Karakter dan orang di dekatnya merespons keterlambatan antrean secara natural.`,
+   `Giliran karakter akhirnya mendekat dan penyebab hambatan mulai selesai.`,
+   `Karakter mendapat giliran atau menyelesaikan tujuan antreannya.`
+  ],
+  rain:[
+   `Karakter berada di ${x.place} saat kondisi masih memungkinkan aktivitas berjalan normal.`,
+   `Hujan mulai turun dan langsung mengganggu aktivitas yang sedang dilakukan.`,
+   `Karakter mencari perlindungan atau menyesuaikan tindakan menggunakan benda yang memang tersedia secara logis.`,
+   `Hujan/konsekuensinya mencapai titik paling merepotkan lalu mulai bisa ditangani.`,
+   `Karakter berhasil melanjutkan atau menutup aktivitas dengan kondisi setelah hujan yang jelas.`
+  ],
+  deadline:[
+   `Di ${x.place}, karakter sedang menghadapi tugas/ujian/deadline yang disebut atau tersirat judul.`,
+   `Waktu atau beban pekerjaan mulai menjadi masalah konkret.`,
+   `Karakter fokus menyelesaikan bagian paling penting, bukan melakukan aktivitas lain.`,
+   `Tekanan mencapai puncak tepat sebelum batas waktu atau hasil keluar.`,
+   `Tugas diserahkan, ujian selesai, atau hasil langsung dari deadline terlihat.`
+  ],
+  chores:[
+   `Di ${x.place}, karakter memulai tugas bersih-bersih/piket yang memang menjadi inti judul.`,
+   `Satu bagian pekerjaan memunculkan hambatan kecil yang masih berasal dari tugas yang sama.`,
+   `Karakter menyelesaikan hambatan itu sambil melanjutkan pekerjaan utama.`,
+   `Pekerjaan mendekati selesai dan perubahan kondisi tempat mulai terlihat.`,
+   `Area selesai dibereskan dan hasil akhirnya terlihat jelas.`
+  ],
+  food:[
+   `Di ${x.place}, karakter utama masih sendirian dan baru menyiapkan atau membuka SATU porsi makanan yang menjadi inti judul. Belum ada orang lain ikut makan.`,
+   `Karakter utama mulai menikmati porsi yang sama. Jika judul melibatkan teman/orang lain, hanya SATU orang pertama yang boleh menyadari atau mendekat pada tahap ini; belum boleh ikut makan kecuali cerita sudah menyebutnya.`,
+   `Orang lain mulai merespons secara bertahap sesuai cerita. Mereka boleh mendekat atau membawa alat makan jika memang dibutuhkan, tetapi DILARANG menciptakan porsi makanan baru. Semua perkembangan tetap berpusat pada SATU porsi awal.`,
+   `Konsekuensi utama terjadi: lebih banyak orang dapat ikut mengambil dari porsi awal yang sama hanya jika timeline sudah sampai tahap tersebut. Jumlah makanan harus terlihat berkurang secara logis.`,
+   `Payoff: kondisi akhir menunjukkan akibat langsung dari berbagi/makan tersebut. Porsi awal sudah berkurang atau hampir habis; jangan munculkan porsi pengganti baru.`
+  ],
+  travel:[
+   `Di ${x.place}, karakter sudah bersiap untuk berangkat/pulang sesuai judul.`,
+   `Muncul hambatan langsung yang berkaitan dengan keberangkatan, waktu, atau kendaraan.`,
+   `Karakter mengambil tindakan paling logis untuk tetap bisa melanjutkan perjalanan.`,
+   `Hambatan mencapai titik penentu: berhasil dikejar, terlewat, atau harus menunggu.`,
+   `Perjalanan berlanjut atau konsekuensi akhirnya terlihat jelas.`
+  ]
+ };
+ if(presets[type]){
+  [f.opening,f.cause,f.response,f.climax,f.ending]=presets[type];
  }
+ return f;
+}
 
- // Fallback for manually typed ideas.
- const q=idea.toLowerCase();
- let theme="general", loc=["a location directly implied by the title"], props=["the key object directly implied by the title"];
- if(/pondok|santri|pesantren|asrama/.test(q)){theme="pondok";loc=["dormitory bedroom","boarding school corridor","study room","boarding school courtyard"];props=["the exact object mentioned or implied by the title","daily boarding-school belongings"];}
- else if(/kantor|kerja|fresh graduate|meeting|bos/.test(q)){theme="kantor";loc=["work desk","meeting room","office pantry","office elevator"];props=["the exact work object implied by the title","laptop or work item only when relevant"];}
- else if(/sekolah|kelas|murid|sma|smp|kuliah|kampus/.test(q)){theme="sekolah/kampus";loc=["classroom","campus classroom","hallway","cafeteria"];props=["the exact school object implied by the title","school belongings only when relevant"];}
- else if(/rumah|keluarga|ibu|ayah|orang tua/.test(q)){theme="keluarga/rumah";loc=["the exact room implied by the title","family home"];props=["the exact household object implied by the title"];}
- const patterns=[
-  (L,P)=>`Opening: visually establish the exact situation described by "${idea}" in ${L}. Use ${P} only if it directly belongs to the title. Show the event already starting, not a generic pose.`,
-  (L,P)=>`Continue the exact same event from the previous scene in ${L}. Show a direct consequence of "${idea}". Do not invent a second story.`,
-  (L,P)=>`Escalate the same situation from "${idea}" through a believable action and interaction. Keep all objects and people relevant to the title.`,
-  (L,P)=>`Move toward the payoff of "${idea}". Show a clear cause-and-effect result from the opening action.`,
-  (L,P)=>`Final payoff: resolve the exact situation promised by "${idea}" with a clear visual outcome.`
+function interpolateStoryBeats(facts,total){
+ const spine=[
+  {fungsi:"HOOK / KONDISI AWAL",action:facts.opening},
+  {fungsi:"PEMICU",action:facts.cause},
+  {fungsi:"RESPONS",action:facts.response},
+  {fungsi:"KLIMAKS / KONSEKUENSI",action:facts.climax},
+  {fungsi:"PAYOFF / PENYELESAIAN",action:facts.ending}
  ];
- let out=[];
- for(let i=0;i<n;i++){
-   let idx=i===0?0:(i===n-1?4:Math.min(i,3));
-   out.push(patterns[idx](loc[i%loc.length],props[i%props.length]));
+ if(total<=1) return [{fungsi:"CERITA UTUH",action:spine.map(x=>x.action).join(" ")}];
+ if(total===2) return [
+  {fungsi:"HOOK + PEMICU",action:`${facts.opening} ${facts.cause}`},
+  {fungsi:"KLIMAKS + PAYOFF",action:`${facts.response} ${facts.climax} ${facts.ending}`}
+ ];
+ if(total===3) return [
+  {fungsi:"HOOK / PEMICU",action:`${facts.opening} ${facts.cause}`},
+  {fungsi:"RESPONS / KLIMAKS",action:`${facts.response} ${facts.climax}`},
+  {fungsi:"PAYOFF",action:facts.ending}
+ ];
+ if(total===4) return [
+  spine[0],spine[1],{fungsi:"RESPONS + KLIMAKS",action:`${facts.response} ${facts.climax}`},spine[4]
+ ];
+ if(total===5) return spine;
+ const out=[];
+ for(let i=0;i<total;i++){
+  const pos=i/(total-1)*4,lo=Math.floor(pos),hi=Math.min(4,Math.ceil(pos));
+  if(lo===hi) out.push({...spine[lo]});
+  else out.push({fungsi:`PERKEMBANGAN ${i+1}`,action:`Lanjutkan secara konkret dari ${spine[lo].action} Menuju ${spine[hi].action} Jangan menyelesaikan kejadian terlalu cepat.`});
  }
- return {theme,scenes:out,locked:false};
-}
-function scenes(){
- let n=+v("n"),idea=v("idea"),story=buildDynamicStory(idea,n);
- let cameras=["Wide establishing shot","Medium tracking shot","Close-up object insert","Dolly In","Over-the-shoulder composition","Low Angle","Static symmetrical shot"];
- let h=`<div class="card" id="story"><label>EDITOR STORYBOARD • VISUAL DINAMIS</label><p class="muted">Konteks terdeteksi: ${story.theme}. Storyboard sekarang dikunci ke konsep judul yang dipilih. Scene 1 mengikuti Visual Hook, scene tengah hanya mengembangkan kejadian yang sama, dan scene terakhir wajib membayar Payoff. Tidak boleh pindah ke cerita, lokasi, atau objek yang tidak relevan.</p>`;
- for(let i=1;i<=n;i++){
-   h+=`<div class="scene"><b>Scene ${i}</b><textarea id="sd${i}">${e(story.scenes[i-1])}</textarea><label>KAMERA</label><select id="sc${i}">${cameras.map((c,j)=>`<option${j===(i-1)%cameras.length?" selected":""}>${c}</option>`).join("")}</select></div>`;
- }
- h+=`<div class="actions"><button class="primary" onclick="prompts()">Buat Paket Konten Lengkap</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h);document.getElementById("story").scrollIntoView({behavior:"smooth"});
+ return out;
 }
 
+function validateStoryBeat(action,facts,index,total){
+ let x=String(action||"").trim();
+ const banned=["aktivitas seperti biasa","orang-orang di sekitar","momen kecil","situasinya makin terasa nyata","bergerak dari satu hal ke hal berikutnya","ngurus detail kecil"];
+ banned.forEach(b=>{x=x.replace(new RegExp(b,"gi"),"")});
+ if(!x) x=index===0?facts.opening:index===total-1?facts.ending:facts.response;
+ return x.replace(/\s+/g," ").trim();
+}
+
+
+/* V55 TIMELINE + ENTITY LEDGER
+   A scene may only show facts that have already happened.
+   Counts and prop states are cumulative and cannot spontaneously reset. */
+function inferStoryLedger(idea,facts,total){
+ const q=normStoryText(idea), type=facts.type||classifyTitle(idea);
+ const explicitNumber=(q.match(/\b(\d+)\b/)||[])[1];
+ let mainCount=1, initialSupport=0, initialFood=null;
+ const foodWords=["mie","mi ","ramen","nasi","makanan","kopi","minum","snack","jajan","makan"];
+ const isFood=type==="food"||hasAny(q,foodWords);
+ if(isFood) initialFood=explicitNumber?+explicitNumber:1;
+ return {
+  mainCount,
+  initialSupport,
+  foodCount:initialFood,
+  rules:[
+   "Never show a person before the timeline introduces that person.",
+   "Never show a future action, future reaction, future prop state, or payoff early.",
+   "Never duplicate a unique story prop.",
+   "A consumed quantity can only stay the same or decrease.",
+   "A character who enters remains present unless the story explicitly makes them leave.",
+   "A moved/opened/used object keeps its latest state in later scenes."
+  ]
+ };
+}
+function timelineLockForScene(story,i){
+ const facts=story.facts||{}, ledger=story.ledger||inferStoryLedger(v("idea").trim(),facts,story.scenes?.length||5);
+ const total=story.scenes?.length||5, type=facts.type||"literal";
+ const cur=story.scenes?.[i-1]||{}, prev=story.scenes?.[i-2]||null, next=story.scenes?.[i]||null;
+ let countRule=`Main character count: EXACTLY ${ledger.mainCount}.`;
+ if(type==="food" && ledger.foodCount){
+   if(i===1) countRule+=` Food quantity: EXACTLY ${ledger.foodCount} serving exists in the entire visible story world. Scene 1 must show only that original serving; no extra bowls, cups, packets, plates, or duplicate portions.`;
+   else countRule+=` Food source: the SAME original ${ledger.foodCount} serving from Scene 1. NEVER create another serving, cup, bowl, packet, plate, or replacement portion. Its remaining quantity may only decrease as the story advances.`;
+ }
+ let peopleRule="";
+ if(type==="food"){
+   if(i===1) peopleRule="SCENE 1 PEOPLE LOCK: show ONLY the main character unless the title explicitly says another person is already present. Nobody else is eating.";
+   else if(i===2) peopleRule="EARLY PEOPLE LOCK: introduce at most ONE new supporting person if required by this beat. Do not show the final group yet.";
+   else if(i<total) peopleRule="MID-STORY PEOPLE LOCK: only people already introduced plus the minimum new people required by THIS beat may appear. Do not reveal the final crowd before its beat.";
+   else peopleRule="FINAL PEOPLE LOCK: only now may the final group/payoff be fully visible if the story requires it.";
+ }
+ return [
+   "STRICT TIMELINE LOCK:",
+   `This is Scene ${i} of ${total}.`,
+   prev?`Already happened before this frame: ${prev.action}`:"Nothing from later scenes has happened yet.",
+   `Allowed NOW: ${cur.action||cur.event}.`,
+   next?`FORBIDDEN FUTURE INFORMATION: do NOT show, imply, stage, or pre-position this next event yet: ${next.action||next.event}.`:"No future beat remains; show only the direct aftermath.",
+   countRule,peopleRule,
+   ...ledger.rules
+ ].filter(Boolean).join(" ");
+}
+
+function buildDynamicStory(idea,n){
+ const facts=titleStoryFacts(idea),total=Math.max(1,+n||5),beats=interpolateStoryBeats(facts,total),scenes=[];
+ const meta=(selectedIdeaMeta&&selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
+ let prev=`Lokasi ${facts.place}; waktu ${facts.time}; karakter, pakaian, dan benda relevan sudah berada pada kondisi awal yang logis.`;
+ beats.forEach((b,i)=>{
+  const action=validateStoryBeat(b.action,facts,i,total);
+  const end=i===total-1
+   ?`Akibat langsung dari inti judul sudah terlihat dan cerita selesai tanpa subplot baru.`
+   :`Posisi karakter dan benda setelah aksi Scene ${i+1} dipertahankan sebagai kondisi fisik awal Scene ${i+2}.`;
+  scenes.push({index:i+1,fungsi:b.fungsi,start:prev,action,end,event:action});
+  prev=end;
+ });
+ return {
+  theme:"deep literal title-first causal story",
+  scenes,locked:true,facts,ledger:inferStoryLedger(idea,facts,total),
+  hook:meta?.hook||facts.opening,payoff:meta?.payoff||facts.ending,
+  ctx:{place:facts.place,activity:"hanya aksi yang ada pada causal spine",object:facts.prop,situation:facts.premise,social:"karakter pendukung hanya jika dibutuhkan sebab-akibat",emotion:"reaksi tubuh natural sesuai kejadian"}
+ };
+}
+
+
+function narrationSentence(x){
+ return String(x||"")
+  .replace(/\bkarakter utama\b/gi,"gue")
+  .replace(/\bkarakter\b/gi,"gue")
+  .replace(/\bSATU\b/g,"satu")
+  .replace(/DILARANG[^.]*\.?/gi,"")
+  .replace(/Jangan[^.]*\.?/gi,"")
+  .replace(/jika judul[^.]*\.?/gi,"")
+  .replace(/hanya .*?boleh[^.]*\.?/gi,"")
+  .replace(/belum boleh[^.]*\.?/gi,"")
+  .replace(/sesuai judul/gi,"")
+  .replace(/pada tahap ini/gi,"")
+  .replace(/\s+/g," ").trim();
+}
+
+function naturalFoodNarration(story,dur){
+ const facts=story.facts||{};
+ const idea=v("idea").trim();
+ const place=facts.place||story.ctx?.place||"kamar";
+ const prop=(facts.prop && !/benda utama/i.test(facts.prop))?facts.prop:"makanan";
+ const q=normStoryText(idea);
+
+ // Narration follows the EVENT, never the engine instructions.
+ // Use first-person spoken language; "karakter utama" is forbidden in final narration.
+ let parts=[];
+ if(/mie|mi\b|ramen/.test(q)){
+   parts=[
+    `Awalnya gue cuma pengen makan mie sendiri di ${place}.`,
+    `Baru gue buka dan mulai makan, ada satu orang yang sadar.`,
+    `Nggak lama, yang lain mulai ikut mendekat dan suasananya jadi rame.`,
+    `Mereka ikut ngambil dari porsi yang tadinya gue siapin buat sendiri, jadi mienya makin sedikit.`,
+    `Ujung-ujungnya gue cuma kebagian sedikit, tapi malah jadi momen makan bareng yang seru.`
+   ];
+ } else {
+   const beats=(story.scenes||[]).map(x=>narrationSentence(x.action||x.event)).filter(Boolean);
+   parts=beats.map((x,i)=>{
+     if(i===0) return x.replace(/^Di ([^,]+), gue/i,"Di $1, gue");
+     return x;
+   });
+ }
+ return addNarrationCTA(fitLifeNarration(parts,+dur),idea);
+}
+
+
+/* V61 GPT CTA VARIATION ENGINE */
+function ctaSeed(text,salt=0){let h=salt|0;for(const ch of String(text||""))h=((h<<5)-h+ch.charCodeAt(0))|0;return Math.abs(h)}
+function storyCTA(title,kind="narration"){
+ const t=normStoryText(title);
+ let n=["Pernah ngalamin yang kayak gini juga? Ceritain versi lo.","Kalau lo ada di posisi ini, bakal ngapain?","Ada yang pernah ngalamin kejadian serupa?","Menurut lo, bagian paling relate yang mana?","Kalau punya cerita yang mirip, ceritain di komentar.","Kalau ini kejadian ke lo, reaksi pertama lo apa?"];
+ let c=["Relate nggak? Drop cerita lo di komentar 👇","Kalau pernah ngalamin, ceritain versi lo 👇","Tag teman yang paling mungkin bikin kejadian kayak gini 😭","Lo bakal bereaksi gimana kalau ada di situasi ini?","Tim pernah ngalamin atau belum? 👀","Bagian mana yang paling relate buat lo?","Punya cerita yang lebih chaos? Tulis di komentar 😂","Save kalau kejadian kayak gini terlalu relate buat dilupain."];
+ if(/mie|makan|ramen|nasi|jajan|kopi|minum|snack/.test(t)){
+  n.push("Kalau makanan lo tiba-tiba jadi jatah rame-rame, lo ikhlas nggak?","Pernah niat makan sendiri tapi malah berakhir makan bareng juga?");
+  c.push("Tag teman yang kalau lihat makanan langsung ikut nimbrung 😂","Kalau satu porsi berubah jadi jatah satu kamar, masih rela berbagi nggak? 😭");
+ }
+ const pool=kind==="caption"?c:n; return pool[ctaSeed(title,kind==="caption"?7919:3571)%pool.length];
+}
+
+function spokenTitle(title){
+ return String(title||"").trim().replace(/[.!?]+$/,"");
+}
+function narrationSceneBudget(dur,sceneCount){
+ const words={15:34,30:68,45:102,60:136}[+dur]||68;
+ return {words,perScene:Math.max(6,Math.round(words/Math.max(1,sceneCount)))};
+}
+function cleanSpokenBeat(x){
+ return String(x||"")
+  .replace(/\bkarakter utama\b/gi,"gue")
+  .replace(/\bkarakter\b/gi,"gue")
+  .replace(/pada waktu paling logis dari judul/gi,"")
+  .replace(/tampilkan/gi,"")
+  .replace(/inti kejadian itu/gi,"kejadian itu")
+  .replace(/secara konkret/gi,"")
+  .replace(/penyebab langsung yang paling sederhana dan paling masuk akal/gi,"penyebabnya")
+  .replace(/respons harus masih berada pada masalah yang sama/gi,"")
+  .replace(/sesuai judul/gi,"")
+  .replace(/DILARANG[^.]*\.?/gi,"")
+  .replace(/Jangan[^.]*\.?/gi,"")
+  .replace(/\b(scene|timeline|prompt|lock|allowed|forbidden|supporting)\b/gi,"")
+  .replace(/\s+/g," ").replace(/\s+([,.!?])/g,"$1").trim();
+}
+function titleFirstNarration(story,dur){
+ const title=spokenTitle(v("idea"));
+ const scenes=story?.scenes||[];
+ const n=scenes.length||5;
+ const budget=narrationSceneBudget(dur,n);
+ const q=normStoryText(title);
+
+ // Specialized natural language for common lived-experience themes.
+ let parts=[];
+ if(/mie|mi\b|ramen/.test(q)){
+  parts=["Awalnya gue cuma pengen makan mie sendiri.","Baru mulai makan, satu teman sadar dan langsung mendekat.","Nggak lama, yang lain ikut nimbrung.","Porsi yang tadinya buat gue sendiri akhirnya jadi rebutan rame-rame.","Ujungnya gue cuma kebagian sedikit, tapi malah jadi momen yang seru."];
+ } else if(/telat|terlambat/.test(q)){
+  parts=[`Hari itu gue telat, dan dari situ ${title.toLowerCase()} benar-benar mulai kerasa.`,`Begitu gue datang, situasinya langsung berubah dan orang-orang di sekitar ikut bereaksi.`,`Gue berusaha ngikutin keadaan tanpa bikin semuanya makin ribet.`,`Makin lama, efek dari keterlambatan itu makin kelihatan.`,`Akhirnya kejadian itu selesai dengan konsekuensi yang memang datang dari gue telat tadi.`];
+ } else if(/hujan|kehujanan/.test(q)){
+  parts=[`Awalnya gue cuma jalan seperti biasa, sampai hujan mulai turun.`,`Dalam beberapa saat keadaan berubah dan gue harus langsung cari cara buat ngadepin hujannya.`,`Apa yang gue lakuin setelah itu bikin kejadian terus berkembang.`,`Situasinya makin terasa ketika efek hujannya mulai kelihatan di sekitar gue.`,`Akhirnya gue sampai di ujung kejadian dengan kondisi yang benar-benar beda dari awal.`];
+ } else {
+  // For arbitrary titles, anchor every spoken beat to the actual title and use
+  // cleaned scene beats only when they contain concrete, non-instructional content.
+  const cleaned=scenes.map(sc=>cleanSpokenBeat(sc.action||sc.event)).filter(x=>x && x.length>8);
+  const generic=/keadaan paling dekat|kejadian itu mulai|penyebabnya|merespons|masalah yang sama|tindakan fisik yang wajar/i;
+  const usable=cleaned.filter(x=>!generic.test(x));
+  parts=[
+   `Gue ngalamin ini: ${title}.`,
+   usable[1]||`Awalnya kejadian itu mulai dari situasi yang langsung berhubungan sama "${title}".`,
+   usable[2]||`Dari situ gue bereaksi, dan kejadiannya mulai berkembang.`,
+   usable[3]||`Situasinya makin terasa karena akibat dari kejadian tadi mulai muncul.`,
+   usable[4]||`Akhirnya semuanya sampai ke hasil yang memang berasal dari kejadian "${title}".`
+  ];
+ }
+ parts=parts.slice(0,n);
+ let text=parts.join(" ").replace(/\s+/g," ").trim();
+
+ // Duration controls amount of spoken content. Never expose technical scene rules.
+ const target=budget.words;
+ let words=text.split(/\s+/);
+ if(words.length>target+12) text=words.slice(0,target).join(" ").replace(/[,;:]?$/,"")+".";
+ // For longer durations, expand by describing progression rather than repeating filler.
+ if(words.length<target*0.62 && +dur>=45){
+   text+=` Yang bikin kejadian ini terasa adalah perubahan dari awal sampai akhir terjadi pelan-pelan, bukan langsung lompat ke hasilnya. Setiap reaksi muncul karena kejadian sebelumnya.`;
+ }
+ return `${text} ${storyCTA(title,"narration")}`.trim();
+}
+function buildLockedNarration(story,dur){
+ return titleFirstNarration(story,dur);
+}
+
+let V9_PACKAGE=null;
+function v9Draft(i){
+ const sc=V9_PACKAGE?.scenes?.[i]||{};
+ return {function:document.getElementById(`v9fn${i}`)?.value||sc.function||"",action:document.getElementById(`v9act${i}`)?.value||sc.action||"",outfit:document.getElementById(`v9out${i}`)?.value||sc.outfit||"",camera:document.getElementById(`v9cam${i}`)?.value||sc.camera||""};
+}
+function renderV9Storyboard(){
+ const d=V9_PACKAGE;if(!d)return;const wrap=document.getElementById("v9Storyboard");if(!wrap)return;
+ wrap.innerHTML=`<div class="card"><label>🎬 V9 STORYBOARD EDITOR</label><p class="muted">Edit aksi atau pakaian per scene. Outfit hanya berubah kalau ceritanya memang membutuhkan. Setelah edit, klik <b>Simpan + Regenerate Scene</b> supaya prompt gambar/video ikut sinkron.</p><div class="result">HOOK: ${e(d.hook||"")}\n\nPAYOFF: ${e(d.payoff||"")}</div></div>`+
+ (d.scenes||[]).map((sc,i)=>`<div class="scene" id="v9scene${i}"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3>
+ <label>🎬 AKSI SCENE</label><textarea id="v9act${i}" rows="4">${e(sc.action||"")}</textarea>
+ <div class="grid2" style="margin-top:12px"><div><label>👕 OUTFIT SCENE</label><textarea id="v9out${i}" rows="3">${e(sc.outfit||"")}</textarea></div><div><label>🔄 ALASAN OUTFIT</label><div class="result">${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div></div></div>
+ <label style="margin-top:12px">📷 KAMERA</label><select id="v9cam${i}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option${(sc.camera||"Medium Shot")===x?" selected":""}>${x}</option>`).join("")}</select>
+ <div class="result" style="margin-top:12px">AWAL: ${e(sc.start_state||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div>
+ <div class="actions"><button class="mini primary" onclick="v9RegenerateScene(${i})">🔄 Simpan + Regenerate Scene</button></div></div>`).join("")+
+ `<div class="card"><label>🔒 OUTFIT TIMELINE</label><div class="result">${(d.scenes||[]).map((sc,i)=>`SCENE ${i+1}: ${sc.outfit||"-"} • ${sc.outfit_change_reason||"TIDAK BERUBAH"}`).join("\n")}</div><div class="actions"><button class="primary" onclick="v9FinalPrompts()">✨ Generate Final Prompts</button></div></div>`;
+}
+async function v9RegenerateScene(i){
+ if(!V9_PACKAGE)return;const btn=document.querySelector(`#v9scene${i} button`),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="⏳ Regenerate..."}
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"regenerate_scene",title:v("idea").trim(),sceneCount:+v("n"),duration:+v("duration"),style:v("style"),character:chosen,sceneIndex:i,package:V9_PACKAGE,draft:v9Draft(i)})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Generator error (${r.status})`);V9_PACKAGE.scenes[i]=d.scene;renderV9Storyboard();document.getElementById(`v9scene${i}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+ }catch(err){alert(err.message||String(err));if(btn){btn.disabled=false;btn.textContent=old}}
+}
+async function v9FinalPrompts(){
+ let data=V9_PACKAGE;if(!data)return;const idea=v("idea").trim(),dur=+v("duration"),style=v("style");
+ const buttons=[...document.querySelectorAll("#v9Storyboard button")];buttons.forEach(b=>b.disabled=true);
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"finalize",title:idea,sceneCount:+v("n"),duration:dur,style,character:chosen,package:V9_PACKAGE})});
+  const fresh=await r.json().catch(()=>({}));if(!r.ok)throw new Error(fresh.error||`Generator error (${r.status})`);V9_PACKAGE=data=fresh;renderV9Storyboard();
+ }catch(err){buttons.forEach(b=>b.disabled=false);alert(err.message||String(err));return}
+
+ let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER IDENTITY LOCK: ${chosen}\n\n`;
+ let h=`<div class="card" id="prompts"><label>✨ V9 • FINAL STORY PACKAGE</label><p class="muted">Final prompt memakai storyboard + outfit timeline yang sudah kamu set.</p>`;
+ (data.scenes||[]).forEach((sc,i)=>{txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nOUTFIT: ${sc.outfit}\nALASAN OUTFIT: ${sc.outfit_change_reason}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3><b>👕 OUTFIT</b><div class="result">${e(sc.outfit||"")}\n${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div><br><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state||"")}\n\nAKSI: ${e(sc.action||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera||"")}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`});
+ const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi V9",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div><div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div><div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div><div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
+ document.getElementById("prompts")?.remove();flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts")?.scrollIntoView({behavior:"smooth"});
+}
+async function scenes(){
+ const idea=v("idea").trim();if(!idea)return alert("Masukkan judul/ide dulu.");if(!chosen)return alert("Pilih karakter dulu.");
+ const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";document.getElementById(lid)?.remove();document.getElementById("v9Storyboard")?.remove();document.getElementById("prompts")?.remove();
+ flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX V9 ENGINE</label><div class="result">GPT lagi bikin storyboard + outfit timeline dari judul. Pakaian boleh berubah hanya kalau scene memang membutuhkan.\n\nTunggu sebentar...</div></div>`);document.getElementById(lid).scrollIntoView({behavior:"smooth"});
+ try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);V9_PACKAGE=data;flow.insertAdjacentHTML("beforeend",'<div id="v9Storyboard"></div>');renderV9Storyboard();document.getElementById("v9Storyboard")?.scrollIntoView({behavior:"smooth"});}
+ catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ V9 GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div></div>`)}
+}
 function fitLifeNarration(parts,dur){
- const target={15:34,30:68,45:100,60:132}[dur]||68;
+ const target={15:32,30:65,45:98,60:130}[dur]||65;
  let out=[];
  let words=0;
  for(const part of parts){
@@ -475,18 +943,7 @@ function buildConceptNarration(profile,dur){
  return fitLifeNarration(lines,dur);
 }
 
-function narrationCTA(idea){
- const q=String(idea||"").toLowerCase();
- if(/bumi|planet|sains|edukasi|sejarah|geologi|gempa|fisika|kimia|biologi/.test(q))
-   return "Kalau baru tahu, simpan biar nggak lupa.";
- if(/ai|affiliate|bisnis|freelance|freelancer|klien|client|penghasilan/.test(q))
-   return "Kalau lagi di fase yang sama, simpan dan coba pelan-pelan.";
- if(/gaming|game|gamer/.test(q))
-   return "Kalau pernah ngalamin juga, ngaku di komentar.";
- if(/travel|liburan|perjalanan|wisata/.test(q))
-   return "Kalau pernah ngalamin juga, ceritain versi perjalanan lo.";
- return "Pernah ngalamin juga? Ceritain versi lo di komentar.";
-}
+function narrationCTA(idea){return storyCTA(idea,"narration")}
 function addNarrationCTA(text,idea){
  const cta=narrationCTA(idea);
  const base=String(text||"").trim();
@@ -621,514 +1078,155 @@ function buildLifeNarration(idea,dur){
  }
  return fitLifeNarration(p,dur);
 }
+
+/* ============================================================
+   V55 ISOLATED SCENE PROMPT COMPILER
+   Critical rule: image Scene N receives ONLY information that is
+   visually legal in Scene N. Future beats/payoff are never copied
+   into the image prompt. Negative rules mention categories only,
+   not the content of future scenes.
+   ============================================================ */
+function sceneVisibleCounts(story,i){
+ const facts=story.facts||{},type=facts.type||classifyTitle(v("idea").trim());
+ let peopleMin=1,peopleMax=1,food=facts.type==="food"?(story.ledger?.foodCount||1):null;
+ if(type==="food"){
+   if(i===1){peopleMin=1;peopleMax=1;}
+   else if(i===2){peopleMin=1;peopleMax=2;}
+   else {peopleMin=1;peopleMax=Math.max(2,i);}
+ }
+ return {peopleMin,peopleMax,food};
+}
+function isolateVisibleAction(action){
+ return String(action||"")
+   .replace(/Jangan[^.]*\./gi,"")
+   .replace(/DILARANG[^.]*\./gi,"")
+   .replace(/jika timeline[^.]*\./gi,"")
+   .replace(/hanya jika[^.]*\./gi,"")
+   .replace(/\s+/g," ").trim();
+}
+function isolatedSceneSpec(story,i){
+ const scene=story.scenes[i-1]||{}, facts=story.facts||{}, c=sceneVisibleCounts(story,i);
+ const type=facts.type||classifyTitle(v("idea").trim());
+ let visible=isolateVisibleAction(scene.action||scene.event);
+ let exact="";
+ if(type==="food"){
+   if(i===1) exact=`EXACT VISIBLE INVENTORY: exactly 1 main character, exactly ${c.food||1} original serving of food, zero supporting people, zero extra servings. The main character is alone.`;
+   else if(i===2) exact=`EXACT VISIBLE INVENTORY: the same original serving only; maximum 2 people total. At most one supporting person may have entered. No duplicate food serving.`;
+   else exact=`VISIBLE INVENTORY: preserve the SAME original food source from earlier scenes. Never duplicate the food source. Any people visible must be justified by this current beat only.`;
+ }
+ return {
+   visible,
+   exact,
+   camera:v53CameraPlan(i,story.scenes.length||5),
+   state:i===1?"Initial physical state only.":`Continue the physical state inherited from Scene ${i-1}; do not reset consumed, opened, moved, or used objects.`
+ };
+}
+function compileIsolatedImagePrompt({story,i,n,idea,chosen,style,angle,edited}){
+ const sp=isolatedSceneSpec(story,i);
+ return [
+  "GENERATE A NEW IMAGE NOW FROM TEXT ONLY.",
+  "THIS PROMPT DESCRIBES ONE FRAME ONLY. DO NOT INFER OR ILLUSTRATE THE REST OF THE STORY.",
+  `SCENE ${i} OF ${n}.`,
+  `TITLE CONTEXT: "${idea}".`,
+  `MAIN CHARACTER IDENTITY LOCK: ${chosen}.`,
+  `VISUAL STYLE LOCK: ${style}.`,
+  `LOCATION LOCK: ${story.ctx?.place||story.facts?.place||"the title-implied location"}.`,
+  sp.state,
+  sp.exact,
+  `ONLY VISIBLE EVENT IN THIS FRAME: ${isolateVisibleAction(edited)||sp.visible}.`,
+  `CAMERA FOR THIS FRAME: ${angle||sp.camera}.`,
+  "Hard rule: depict only the current visible event. Do not summarize the story visually.",
+  "Hard rule: do not add people merely because the title implies a social outcome.",
+  "Hard rule: do not add food portions, bowls, cups, packets, plates, utensils, furniture, or props unless this exact frame requires them.",
+  "Hard rule: never duplicate a unique prop or food serving.",
+  "Hard rule: no future payoff, no later-scene crowd, no pre-staged reaction, no future object state.",
+  "Keep character identity stable, but make pose and blocking specific to this exact action.",
+  "If faceless, keep the face completely featureless.",
+  "No text, subtitles, speech bubbles, watermark, logo, duplicate main character, malformed anatomy, extra limbs, floating objects, unrelated action, unrelated location, or second storyline.",
+  "Do not ask for an uploaded image or reference photo. Render immediately."
+ ].filter(Boolean).join(" ");
+}
+function compileIsolatedVideoPrompt({story,i,n,idea,chosen,style,angle,movement,edited}){
+ const sp=isolatedSceneSpec(story,i);
+ const scene=story.scenes[i-1]||{};
+ return [
+  `SCENE ${i} OF ${n}. Vertical 9:16 cinematic animation.`,
+  "Use the generated image for THIS scene as frame zero.",
+  `TITLE CONTEXT: "${idea}". MAIN CHARACTER: ${chosen}. STYLE: ${style}.`,
+  sp.exact,
+  `ANIMATE ONLY THIS ACTION: ${isolateVisibleAction(edited)||sp.visible}.`,
+  `CAMERA: ${angle||sp.camera}; ${movement}.`,
+  `END STATE: ${scene.end||"finish only the current beat"}.`,
+  "Do not introduce any person, prop, food serving, reaction, or payoff that belongs to a later beat.",
+  "Do not reset or duplicate props. Consumed quantity may only decrease.",
+  "No teleportation, morphing, costume change, random cutaway, lip-sync, subtitles, speech bubbles, watermark, or logo."
+ ].filter(Boolean).join(" ");
+}
+
 function prompts(){
- let n=+v("n"),style=v("style"),idea=v("idea");
- let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nKUNCI KARAKTER: ${chosen}\n\n`;
- let h=`<div class="card" id="prompts"><label>🎬 PAKET KONTEN LENGKAP</label><p class="muted">Semua output sekarang memakai CONCEPT LOCK. Judul, Visual Hook, storyboard, Prompt Gambar, Prompt Video, Narasi, dan Payoff harus menjadi satu kejadian yang sama. Prompt tidak boleh mengganti lokasi, objek, aktivitas, atau konflik dengan adegan generik.</p>`;
+ let n=+v("n"),style=v("style"),idea=v("idea").trim();
+ const story=buildDynamicStory(idea,n),ctx=story.ctx||{};
+ const cameraMotion={"Establishing Wide Shot":"slow dolly in","Wide Shot":"slow controlled dolly","Full Shot":"gentle tracking","Medium Shot":"subtle push in","Medium Close-Up":"subtle dolly in","Close-Up":"very subtle push in","Low Angle":"slow controlled tilt","High Angle":"slow controlled tilt down","Top-Down":"minimal overhead drift","Side Shot":"smooth side tracking","Front Shot":"gentle backward tracking","Back Shot":"smooth follow shot","Over-the-Shoulder":"controlled over-the-shoulder follow","Tracking Shot":"smooth tracking movement"};
+ let txt=`PROJECT: ${idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
+ let h=`<div class="card" id="prompts"><label>🎬 FINAL PROMPTS • STORY LOCK</label><p class="muted">STORY PLAN sudah dikunci lebih dulu. Prompt gambar hanya memvisualkan beat scene; prompt video melanjutkan frame gambar; narasi menceritakan kejadian konkret yang sama.</p>`;
  for(let i=1;i<=n;i++){
-   let d=v("sd"+i),c=v("sc"+i);
-   let meta=(selectedIdeaMeta && selectedIdeaMeta.title===idea)?selectedIdeaMeta:null;
-   let conceptLock=meta?.profile?.kind==="life" && meta.profile.en
-     ? `CONCEPT LOCK — world: ${meta.profile.world||"life"}; location/context: ${meta.profile.en.place||"concept-specific location"}; ongoing activity: ${meta.profile.en.activity||"concept-specific activity"}; key object: ${meta.profile.en.object||"concept-specific object"}; central situation: ${meta.profile.en.situation||idea}; supporting interaction: ${meta.profile.en.social||"natural supporting interaction"}; intended tone: ${meta.profile.en.emotion||"natural"}.`
-     : `CONCEPT LOCK — follow the title and this exact storyboard beat without inventing a different event.`;
-   let ip=`Vertical 9:16, ${style}. ${conceptLock} MAIN CHARACTER: ${chosen}. THIS IMAGE MUST DEPICT ONLY THIS SCENE BEAT: ${d}. Do not replace the location, action, key object, supporting interaction, or outcome with a generic slice-of-life scene. Every visible detail must support the same title concept. The main character must be actively living through the exact event, not posing for the camera. Show natural interaction with the key object and environment. If supporting people appear, they must participate only in the same event and look clearly different from the main character through hairstyle, height, posture, silhouette, outfit shape, and body language. Keep the location logically consistent with the concept. Scene ${i} of ${n}. Camera: ${c}. Cinematic but natural framing, candid body language, believable everyday clutter only when relevant to this exact setting, strong cause-and-effect storytelling, consistent main-character design. If the main character is faceless, keep the face completely featureless. No unrelated props, no unrelated location, no second storyline, no duplicate main character, no readable text, no watermark.`;
-   let vp=`Animate Scene ${i} as a cinematic vertical 9:16 shot that is STRICTLY LOCKED to the same concept. ${conceptLock} Animate ONLY this storyboard beat: ${d}. The motion must continue the exact cause-and-effect chain from the title; do not introduce a new activity, new location, random prop, or unrelated interaction. Main character: ${chosen}. Camera: ${c}. Let the main character naturally perform the exact task required by this scene, with believable hand movement, walking, sitting, handling the key object, reacting to the same situation, and interacting with the same supporting people when relevant. Supporting characters must have independent but concept-relevant actions and must look different from the main character. Preserve continuity with adjacent scenes: the same event should progress from hook → escalation → consequence → payoff. Environmental motion is allowed only when it belongs to this exact setting and event. No filler action, no generic walking shot, no unrelated cutaway, no idle mannequin posing, no synchronized crowd movement, no morphing, no duplicate main character, no extra limbs, no unwanted facial features, no readable text, no watermark.`;
-   txt+=`\nSCENE ${i}\nVISUAL: ${d}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
-   h+=`<div class="scene">
-<h3>SCENE ${i}</h3>
-<b>VISUAL / CERITA</b>
-<div class="result">${e(d)}</div>
-<button class="mini" data-copy="${encodeURIComponent(d)}" onclick="copyEncoded(this)">📋 Salin Scene</button>
-<br><br>
-<b>🖼️ PROMPT GAMBAR</b>
-<div class="result">${e(ip)}</div>
-<button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button>
-<br><br>
-<b>🎥 PROMPT VIDEO</b>
-<div class="result">${e(vp)}</div>
-<button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button>
-</div>`;
+   const base=story.scenes[i-1], edited=(document.getElementById("sd"+i)?.value||base.action).trim();
+   const angle=(document.getElementById("sc"+i)?.value)||"Medium Shot", movement=cameraMotion[angle]||"smooth controlled camera movement";
+   const prev=i>1?story.scenes[i-2].end:base.start, next=i<n?story.scenes[i].start:"final resolved state";
+   const continuity=`TITLE: "${idea}". MAIN CHARACTER: ${chosen}. VISUAL STYLE: ${style}. LOCATION: ${ctx.place}. IMPORTANT PROPS: ${ctx.object}. Keep the character identity, hairstyle, clothing, colors, proportions and accessories exactly as described here.`;
+   const ip=compileIsolatedImagePrompt({story,i,n,idea,chosen,style,angle,edited});
+   const vp=compileIsolatedVideoPrompt({story,i,n,idea,chosen,style,angle,movement,edited});
+   txt+=`\nSCENE ${String(i).padStart(2,"0")}\nFUNGSI: ${base.fungsi}\nKONDISI AWAL: ${base.start}\nAKSI: ${edited}\nKONDISI AKHIR: ${base.end}\nANGLE KAMERA: ${angle}\nPROMPT GAMBAR: ${ip}\nPROMPT VIDEO: ${vp}\n`;
+   h+=`<div class="scene"><h3>SCENE ${String(i).padStart(2,"0")} • ${e(base.fungsi)}</h3><b>🎬 KONDISI AWAL → AKSI → KONDISI AKHIR</b><div class="result">AWAL: ${e(base.start)}\n\nAKSI: ${e(edited)}\n\nAKHIR: ${e(base.end)}</div><br><b>📷 ANGLE KAMERA</b><div class="result">${e(angle)} • ${e(movement)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(ip)}</div><button class="mini primary" data-copy="${encodeURIComponent(ip)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(vp)}</div><button class="mini primary" data-copy="${encodeURIComponent(vp)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
  }
- let cover=`Vertical 9:16 cover / thumbnail, ${style}. Same locked character: ${chosen}. Completely faceless. Create one instantly readable hero composition representing "${idea}". Strong expressive body language, cinematic lighting, clear focal point, visually striking but uncluttered environment, strong depth and composition. Preserve exact hairstyle, wardrobe, body proportions, materials and character identity from the animation. Leave clean negative space for an optional title to be added later. No text generated inside image, no watermark, no malformed anatomy, no extra limbs.`;
- let caption=`Ada hal-hal yang saat dijalani terasa biasa, tapi setelah waktunya lewat justru jadi yang paling dirindukan. ✨\n\n${idea}\n\nKadang bukan kejadian besarnya yang terus kita ingat, tapi detail-detail kecil di dalamnya.\n\nKalau kamu pernah ngalamin hal yang sama, bagian mana yang paling bikin nostalgia? 👀\n\n#animation #storytelling #nostalgia #3danimation #facelesscontent`;
- let dur=+v("duration");
- let fullNarr=addNarrationCTA(buildLifeNarration(idea,dur),idea);
+ let dur=+v("duration"),fullNarr=buildLockedNarration(story,dur);
+ const coverText=idea.length<=58?idea:(idea.slice(0,58).replace(/\s+\S*$/,"")+"…");
+ let cover=`Create a vertical 9:16 social-media video cover / thumbnail. STORY TITLE: "${idea}". VISUAL STYLE: ${style}. SAME LOCKED MAIN CHARACTER: ${chosen}. Same story world and location: ${ctx.place}. Use one strong curiosity-driven visual moment that represents the title without spoiling the ending. DISPLAY THIS EXACT HEADLINE AS LARGE, CLEAR, LEGIBLE TEXT: "${coverText}". Make the headline highly readable on a phone screen, bold clean typography, strong contrast, short line breaks, safe margins, and do not cover the main character or key action. The visual must stay truthful to the title. Do not add extra headline words, fake logos, watermark, UI, subtitles, random people, random props, or a second storyline.`;
+ let caption=`${idea}
+
+${story.hook||"Kejadian kecil yang awalnya biasa, ternyata punya cerita sendiri."}
+
+${story.payoff||"Ujungnya justru jadi momen yang paling keinget."}
+
+${storyCTA(idea,"caption")}
+
+#animation #storytelling #3danimation #facelesscontent`;
  txt+=`\nNARASI UTUH (${dur} DETIK)\n${fullNarr}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
- project=txt; lastNarration=fullNarr; lastCover=cover; lastCaption=caption; addVizexHistory("Paket Animasi",idea);
- h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Narasi satu naskah utuh, sudut pandang pengalaman, mengikuti durasi video, dan ditutup CTA singkat yang menyesuaikan konteks.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
+ project=txt;lastNarration=fullNarr;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Satu narasi saja. Scene hanya membagi visual; narasi mengikuti urutan kejadian yang sama.</p><div class="result">${e(fullNarr)}</div><button class="mini" data-copy="${encodeURIComponent(fullNarr)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER</label><div class="result">${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
- h+=`<div class="card" style="margin-top:18px"><label>✍️ CAPTION</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
+ h+=`<div class="card" style="margin-top:18px"><label>📝 CAPTION</label><p class="muted">Caption mengikuti judul, hook, dan payoff cerita yang sama.</p><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
- flow.insertAdjacentHTML("beforeend",h);
- document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
+ flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
 
-
-
-
-
-
-
-
-function generatePremiumIdeas(){
- const topic=(v("ideaNiche")||"").trim();
- const audience=(v("ideaAudienceText")||"").trim();
- const count=+(v("ideaCount")||10);
- if(!topic) return alert("Masukkan NICHE / TOPIK dulu.");
-
- const q=topic.toLowerCase();
- const aq=audience.toLowerCase();
-
- function rand(a){return a[Math.floor(Math.random()*a.length)]}
- function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
- function cap(x){return x?x.charAt(0).toUpperCase()+x.slice(1):x}
- function clean(x){return String(x||"").replace(/\s+/g," ").trim()}
- function uniq(items){
-   const seen=new Set();
-   return items.filter(x=>{
-     const k=clean(x[0]).toLowerCase();
-     if(seen.has(k)) return false;
-     seen.add(k); return true;
-   });
- }
- function history(){
-   try{return JSON.parse(localStorage.getItem("vizexIdeaTitleHistory")||"[]")}
-   catch(e){return []}
- }
- function saveHistory(titles){
-   let h=[...history(),...titles];
-   h=[...new Set(h)].slice(-250);
-   localStorage.setItem("vizexIdeaTitleHistory",JSON.stringify(h));
- }
- function shape(t){
-   return clean(t).toLowerCase()
-     .replace(/[0-9]+/g,"#")
-     .replace(/[^\w\s]/g," ")
-     .split(" ").slice(0,5).join(" ");
- }
- function chooseFresh(items,n){
-   const h=history(), oldTitles=new Set(h), oldShapes=new Set(h.map(shape));
-   const groups=[
-     shuffle(items.filter(x=>!oldTitles.has(x[0])&&!oldShapes.has(shape(x[0])))),
-     shuffle(items.filter(x=>!oldTitles.has(x[0])&&oldShapes.has(shape(x[0])))),
-     shuffle(items.filter(x=>oldTitles.has(x[0])))
-   ];
-   const all=groups.flat(), out=[], batchShapes=new Set(), openers=new Set();
-   for(const x of all){
-     if(out.length>=n) break;
-     const sh=shape(x[0]);
-     const op=clean(x[0]).toLowerCase().split(" ").slice(0,2).join(" ");
-     if(batchShapes.has(sh)) continue;
-     if(openers.has(op) && all.length>n*1.4) continue;
-     out.push(x); batchShapes.add(sh); openers.add(op);
-   }
-   for(const x of all){
-     if(out.length>=n) break;
-     if(!out.includes(x)) out.push(x);
-   }
-   return out.slice(0,n);
- }
-
- // Target audience changes the person living inside the world, not the world itself.
- function audienceLens(){
-   if(!audience) return {label:"orang di niche ini", lang:"casual", focus:"pengalaman nyata"};
-   if(/alumni|lulusan/.test(aq)) return {label:audience,lang:"reflektif casual",focus:"perubahan setelah melewati fase itu"};
-   if(/pemula|baru mulai|beginner|fresh/.test(aq)) return {label:audience,lang:"casual pemula",focus:"kebingungan, first experience, small wins"};
-   if(/gen z|remaja|mahasiswa|pelajar|anak muda/.test(aq)) return {label:audience,lang:"casual anak muda",focus:"relatable, sosial, awkward, kebiasaan"};
-   if(/ibu|ayah|orang tua|rumah tangga/.test(aq)) return {label:audience,lang:"hangat casual",focus:"rutinitas, keluarga, waktu, emosi"};
-   return {label:audience,lang:"casual",focus:"pengalaman yang familiar buat target"};
- }
- const lens=audienceLens();
-
- function conceptEN(text){
-   let x=String(text||"").toLowerCase();
-   const exact={
-    "kamar pondok":"boarding-school dorm room","lorong asrama":"dormitory corridor","kamar mandi":"shared bathroom",
-    "tempat jemuran":"laundry drying area","kantin":"canteen","masjid":"mosque","kelas diniyah":"religious study classroom",
-    "depan kamar":"outside the dorm room","rak sandal":"sandal rack area","area cuci":"washing area","lapangan":"courtyard or field",
-    "kamar kos":"boarding room","dapur bersama":"shared kitchen","lorong kos":"boarding-house corridor","minimarket":"convenience store",
-    "warung dekat kos":"small food stall near the boarding house","tempat laundry":"laundry shop","depan kos":"outside the boarding house",
-    "dapur":"kitchen","ruang tamu":"living room","ruang makan":"dining area","teras":"front porch","depan tv":"TV area",
-    "kelas":"classroom","koridor":"school corridor","perpustakaan":"library","ruang kelas":"classroom","parkiran":"parking area",
-    "meja kerja":"work desk","ruang meeting":"meeting room","pantry":"office pantry","lift":"office elevator","lobi":"office lobby",
-    "meja kerja di rumah":"home work desk","chat client":"client chat","video call":"video call","coworking space":"coworking space",
-    "chat ai":"AI chat interface","folder hasil":"output folder","halaman portfolio":"portfolio page","dashboard tool":"AI tool dashboard",
-    "hp":"smartphone","dashboard affiliate":"affiliate dashboard","halaman produk":"product page","kolom komentar":"comment section",
-    "dashboard toko":"store dashboard","landing page":"landing page","chat customer":"customer chat","folder produk":"product folder",
-    "kamar gaming":"gaming room","lobby":"game lobby","ranked match":"ranked match","voice chat":"voice chat",
-    "bandara":"airport","stasiun":"train station","hotel":"hotel","jalan kecil":"local street","tempat wisata":"tourist spot",
-    "warung":"food stall","pasar":"market","food court":"food court","restoran":"restaurant","pedagang kaki lima":"street-food stall"
-   };
-   if(exact[x]) return exact[x];
-
-   const repl=[
-    [/bangun pagi/g,"waking up early"],[/piket/g,"doing assigned chores"],[/ngaji/g,"studying or reciting religious texts"],
-    [/belajar/g,"studying"],[/nyuci/g,"washing clothes"],[/makan/g,"eating"],[/antre mandi/g,"waiting for the bathroom"],
-    [/bersiap kumpul/g,"getting ready to gather"],[/ngerjain tugas/g,"working on an assignment"],[/beres-beres/g,"tidying up"],
-    [/istirahat/g,"resting"],[/ngobrol sebelum tidur/g,"talking before sleep"],[/masak/g,"cooking"],[/nunggu paket/g,"waiting for a delivery"],
-    [/ngatur uang/g,"managing money"],[/bersih-bersih/g,"cleaning"],[/rebahan/g,"lying down to rest"],[/belanja stok/g,"restocking supplies"],
-    [/makan tengah malam/g,"having a late-night meal"],[/meeting/g,"attending a meeting"],[/ngerjain revisi/g,"working on revisions"],
-    [/presentasi/g,"giving a presentation"],[/balas chat/g,"replying to messages"],[/makan siang/g,"having lunch"],[/ngopi/g,"having coffee"],
-    [/nulis prompt/g,"writing a prompt"],[/generate/g,"generating AI output"],[/edit hasil/g,"editing the output"],[/cari use case/g,"looking for a useful use case"],
-    [/belajar tool/g,"learning the tool"],[/cari client/g,"looking for clients"],[/buat produk/g,"building a product"],[/bikin video/g,"making a video"],
-    [/cari produk/g,"searching for products"],[/cek komisi/g,"checking commissions"],[/pasang link/g,"adding an affiliate link"],
-    [/push rank/g,"pushing rank"],[/mabar/g,"playing with friends"],[/packing/g,"packing"],[/check-in/g,"checking in"],[/cari makan/g,"looking for food"],
-    [/foto-foto/g,"taking photos"],[/bangun kesiangan/g,"waking up late"],
-
-    [/teman sekamar/g,"roommate"],[/kakak kelas/g,"senior student"],[/adik kelas/g,"junior student"],[/musyrif/g,"dorm supervisor"],
-    [/teman kamar sebelah/g,"friend from the next room"],[/teman kos/g,"boarding-house friend"],[/tetangga kamar/g,"next-door tenant"],
-    [/ibu kos/g,"boarding-house owner"],[/teman sebangku/g,"desk mate"],[/teman satu tim/g,"teammate"],[/atasan/g,"manager"],
-    [/anak baru/g,"new employee"],[/client/g,"client"],[/calon client/g,"potential client"],[/calon klien/g,"potential client"],
-    [/pemula affiliate/g,"beginner affiliate creator"],[/penonton/g,"viewer"],[/seller/g,"seller"],[/teman perjalanan/g,"travel companion"],
-
-    [/mie/g,"instant noodles"],[/kiriman dari rumah/g,"care package from home"],[/sandal/g,"sandals"],[/ember/g,"bucket"],[/gayung/g,"water dipper"],
-    [/alarm/g,"alarm clock"],[/kitab/g,"study book"],[/baju jemuran/g,"clothes on the drying rack"],[/snack/g,"snacks"],
-    [/galon/g,"water jug"],[/rice cooker/g,"rice cooker"],[/charger/g,"phone charger"],[/paket/g,"delivery package"],
-    [/laundry/g,"laundry"],[/kipas/g,"electric fan"],[/remote/g,"TV remote"],[/laptop/g,"laptop"],[/kopi/g,"coffee"],
-    [/id card/g,"employee ID card"],[/file kerja/g,"work file"],[/prompt/g,"AI prompt"],[/hasil generate/g,"generated output"],
-
-    [/pagi sebelum kegiatan/g,"early morning before scheduled activities"],[/jam istirahat/g,"break time"],[/malam setelah kegiatan/g,"night after activities"],
-    [/hari kepulangan/g,"going-home day"],[/beberapa menit sebelum kumpul/g,"a few minutes before everyone must gather"],
-    [/akhir bulan/g,"the end of the month"],[/tengah malam/g,"late at night"],[/hari libur/g,"a day off"],[/baru pulang/g,"just after coming home"],
-    [/baru rebahan/g,"just after lying down to rest"],[/menjelang pulang/g,"just before going home"],[/sebelum meeting/g,"right before a meeting"],
-    [/hari pertama/g,"the first day"],[/pertama kali coba/g,"the first time trying it"],[/setelah generate/g,"right after generating the result"],
-
-    [/semua ikut nimbrung/g,"everyone starts joining in"],[/satu orang mulai lalu yang lain ikut/g,"one person starts and the others follow"],
-    [/teman sekamar saling bantu/g,"the roommates start helping each other"],[/tim ikut bantu/g,"the team starts helping"],
-    [/orang lain bantu cari solusi/g,"other people help solve it"],[/semua mendadak serius/g,"everyone suddenly becomes serious"],
-
-    [/relate/g,"highly relatable"],[/lucu/g,"funny"],[/ngeselin/g,"annoying but familiar"],[/hangat/g,"warm and human"],
-    [/panik/g,"briefly chaotic"],[/lega/g,"relieving"],[/nostalgia/g,"nostalgic"],[/awkward/g,"awkward"],[/tegang/g,"tense"]
-   ];
-   for(const [a,b] of repl) x=x.replace(a,b);
-   return x;
- }
-
- // Each world has MANY subcontexts, not one repetitive setting.
- const WORLDS=[
-  {
-   id:"pondok",match:/pondok|santri|pesantren|asrama/,
-   places:["kamar pondok","lorong asrama","kamar mandi","tempat jemuran","kantin","masjid","kelas diniyah","depan kamar","rak sandal","area cuci","lapangan","pos keamanan"],
-   activities:["bangun pagi","piket","ngaji","belajar","nyuci","makan","antre mandi","bersiap kumpul","ngerjain tugas","beres-beres","istirahat","ngobrol sebelum tidur"],
-   people:["teman sekamar","kakak kelas","adik kelas","musyrif","teman kamar sebelah","teman paling rame","teman yang suka pinjam barang","teman yang susah dibangunin"],
-   objects:["mie","kiriman dari rumah","sandal","ember","gayung","alarm","kitab","baju jemuran","snack","botol minum","kartu izin","jadwal kegiatan"],
-   times:["pagi sebelum kegiatan","jam istirahat","malam setelah kegiatan","hari kepulangan","akhir pekan","beberapa menit sebelum kumpul","habis hujan","sebelum tidur"],
-   frictions:["barang pribadi dipakai orang lain","jadwal mepet tapi satu orang belum siap","pengumuman datang saat semua sudah santai","kiriman satu orang jadi perhatian satu kamar","jemuran belum aman saat hujan datang","antrean nggak terasa maju","niat tidur berubah jadi ngobrol panjang","satu orang telat bikin yang lain ikut panik","barang dicari ke mana-mana ternyata ada dekat banget","aturan kecil bikin semua harus gerak cepat"],
-   social:["semua ikut nimbrung","satu orang mulai lalu yang lain ikut","senior tiba-tiba datang","teman sekamar saling bantu","orang kamar sebelah ikut terlibat","semua pura-pura nggak dengar dulu"],
-   emotional:["receh tapi bikin kangen","ngeselin tapi lucu","capek tapi hangat","panik sebentar lalu jadi bahan cerita","baru terasa berarti setelah lewat"]
-  },
-  {
-   id:"alumni_pondok",match:/alumni.*pondok|alumni.*pesantren|mantan santri/,
-   places:["rumah","pondok lama","kamar lama","grup alumni","acara reuni","jalan depan pondok","masjid lama","toko yang familiar"],
-   activities:["beres-beres barang lama","balik berkunjung","ketemu teman lama","scroll grup alumni","lihat foto lama","dengar suara familiar","lewat tempat lama"],
-   people:["teman sekamar dulu","teman angkatan","ustaz lama","senior lama","teman yang lama nggak ketemu"],
-   objects:["foto lama","kitab lama","seragam lama","chat grup","voice note","barang pondok","sandal lama","name tag"],
-   times:["setelah bertahun-tahun","pas reuni","malam hari","waktu balik ke pondok","pas beres-beres rumah"],
-   frictions:["kebiasaan lama masih kebawa","tempat lama terasa beda","orang lama ketemu dalam versi yang sudah berubah","hal yang dulu dibenci sekarang dirindukan","satu benda kecil memicu memori besar","grup lama mendadak hidup lagi"],
-   social:["langsung balik ke gaya ngobrol dulu","cerita lama dibahas lagi","semua ngerasa waktu cepat banget","orang yang dulu sering ketemu sekarang jarang banget"],
-   emotional:["nostalgia","hangat","sedikit nyesek","lucu karena kebiasaan lama","senang tapi asing"]
-  },
-  {
-   id:"kos",match:/anak kos|kehidupan kos|kosan|kamar kos|\bkos\b/,
-   places:["kamar kos","dapur bersama","lorong kos","minimarket","warung dekat kos","tempat laundry","depan kos","area jemuran"],
-   activities:["masak","cuci baju","nunggu paket","ngatur uang","bersih-bersih","rebahan","belanja stok","makan tengah malam"],
-   people:["teman kos","tetangga kamar","ibu kos","teman yang numpang makan","teman yang sering pinjam charger"],
-   objects:["galon","rice cooker","mie","charger","paket","laundry","kipas","helm","stok makanan","dompet"],
-   times:["akhir bulan","tengah malam","hari libur","baru pulang","baru rebahan","mau mandi","pas hujan"],
-   frictions:["galon habis","gas habis","charger hilang","laundry belum datang","stok makanan tinggal sedikit","paket datang pas lagi malas gerak","kamar sebelah rame saat mau tidur","jemuran kena hujan","niat hemat buyar gara-gara ajakan","satu barang dipakai bergantian"],
-   social:["teman ikut makan","tetangga kamar ikut nimbrung","semua jadi kepo","orang lain bantu cari solusi","obrolan dadakan jadi panjang"],
-   emotional:["relate","survival mode","lucu","ngeselin","sepi lalu jadi rame"]
-  },
-  {
-   id:"household",match:/rumah tangga|keluarga di rumah|ibu rumah tangga|kehidupan rumah|keluarga/,
-   places:["dapur","ruang tamu","kamar","ruang makan","teras","depan TV","area jemuran","gudang kecil"],
-   activities:["masak","beberes","belanja","mencuci","ngurus anak","makan bareng","istirahat","nyiapin tamu","nonton TV"],
-   people:["ibu","ayah","adik","kakak","anak di rumah","orang rumah","anggota keluarga lain"],
-   objects:["remote","keranjang baju","alat masak","belanja bulanan","makanan","alat bersih-bersih","kursi favorit","kunci rumah"],
-   times:["pagi hari","jam makan","sore hari","habis beberes","saat mau istirahat","sebelum tamu datang","malam hari"],
-   frictions:["baru duduk langsung dipanggil","barang yang baru dirapikan hilang lagi","semua punya pilihan makanan beda","dapur baru bersih langsung dipakai","tamu mau datang dan semua buru-buru","satu remote jadi rebutan","semua bilang nggak lapar tapi ikut makan","mati listrik bikin semua berkumpul"],
-   social:["semua ikut komentar","satu orang mulai lalu yang lain ikut bantu","anak bikin suasana berubah","obrolan makan jadi panjang","semua mendadak sibuk"],
-   emotional:["hangat","chaos kecil","lucu","capek tapi familiar","emosional sederhana"]
-  },
-  {
-   id:"school",match:/sekolah|pelajar|siswa|murid|sma|smp/,
-   places:["kelas","kantin","koridor","lapangan","gerbang","perpustakaan","ruang guru","tempat parkir"],
-   activities:["belajar","ulangan","piket","makan di kantin","nunggu guru","presentasi","olahraga","ngerjain tugas"],
-   people:["teman sebangku","teman belakang","anak yang selalu telat","teman paling rame","teman yang suka pinjam barang","guru"],
-   objects:["pulpen","buku","bekal","tas","penghapus","bel sekolah","lembar ujian","buku tugas"],
-   times:["jam kosong","sebelum guru datang","pas istirahat","menjelang pulang","hari ulangan","pagi-pagi"],
-   frictions:["guru keluar sebentar dan kelas langsung berubah","barang pinjaman muter ke mana-mana","satu soal bikin semua saling lirik","teman rame nggak masuk dan kelas terasa beda","datang telat lalu semua menoleh","bekal satu orang bikin yang lain ikut lihat","kelas pindah ruangan mendadak","ujian selesai baru ingat jawabannya"],
-   social:["satu kelas ikut bereaksi","teman sebelah langsung nimbrung","semua pura-pura tenang saat guru datang","satu orang mulai lalu yang lain ikut"],
-   emotional:["relate","lucu","awkward","nostalgia","deg-degan"]
-  },
-  {
-   id:"campus",match:/mahasiswa|kampus|kuliah/,
-   places:["ruang kelas","kantin kampus","perpustakaan","parkiran","lorong fakultas","sekretariat","tempat nongkrong"],
-   activities:["kuliah","presentasi","ngerjain tugas kelompok","nongkrong","cari colokan","bikin laporan","nunggu kelas"],
-   people:["teman sekelas","teman kelompok","dosen","kakak tingkat","teman yang selalu telat"],
-   objects:["laptop","catatan","charger","kopi","tugas kelompok","kartu mahasiswa"],
-   times:["kelas pagi","mendekati deadline","habis kuliah","sebelum presentasi","jam kosong","malam sebelum tugas dikumpul"],
-   frictions:["anggota kelompok baru aktif dekat deadline","kelas dibatalkan setelah sudah datang","colokan penuh saat baterai habis","tugas yang dibilang simpel ternyata panjang","satu orang lupa bagian presentasi","deadline terasa jauh lalu tiba-tiba tinggal sebentar","kelas pindah dan semua nyasar"],
-   social:["grup tugas mendadak rame","teman ngajak nongkrong","semua bandingin progres","satu orang jadi penyelamat kelompok"],
-   emotional:["relate","panik","lucu","capek","lega"]
-  },
-  {
-   id:"office",match:/kantor|fresh graduate|pegawai|karyawan|kerja kantoran|dunia kerja/,
-   places:["meja kerja","ruang meeting","pantry","lift","lobi","parkiran","ruang kerja"],
-   activities:["meeting","ngerjain revisi","presentasi","balas chat","makan siang","nyiapin laporan","ngopi"],
-   people:["teman satu tim","atasan","anak baru","teman meja sebelah","orang yang paling pagi"],
-   objects:["laptop","kopi","ID card","file kerja","chat kantor","meeting invite","printer"],
-   times:["baru datang","menjelang pulang","sebelum meeting","jam makan siang","hari pertama","pagi-pagi"],
-   frictions:["meeting mendadak muncul","revisi masuk pas mau pulang","anak baru bingung harus ngapain","chat pendek bikin overthinking","file salah kirim","printer error","nunggu lift bareng atasan awkward","kopi keburu dingin","lupa ID card","mic lupa dimute"],
-   social:["tim ikut bantu","semua pura-pura santai","obrolan pantry jadi panjang","teman meja sebelah langsung komentar"],
-   emotional:["relate","awkward","lucu","capek","lega"]
-  },
-  {
-   id:"freelancer",match:/freelancer|freelance|pekerja lepas/,
-   places:["meja kerja di rumah","chat client","video call","coworking space","folder project","email"],
-   activities:["ngerjain revisi","kirim proposal","nunggu feedback","buat invoice","presentasi hasil","cari client"],
-   people:["client","calon client","teman freelancer","orang rumah"],
-   objects:["invoice","brief","file revisi","deadline","proposal","chat client","portfolio"],
-   times:["malam hari","dekat deadline","pagi setelah begadang","saat belum ada project","setelah project selesai"],
-   frictions:["revisi datang malam-malam","client slow response tapi deadline jalan terus","brief berubah di tengah jalan","invoice belum dibayar","project numpuk di waktu yang sama","nggak ada project lalu mendadak datang barengan","bangun telat karena semalam nunggu revisi"],
-   social:["client minta tambahan","teman freelancer kasih solusi","orang rumah kira kerja di rumah berarti selalu santai","meeting singkat jadi panjang"],
-   emotional:["relate","frustrasi","lega","cemas","senang"]
-  },
-  {
-   id:"ai",match:/\bai\b|artificial intelligence|chatgpt|generative ai/,
-   places:["meja kerja","chat AI","folder hasil","halaman portfolio","marketplace jasa","dashboard tool"],
-   activities:["nulis prompt","generate","edit hasil","cari use case","belajar tool","cari client","buat produk"],
-   people:["pemula","calon client","orang yang minta revisi","teman yang juga belajar AI"],
-   objects:["prompt","hasil generate","tool AI","portfolio","chat penawaran","draft produk"],
-   times:["pertama kali coba","setelah generate","sebelum kirim hasil","waktu revisi","saat cari client"],
-   frictions:["bingung mau ngetik apa","hasil pertama nggak kepakai","terlalu banyak tool bikin bingung","dapat client pertama tapi bingung jawab","harga jasa bikin mikir","hasil cepat tapi revisi banyak","ide banyak tapi nggak selesai","baru sadar AI cuma bantu sebagian proses"],
-   social:["teman ikut coba","client kasih feedback","orang lain minta dibuatkan juga","komentar orang bikin sadar kelemahan hasil"],
-   emotional:["penasaran","frustrasi","relate","lega","semangat"]
-  },
-  {
-   id:"affiliate",match:/affiliate|afiliasi/,
-   places:["HP","dashboard affiliate","halaman produk","kolom komentar","chat","meja kerja"],
-   activities:["bikin video","cari produk","cek komisi","balas komentar","pasang link","analisis konten"],
-   people:["pemula affiliate","penonton","calon pembeli","seller"],
-   objects:["link affiliate","produk sample","komisi","dashboard","video pertama","notifikasi order"],
-   times:["setelah upload","saat belum ada order","setelah komisi pertama","malam hari","waktu cari produk"],
-   frictions:["view banyak tapi klik sedikit","video sederhana justru perform","bingung pilih produk","komisi pertama kecil","cara ngomong terlalu jualan","produk biasa justru paling banyak ditanya","takut ngomong di kamera","lupa pasang link yang benar"],
-   social:["penonton banyak nanya","seller kasih sample","teman ikut penasaran","komentar jadi sumber ide baru"],
-   emotional:["penasaran","senang","frustrasi","malu","semangat"]
-  },
-  {
-   id:"digital_business",match:/bisnis digital|digital business|jualan digital|produk digital|online business/,
-   places:["dashboard toko","landing page","chat customer","folder produk","meja kerja","email"],
-   activities:["buat produk","launching","promosi","balas customer","revisi produk","cek order"],
-   people:["customer pertama","calon pembeli","teman yang kasih feedback","partner"],
-   objects:["produk digital","landing page","order","template","notifikasi pembayaran","iklan"],
-   times:["sebelum launching","setelah posting","saat order pertama","waktu revisi","malam hari"],
-   frictions:["produk sudah jadi tapi belum tahu siapa yang butuh","landing page rapi tapi sepi","order pertama bikin panik","harga murah tapi orang tetap banyak nanya","terlalu lama bikin produk sampai lupa jualan","customer minta hal yang belum disiapkan","iklan jalan tapi belum balik modal"],
-   social:["customer kasih feedback","teman bantu review","calon pembeli banyak tanya","partner beda pendapat"],
-   emotional:["penasaran","tegang","frustrasi","lega","senang"]
-  },
-  {
-   id:"gaming",match:/gaming|gamer|game\b|main game/,
-   places:["kamar gaming","lobby","ranked match","voice chat","loading screen"],
-   activities:["mabar","push rank","loot","streaming","ngejar quest","main santai"],
-   people:["teman mabar","random teammate","musuh terakhir","player yang paling rame"],
-   objects:["headset","controller","keyboard","rank point","loot","skin"],
-   times:["tengah malam","match terakhir","ranked","habis lose streak","akhir pekan"],
-   frictions:["bilang satu match lagi tapi lanjut lama","teman AFK pas penting","lose streak bikin semua panas","random teammate justru carry","musuh tinggal satu tapi semua panik","headset mati pas komunikasi penting","rank hampir naik lalu kalah tipis"],
-   social:["teman langsung nyalahin satu sama lain","semua mendadak serius","voice chat jadi rame","random teammate tiba-tiba jadi hero"],
-   emotional:["tegang","lucu","frustrasi","puas","relate"]
-  },
-  {
-   id:"travel",match:/travel|traveling|liburan|backpacker|perjalanan|wisata/,
-   places:["bandara","stasiun","hotel","jalan kecil","tempat wisata","warung lokal","halte"],
-   activities:["packing","check-in","cari makan","naik transportasi","foto-foto","jalan kaki","nyari penginapan"],
-   people:["teman perjalanan","petugas","orang lokal","teman yang paling santai"],
-   objects:["koper","tiket","powerbank","peta","paspor","tas kecil","kamera"],
-   times:["hari pertama","sebelum berangkat","saat transit","malam hari","waktu pulang"],
-   frictions:["koper terlalu penuh","salah naik kendaraan","tempat yang dicari beda dari foto","hujan turun pas baru sampai","jadwal mepet tapi teman santai","powerbank habis","bangun telat saat itinerary padat","foto terbaik justru muncul di tempat random"],
-   social:["teman beda ritme","orang lokal bantu","semua punya prioritas beda","satu orang jadi navigator"],
-   emotional:["seru","panik","lucu","nostalgia","lega"]
-  },
-  {
-   id:"food",match:/kuliner|makanan|food|masak|cooking|jajanan|restaurant|restoran/,
-   places:["warung","dapur","pasar","food court","restoran","pedagang kaki lima","meja makan"],
-   activities:["cari makanan","masak","nyoba menu","antre","review rasa","belanja bahan"],
-   people:["teman makan","penjual","orang rumah","pelanggan lain"],
-   objects:["menu","bumbu","piring","antrian","struk","bahan makanan"],
-   times:["jam makan siang","malam hari","akhir pekan","waktu lapar","pas hujan"],
-   frictions:["menu incaran habis","antrean panjang","makanan ternyata beda dari foto","pesanan teman justru kelihatan lebih enak","bumbu kurang satu","masak kelihatan gampang tapi langkahnya banyak","tempat kecil justru rasanya paling enak"],
-   social:["teman saling tukar makanan","semua punya selera beda","penjual kasih rekomendasi","orang sekitar ikut penasaran"],
-   emotional:["penasaran","puas","lucu","kecewa kecil","senang"]
-  }
- ];
-
- let world=null, worldId="";
- for(const w of WORLDS){ if(w.match.test(q)){world=w;worldId=w.id;break;} }
-
- const titleForms=[
-   a=>cap(a.situation),
-   a=>`${cap(a.moment)}, ${a.situation}`,
-   a=>`${cap(a.place)} mendadak berubah gara-gara ${a.object}`,
-   a=>`${cap(a.person)} bikin ${a.activity} jadi punya cerita`,
-   a=>`Yang bikin rame ternyata cuma ${a.object}`,
-   a=>`Satu ${a.object}, satu masalah kecil, semua ikut kena`,
-   a=>`Hari itu biasa aja sampai ${a.situation}`,
-   a=>`Yang tadinya urusan satu orang akhirnya jadi urusan bareng`,
-   a=>`Nggak direncanain, tapi semua akhirnya ikut terlibat`,
-   a=>`Satu detail kecil bikin ${a.moment} jadi beda`,
-   a=>`Ini tipe kejadian yang baru lucu setelah lewat`,
-   a=>`Beberapa menit sebelum ${a.situation}, semuanya masih aman`,
-   a=>`Kalau pernah ada di ${a.place}, pasti paham momen kayak gini`,
-   a=>`Yang paling diingat malah bukan kejadian besarnya`,
-   a=>`Situasi random yang cuma muncul pas ${a.moment}`,
-   a=>`Harusnya sebentar, entah kenapa jadi panjang`,
-   a=>`Satu orang mulai, yang lain langsung ikut`,
-   a=>`Nggak ada yang sadar sampai ${a.object} jadi masalah`,
-   a=>`Yang bikin relate justru bagian yang jarang dibahas`,
-   a=>`Suasana berubah cuma gara-gara satu hal kecil`,
-   a=>`${cap(a.activity)} yang tadinya biasa mendadak jadi ribet`,
-   a=>`Ada satu momen di ${a.place} yang selalu kejadian`,
-   a=>`Kenapa ${a.object} selalu jadi pusat masalah pas ${a.moment}?`,
-   a=>`${cap(a.person)} + ${a.activity} = kombinasi yang nggak pernah tenang`,
-   a=>`Bagian paling awkward dari ${a.activity}`,
-   a=>`Yang paling ngeselin justru muncul setelah ${a.activity}`,
-   a=>`Momen paling lega setelah ${a.situation}`,
-   a=>`Sebelum ${a.activity} vs setelah semuanya selesai`,
-   a=>`Kalau ${a.situation}, biasanya siapa yang paling panik duluan?`,
-   a=>`Satu kejadian kecil yang cuma dipahami ${lens.label}`
- ];
-
- const hookForms=[
-   a=>"Awalnya kelihatan biasa, terus satu hal kecil bikin semuanya berubah.",
-   a=>"Kalau pernah ada di situasi ini, pasti langsung ngerti.",
-   a=>"Yang bikin relate justru detail kecilnya, bukan kejadian besarnya.",
-   a=>"Nggak ada yang merencanakan ini, tapi semua akhirnya ikut kena.",
-   a=>"Beberapa detik pertama masih aman. Habis itu suasananya langsung berubah.",
-   a=>`Yang pernah ${a.activity} pasti ngerti kenapa bagian ini ngeselin.`,
-   a=>`Kenapa setiap ${a.moment} selalu ada kejadian kayak gini?`,
-   a=>"Ini tipe kejadian yang kalau diceritain receh, tapi pas ngalamin beda.",
-   a=>"Gue kira cuma satu orang yang bakal terlibat.",
-   a=>"Yang paling bikin kaget justru bukan hasil akhirnya."
- ];
-
- function makeWorldCandidates(w){
-   const items=[];
-   for(let i=0;i<260;i++){
-     const a={
-      place:rand(w.places),activity:rand(w.activities),person:rand(w.people),object:rand(w.objects),
-      moment:rand(w.times),situation:rand(w.frictions),social:rand(w.social),emotion:rand(w.emotional)
-     };
-     let title=clean(titleForms[i%titleForms.length](a));
-     // Relevance guard: visual always contains at least 2 world-specific anchors.
-     let hook=clean(rand(hookForms)(a));
-     let visual=`0–3 detik: langsung buka di ${a.place} saat ${a.moment}. Karakter utama sedang ${a.activity}; ${a.object} terlihat jelas dan situasi "${a.situation}" mulai terjadi, sementara ${a.person} ikut bereaksi.`;
-     let payoff=`Kejadian berkembang sampai ${a.social}; momen ditutup dengan hasil yang terasa ${a.emotion} dan tetap langsung menyelesaikan situasi "${a.situation}".`;
-     const profile={
-       kind:"life",world:w.id,
-       raw:{place:a.place,activity:a.activity,person:a.person,object:a.object,moment:a.moment,situation:a.situation,social:a.social,emotion:a.emotion},
-       en:{place:conceptEN(a.place),activity:conceptEN(a.activity),person:conceptEN(a.person),object:conceptEN(a.object),moment:conceptEN(a.moment),situation:conceptEN(a.situation),social:conceptEN(a.social),emotion:conceptEN(a.emotion)}
-     };
-     items.push([title,hook,visual,payoff,profile]);
-   }
-   return uniq(items);
- }
-
- function makeEducation(){
-   const earth=/bumi|earth|planet|geologi|geografi|gempa|gunung|lempeng|samudra|atmosfer|iklim|astronomi/.test(q);
-   if(earth) return [
-    ["Apa yang sebenarnya terjadi di bawah tanah saat gempa?","Gempa bukan tanah yang tiba-tiba bergoyang tanpa sebab.","0–3 detik: dua blok batuan terkunci di patahan lalu tiba-tiba bergeser.","Payoff memperlihatkan energi dilepaskan dan merambat sebagai gelombang seismik."],
-    ["Kenapa bagian dalam Bumi masih panas sampai sekarang?","Bumi sudah tua banget, jadi kenapa bagian dalamnya belum dingin?","0–3 detik: penampang Bumi terbuka dan inti menyala terang.","Payoff menjelaskan sisa panas pembentukan dan peluruhan radioaktif."],
-    ["Kerak Bumi ternyata setipis ini dibanding ukuran planetnya","Kalau Bumi sebesar apel, keraknya cuma seperti kulitnya.","0–3 detik: Bumi utuh lalu zoom ke kerak yang sangat tipis.","Payoff memberi perbandingan skala yang langsung kebayang."],
-    ["Kenapa kita nggak merasakan Bumi berputar?","Bumi bergerak cepat, tapi tubuh kita ngerasa diam.","0–3 detik: karakter berdiri di permukaan Bumi sementara planet berputar.","Payoff menjelaskan gerak konstan dan kerangka acuan."],
-    ["Benua dulu pernah menyatu jadi satu daratan raksasa","Peta dunia sekarang ternyata bukan bentuk yang selalu ada.","0–3 detik: benua modern bergerak mundur dan menyatu menjadi Pangaea.","Payoff menunjukkan bukti fosil, garis pantai, dan batuan."]
-   ];
-   return [
-    [`Kenapa ${topic} bisa terjadi?`,`Kelihatannya sederhana, tapi proses di baliknya lebih menarik dari yang kelihatan.`,`0–3 detik: fenomena utama "${topic}" langsung terlihat, lalu kamera menyorot bagian penting.`,`Payoff menjelaskan mekanisme inti secara sederhana.`],
-    [`Hal yang paling sering disalahpahami tentang ${topic}`,`Banyak orang tahu istilahnya, tapi sering salah di bagian ini.`,`0–3 detik: dua visual kontras antara anggapan umum dan kondisi sebenarnya.`,`Payoff membedakan mitos dan fakta dengan alasan yang jelas.`],
-    [`Gimana orang bisa tahu tentang ${topic}?`,`Yang menarik bukan cuma jawabannya, tapi cara kita mengetahuinya.`,`0–3 detik: tampilkan alat, data, jejak, atau bukti yang dipakai memahami topik.`,`Payoff menunjukkan metode yang menghasilkan pengetahuan tersebut.`],
-    [`Apa yang terjadi kalau ${topic} berubah total?`,`Cara paling gampang memahami sistem kadang dengan membayangkan kalau satu bagian berubah.`,`0–3 detik: kondisi normal lalu satu komponen penting diubah.`,`Payoff menunjukkan efek berantainya.`],
-    [`Seberapa besar sebenarnya ${topic}?`,`Angka susah dibayangin, jadi kita bandingkan dengan sesuatu yang familiar.`,`0–3 detik: skala topik muncul berdampingan dengan objek pembanding.`,`Payoff memberi perbandingan skala yang mudah dipahami.`]
-   ];
- }
-
- let candidates=[];
- if(world){
-   candidates=makeWorldCandidates(world);
- }else if(/edukasi|sains|science|bumi|planet|geologi|geografi|fisika|kimia|biologi|sejarah|history/.test(q)){
-   candidates=makeEducation();
- }else{
-   // Unknown niche: still treat it as a world, but keep the niche inside every visual/payoff.
-   const subs=[
-    "pengalaman pertama","rutinitas yang lama-lama jadi kebiasaan","masalah yang baru kelihatan setelah dijalani","kesalahan kecil","momen yang bikin mulai ngerti","interaksi dengan orang lain","hasil pertama","kegagalan pertama","momen sebelum mulai","momen setelah selesai","perubahan setelah beberapa kali mencoba","hal yang jarang dibahas"
-   ];
-   candidates=[];
-   for(let i=0;i<80;i++){
-     const sub=rand(subs);
-     const title=[
-      `${cap(sub)} di dunia ${topic}`,
-      `Bagian ${topic} yang baru kerasa setelah benar-benar dijalani`,
-      `Satu momen dari ${topic} yang susah dijelasin kalau belum pernah ngalamin`,
-      `Yang paling bikin mikir waktu mulai masuk ke ${topic}`,
-      `Ada fase di ${topic} ketika semuanya mulai terasa beda`,
-      `Kejadian kecil dari ${topic} yang ternyata punya efek panjang`
-     ][i%6];
-     const hook=["Awalnya kelihatan sederhana, sampai benar-benar dijalani.","Bagian ini biasanya baru kerasa setelah masuk ke dunianya.","Kalau belum pernah ngalamin, mungkin kelihatannya sepele.","Yang bikin menarik justru momen kecilnya."][i%4];
-     const visual=`0–3 detik: tampilkan aktivitas nyata yang khas dari "${topic}"${audience?` dan relevan untuk ${audience}`:""}, lalu langsung munculkan ${sub} sebagai kejadian utama.`;
-     const payoff=`Payoff menyelesaikan ${sub} dengan hasil, insight, emosi, atau konsekuensi yang masih jelas berasal dari dunia "${topic}".`;
-     candidates.push([title,hook,visual,payoff]);
-   }
- }
-
- // Audience lens adds priority variants without moving outside niche.
- if(world && audience){
-   const extra=[];
-   for(let i=0;i<60;i++){
-     const a={place:rand(world.places),activity:rand(world.activities),person:rand(world.people),object:rand(world.objects),moment:rand(world.times),situation:rand(world.frictions),emotion:rand(world.emotional)};
-     const profile={
-       kind:"life",world:world.id,
-       raw:{place:a.place,activity:a.activity,person:a.person,object:a.object,moment:a.moment,situation:a.situation,social:"orang di sekitar ikut bereaksi",emotion:a.emotion},
-       en:{place:conceptEN(a.place),activity:conceptEN(a.activity),person:conceptEN(a.person),object:conceptEN(a.object),moment:conceptEN(a.moment),situation:conceptEN(a.situation),social:"people around the main character react naturally",emotion:conceptEN(a.emotion)}
-     };
-     extra.push([
-      `${cap(a.situation)} — versi ${audience}`,
-      `Kalau ${audience} pernah ada di situasi ini, pasti langsung paham.`,
-      `0–3 detik: ${a.place}, ${a.moment}. Karakter yang mewakili ${audience} sedang ${a.activity}, lalu "${a.situation}" terjadi dengan ${a.object} sebagai bagian penting dari kejadian.`,
-      `Payoff memperlihatkan konsekuensi yang terasa ${a.emotion} dan relevan dengan pengalaman ${audience}.`,
-      profile
-     ]);
-   }
-   candidates=[...extra,...candidates];
- }
-
- candidates=uniq(candidates);
- let results=chooseFresh(candidates,count);
-
- while(results.length<count){
-   const n=results.length+1;
-   results.push([
-    `Momen lain dari ${topic} yang cuma dipahami orang di dalam dunianya #${n}`,
-    "Kelihatannya kecil, tapi orang yang pernah ngalamin pasti ngerti.",
-    `0–3 detik: tampilkan aktivitas nyata di dunia "${topic}" dan langsung munculkan masalah/interaksi yang spesifik terhadap niche.`,
-    `Payoff menutup kejadian secara natural tanpa keluar dari konteks "${topic}".`
-   ]);
- }
- results=results.slice(0,count);
- saveHistory(results.map(x=>x[0]));
-
- premiumIdeaResults.innerHTML=`<div class="card">
-   ${results.map((x,i)=>`<div class="saved" style="margin-top:${i?14:0}px;padding:18px">
-     <h3 style="margin:0 0 12px">IDE #${i+1}</h3>
-     <label>JUDUL</label><div class="result">${e(x[0])}</div>
-     <label>HOOK</label><div class="result">${e(x[1])}</div>
-     <label>VISUAL HOOK</label><div class="result">${e(x[2])}</div>
-     <label>PAYOFF</label><div class="result">${e(x[3])}</div>
-     <div class="actions">
-       <button class="mini primary" data-profile="${encodeURIComponent(JSON.stringify(x[4]||{}))}" onclick='usePremiumIdea(${JSON.stringify(x[0])},${JSON.stringify(x[1])},${JSON.stringify(x[2])},${JSON.stringify(x[3])},this.dataset.profile)'>Pakai Ide</button>
-       <button class="mini" data-copy="${encodeURIComponent("IDE #"+(i+1)+"\\nJudul: "+x[0]+"\\nHook: "+x[1]+"\\nVisual Hook: "+x[2]+"\\nPayoff: "+x[3])}" onclick="copyEncoded(this)">📋 Salin</button>
-     </div>
-   </div>`).join("")}
- </div>`;
+let vizexIdeaBusy=false,vizexIdeaCooldownUntil=0;
+async function generatePremiumIdeas(){
+ if(vizexIdeaBusy)return;
+ const _now=Date.now();
+ if(_now<vizexIdeaCooldownUntil){alert(`Tunggu ${Math.ceil((vizexIdeaCooldownUntil-_now)/1000)} detik sebelum generate lagi.`);return}
+ vizexIdeaBusy=true; vizexIdeaCooldownUntil=_now+15000;
+ setTimeout(()=>{vizexIdeaBusy=false},15000);
+ const topic=(v("ideaNiche")||"").trim(), audience=(v("ideaAudienceText")||"").trim(), count=+(v("ideaCount")||10);
+ if(!topic)return alert("Masukkan NICHE / TOPIK dulu.");
+ const out=document.getElementById("premiumIdeaResults");
+ out.innerHTML=`<div class="card"><label>✨ VIZEX AI IDEA ENGINE</label><div class="result">AI lagi mencari ${count} ide spesifik dari dunia "${e(topic)}"...\n\nTunggu sebentar...</div></div>`;
+ let history=[];try{history=JSON.parse(localStorage.getItem("vizexIdeaTitleHistory")||"[]");if(!Array.isArray(history))history=[]}catch(e){history=[]}
+ try{
+  const r=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,audience,count,history:history.slice(-100)})});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Idea generator error (${r.status})`);
+  const results=Array.isArray(data.ideas)?data.ideas:[];if(!results.length)throw new Error("AI tidak mengembalikan ide.");
+  const merged=[...history,...results.map(x=>String(x.title||"").trim())].filter(Boolean);
+  localStorage.setItem("vizexIdeaTitleHistory",JSON.stringify([...new Set(merged)].slice(-250)));
+  out.innerHTML=`<div class="card"><p class="muted">✨ Dibuat AI dari niche sebagai dunia/konteks. Pilih ide untuk langsung dibawa ke Buat Animasi.</p>
+  ${results.map((x,i)=>`<div class="saved" style="margin-top:${i?14:0}px;padding:18px"><h3 style="margin:0 0 12px">IDE #${i+1}</h3>
+  <label>JUDUL</label><div class="result">${e(x.title||"")}</div><label>HOOK</label><div class="result">${e(x.hook||"")}</div>
+  <label>VISUAL HOOK</label><div class="result">${e(x.visual_hook||"")}</div><label>PAYOFF</label><div class="result">${e(x.payoff||"")}</div>
+  <div class="actions"><button class="mini primary" data-title="${encodeURIComponent(x.title||"")}" data-hook="${encodeURIComponent(x.hook||"")}" data-visual="${encodeURIComponent(x.visual_hook||"")}" data-payoff="${encodeURIComponent(x.payoff||"")}" onclick="usePremiumIdea(decodeURIComponent(this.dataset.title),decodeURIComponent(this.dataset.hook),decodeURIComponent(this.dataset.visual),decodeURIComponent(this.dataset.payoff),'')">🎬 Buat Animasi</button>
+  <button class="mini" data-copy="${encodeURIComponent("IDE #"+(i+1)+"\nJudul: "+(x.title||"")+"\nHook: "+(x.hook||"")+"\nVisual Hook: "+(x.visual_hook||"")+"\nPayoff: "+(x.payoff||""))}" onclick="copyEncoded(this)">📋 Salin</button></div></div>`).join("")}</div>`;
+ }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Gemini utama sedang sibuk. Vizex otomatis mencoba beberapa model Gemini cadangan.</p></div>`}
 }
+
 function surpriseIdeas(){
  const topics=[
   "kehidupan santri di pondok","anak kos","fresh graduate pertama kerja",
@@ -1137,7 +1235,6 @@ function surpriseIdeas(){
   "kehidupan sehari-hari Gen Z","transportasi umum","hari libur di rumah","rumah tangga","keluarga di rumah","affiliate pemula","bisnis digital","gaming","traveling","AI untuk cari penghasilan","freelancer","kuliner","mahasiswa","fresh graduate"
  ];
  document.getElementById("ideaNiche").value=topics[Math.floor(Math.random()*topics.length)];
- generatePremiumIdeas();
 }
 function usePremiumIdea(title,hook="",visual="",payoff="",profileEncoded=""){
  let profile={};
@@ -1225,6 +1322,117 @@ function copyEncoded(el){
  try{ copyText(decodeURIComponent(el.dataset.copy||"")); }
  catch(err){ copyText(el.dataset.copy||""); }
 }
+
+
+/* V55 VISUAL CONTINUITY ENGINE
+   Keeps character identity stable while forcing every scene to advance visually.
+   Identity stays locked; action, pose, blocking, prop-state and camera must progress.
+*/
+const V55_VISUAL_RULES = {
+  identityLock: [
+    "same main character identity in every scene",
+    "same hairstyle, hair color, outfit, body proportions and distinctive details",
+    "same face setting; if faceless, remain completely featureless",
+    "supporting characters keep their own distinct silhouettes and outfits"
+  ],
+  progressionLock: [
+    "never redraw the previous scene composition",
+    "every scene must show a new physical action or a clearly advanced phase of the same action",
+    "change body pose, hand position, gaze/body direction and character blocking when the beat changes",
+    "carry forward the exact physical result of the previous scene",
+    "props must preserve state changes: opened stays opened, moved stays moved, eaten stays reduced, spilled stays spilled",
+    "do not reset characters or props to an earlier state"
+  ],
+  antiDuplicate: [
+    "no repeated group tableau",
+    "no repeated everyone-sitting-and-looking pose",
+    "no repeated camera distance in consecutive scenes unless story logic requires it",
+    "no generic posing for camera",
+    "no duplicate main character",
+    "no random extra people, props, food, furniture, locations or subplots"
+  ]
+};
+
+function v53CameraPlan(i,total){
+  const plans = [
+    "wide establishing shot showing spatial relationships and the exact starting state",
+    "medium action shot emphasizing the trigger and changed blocking",
+    "medium-close reaction/action shot emphasizing hands, body movement and cause-effect",
+    "dynamic close or over-the-shoulder shot emphasizing the climax without changing location",
+    "resolved medium-wide shot showing the physical aftermath and payoff"
+  ];
+  if(total<=1) return plans[2];
+  const idx=Math.max(0,Math.min(4,Math.round((i-1)/(total-1)*4)));
+  return plans[idx];
+}
+
+function v53SceneState(story,sceneIndex){
+  const scenes=story?.scenes||[];
+  const cur=scenes[sceneIndex-1]||{};
+  const prev=scenes[sceneIndex-2]||null;
+  const next=scenes[sceneIndex]||null;
+  return {
+    previous: prev ? `Previous physical state: ${prev.end||prev.action||prev.event}.` :
+      "Previous physical state: none; establish the exact initial state.",
+    current: `Current beat: ${cur.action||cur.event||"advance the title event literally"}.`,
+    next: next ? `Do not perform the next beat yet: ${next.action||next.event}.` :
+      "This is the payoff scene; show the final physical consequence only.",
+    camera: v53CameraPlan(sceneIndex, scenes.length||5)
+  };
+}
+
+function v53ContinuityBlock(story,sceneIndex){
+  const st=v53SceneState(story,sceneIndex);
+  return [
+    "VISUAL CONTINUITY LOCK:",
+    ...V55_VISUAL_RULES.identityLock.map(x=>"- "+x+"."),
+    "SCENE PROGRESSION LOCK:",
+    "- "+st.previous,
+    "- "+st.current,
+    "- "+st.next,
+    "- Camera progression: "+st.camera+".",
+    ...V55_VISUAL_RULES.progressionLock.map(x=>"- "+x+"."),
+    "ANTI-DUPLICATE COMPOSITION:",
+    ...V55_VISUAL_RULES.antiDuplicate.map(x=>"- "+x+"."),
+    "The new frame must be instantly distinguishable from the previous frame while unmistakably belonging to the same continuous event."
+  ].join(" ");
+}
+
+function v53VideoMotionBlock(story,sceneIndex){
+  const st=v53SceneState(story,sceneIndex);
+  return [
+    "VIDEO CONTINUITY:",
+    "Use the generated image for this scene as the exact starting frame.",
+    "Preserve character identity, outfit, environment, lighting and prop design.",
+    st.current,
+    "Animate only movements that logically complete this beat.",
+    "Movement must create a visible state change before the shot ends.",
+    "Do not reset poses or props. Do not jump to another location. Do not introduce new people or objects.",
+    "End on a state that can physically continue into the next scene.",
+    st.next
+  ].join(" ");
+}
+
+function v53NarrationGuard(text,title){
+  let x=String(text||"").replace(/\s+/g," ").trim();
+  if(!x) return "";
+  // Do NOT rewrite story content here. Narration must remain the narration
+  // generated from the title-first causal story; this guard only cleans spacing.
+  const hasCTA=/(pernah|kalau lo|menurut lo|ceritain|komen|komentar|versi lo|gimana menurut)/i.test(x);
+  if(!hasCTA) x += " Pernah ngalamin juga? Ceritain versi lo di komentar.";
+  return x;
+}
+
+/* V55 prompt compiler notes:
+   A prompt is considered valid only if:
+   1. It names the current beat, not merely the overall title.
+   2. It carries the previous physical state forward.
+   3. It forbids the next beat from appearing early.
+   4. It locks identity separately from pose/composition.
+   5. It changes at least two of: action, pose, blocking, prop state, camera.
+   6. It contains no instruction to upload/reference another image for text-to-image generation.
+*/
+
 </script>
 <script>
 async function verifySimpleSession(){
@@ -1241,5 +1449,78 @@ async function logoutVizex(){
   location.replace("/");
 }
 verifySimpleSession();
+</script>
+
+
+
+<script id="vizex-v6-account">
+let VIZEX_ME=null;
+function fmtAccountDate(x){try{return new Date(x).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return "-"}}
+function fmtAccountTime(x){try{return new Date(x).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"})}catch(e){return "-"}}
+async function accountJSON(url,opt={}){
+ const r=await fetch(url,{credentials:"include",...opt,headers:{"Content-Type":"application/json",...(opt.headers||{})}});
+ const d=await r.json().catch(()=>({}));
+ if(r.status===401){location.replace("/");throw new Error("Sesi berakhir")};
+ if(!r.ok)throw new Error(d.error||`Error ${r.status}`);return d;
+}
+async function loadCustomerProfile(){
+ try{
+  const d=await accountJSON("/api/me");VIZEX_ME=d;
+  const tag=document.getElementById("userTag");if(tag)tag.textContent=(d.name||d.email)+" • "+(d.plan||"PRO");
+  const map={profileName:d.name||"",profileEmail:d.email||"",profilePlan:d.plan||"PRO",profileStatus:d.status||"active",profileDevices:String(d.max_devices||1),profileCreated:fmtAccountDate(d.created_at)};
+  Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val});
+  const admin=String(d.plan||"").toUpperCase()==="ADMIN"||d.is_admin===true;
+  const ac=document.getElementById("adminCustomerCard");if(ac)ac.style.display=admin?"block":"none";if(admin)loadAdminCustomers();
+ }catch(e){console.error(e)}
+}
+async function saveCustomerProfile(){
+ const msg=document.getElementById("profileMsg");msg.textContent="Menyimpan...";
+ try{const d=await accountJSON("/api/update-profile",{method:"POST",body:JSON.stringify({name:document.getElementById("profileName").value.trim()})});msg.textContent=d.message||"Profil tersimpan.";await loadCustomerProfile()}catch(e){msg.textContent=e.message}
+}
+async function changeCustomerPassword(){
+ const msg=document.getElementById("passwordMsg"),current_password=document.getElementById("currentPassword").value,new_password=document.getElementById("newPassword").value;
+ if(!current_password||!new_password){msg.textContent="Isi password sekarang dan password baru.";return}
+ msg.textContent="Mengganti password...";
+ try{const d=await accountJSON("/api/change-password",{method:"POST",body:JSON.stringify({current_password,new_password})});msg.textContent=d.message||"Password berhasil diganti.";document.getElementById("currentPassword").value="";document.getElementById("newPassword").value="";await loadActiveSessions()}catch(e){msg.textContent=e.message}
+}
+async function loadActiveSessions(){
+ const el=document.getElementById("activeSessions");if(!el)return;
+ try{const d=await accountJSON("/api/sessions");const rows=d.sessions||[];el.innerHTML=rows.length?rows.map(s=>`<div class="workspace-item"><div><h3>${e(s.device_name||"Perangkat")}${s.current?" • PERANGKAT INI":""}</h3><div class="workspace-meta">Terakhir aktif: ${e(fmtAccountTime(s.last_active))}<br>Berakhir: ${e(fmtAccountTime(s.expires_at))}</div></div><div class="workspace-actions">${s.current?'<span class="tag">AKTIF</span>':`<button class="mini ghost" onclick="revokeDevice('${s.id}')">Keluarkan</button>`}</div></div>`).join(""):'<div class="result">Tidak ada sesi aktif.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+}
+async function revokeDevice(id){if(!confirm("Keluarkan perangkat ini dari akun?"))return;try{await accountJSON("/api/revoke-session",{method:"POST",body:JSON.stringify({session_id:id})});await loadActiveSessions()}catch(e){alert(e.message)}}
+async function logoutAllDevices(){if(!confirm("Keluar dari semua perangkat termasuk perangkat ini?"))return;try{await accountJSON("/api/logout-all",{method:"POST",body:"{}"})}catch(e){}location.replace("/")}
+function toggleAddCustomerForm(force){
+ const el=document.getElementById("addCustomerForm");if(!el)return;
+ const show=typeof force==="boolean"?force:el.style.display==="none";
+ el.style.display=show?"block":"none";
+ if(show){const n=document.getElementById("newCustomerName");if(n)n.focus()}
+}
+async function createAdminCustomer(){
+ const msg=document.getElementById("newCustomerMsg");
+ const name=document.getElementById("newCustomerName").value.trim();
+ const email=document.getElementById("newCustomerEmail").value.trim().toLowerCase();
+ const password=document.getElementById("newCustomerPassword").value;
+ const plan=document.getElementById("newCustomerPlan").value;
+ const max_devices=Number(document.getElementById("newCustomerDevices").value)||1;
+ if(!name||!email||!password){msg.textContent="Nama, email, dan password wajib diisi.";return}
+ if(password.length<8){msg.textContent="Password minimal 8 karakter.";return}
+ msg.textContent="Membuat customer...";
+ try{
+  const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({action:"create",name,email,password,plan,max_devices})});
+  msg.textContent=`Customer ${d.customer?.email||email} berhasil dibuat.`;
+  ["newCustomerName","newCustomerEmail","newCustomerPassword"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("newCustomerPlan").value="PRO";document.getElementById("newCustomerDevices").value="1";
+  await loadAdminCustomers();
+ }catch(err){msg.textContent=err.message}
+}
+async function loadAdminCustomers(){
+ const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
+ try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button></div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+}
+async function adminToggleCustomer(id,status){if(!confirm(`${status==='blocked'?'Blokir':'Aktifkan'} customer ini?`))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"status",value:status})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangkat aktif:",String(current||1));if(n===null)return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"max_devices",value:Number(n)})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
+loadCustomerProfile();
 </script>
 </body></html>
