@@ -1,9 +1,14 @@
-const sceneSchema={type:"object",additionalProperties:false,properties:{function:{type:"string"},start_state:{type:"string"},action:{type:"string"},end_state:{type:"string"},camera:{type:"string"},outfit:{type:"string"},outfit_change_reason:{type:"string"},image_prompt:{type:"string"},video_prompt:{type:"string"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
-const packageSchema={type:"object",additionalProperties:false,properties:{title:{type:"string"},hook:{type:"string"},payoff:{type:"string"},narration:{type:"string"},caption:{type:"string"},cover_text:{type:"string"},cover_prompt:{type:"string"},scenes:{type:"array",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
-function outputText(d){if(d.output_text)return d.output_text;for(const x of d.output||[])if(x.type==="message")for(const c of x.content||[])if(c.type==="output_text"&&c.text)return c.text;return""}
-async function askOpenAI(system,user,schema,name,max=9000){
- const rr=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:process.env.OPENAI_MODEL||"gpt-5-mini",input:[{role:"system",content:system},{role:"user",content:user}],max_output_tokens:max,text:{format:{type:"json_schema",name,strict:true,schema}}})});
- const d=await rr.json();if(!rr.ok)throw new Error(d?.error?.message||"OpenAI API error.");const raw=outputText(d);if(!raw)throw new Error("GPT tidak mengembalikan output.");return JSON.parse(raw);
+const sceneSchema={type:"OBJECT",additionalProperties:false,properties:{function:{type:"STRING"},start_state:{type:"STRING"},action:{type:"STRING"},end_state:{type:"STRING"},camera:{type:"STRING"},outfit:{type:"STRING"},outfit_change_reason:{type:"STRING"},image_prompt:{type:"STRING"},video_prompt:{type:"STRING"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
+const packageSchema={type:"OBJECT",additionalProperties:false,properties:{title:{type:"STRING"},hook:{type:"STRING"},payoff:{type:"STRING"},narration:{type:"STRING"},caption:{type:"STRING"},cover_text:{type:"STRING"},cover_prompt:{type:"STRING"},scenes:{type:"ARRAY",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
+async function askGemini(system,user,schema,name,max=9000){
+ const model=process.env.GEMINI_MODEL||"gemini-2.5-flash";
+ const prompt=`${system}\n\n${user}`;
+ const rr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",responseSchema:schema,temperature:0.8,maxOutputTokens:max}})});
+ const d=await rr.json();
+ if(!rr.ok)throw new Error(d?.error?.message||"Gemini API error.");
+ const raw=(d?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||"").join("").trim();
+ if(!raw){const reason=d?.candidates?.[0]?.finishReason||d?.promptFeedback?.blockReason||"unknown";throw new Error(`Gemini tidak mengembalikan output (${reason}).`)}
+ return JSON.parse(raw);
 }
 function coreRules(n,dur){return `You are the story director and prompt architect for Vizex Studio. The title is the source of truth.
 STORY RULES:
@@ -35,7 +40,7 @@ PROMPT RULES:
 - Visual format 9:16. No watermark/logo/subtitles in scene images.`}
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
- if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY belum terpasang di Vercel."});
+ if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const body=req.body||{}, action=String(body.action||"generate");
   const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
@@ -46,7 +51,7 @@ export default async function handler(req,res){
    if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
    const system=coreRules(n,dur)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
-   const result=await askOpenAI(system,user,packageSchema,"vizex_finalized_package",10000);
+   const result=await askGemini(system,user,packageSchema,"vizex_finalized_package",10000);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
    return res.status(200).json(result);
   }
@@ -55,12 +60,12 @@ export default async function handler(req,res){
    const draft=body.draft||{};
    const system=coreRules(n,dur)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
-   const scene=await askOpenAI(system,user,sceneSchema,"vizex_scene_revision",4500);return res.status(200).json({scene});
+   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",4500);return res.status(200).json({scene});
   }
   const system=coreRules(n,dur);
   const user=`TITLE: ${title}\nSCENES: ${n}\nDURATION: ${dur} seconds\nVISUAL STYLE: ${style}\nLOCKED MAIN CHARACTER IDENTITY + BASE OUTFIT REFERENCE: ${character}\nImportant: treat the outfit inside the character description only as a BASE REFERENCE, not an eternal outfit lock. Build a logical outfit timeline from the title and scene events. Generate the complete production package now.`;
-  const result=await askOpenAI(system,user,packageSchema,"vizex_animation_package",10000);
-  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`GPT menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
+  const result=await askGemini(system,user,packageSchema,"vizex_animation_package",10000);
+  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
   return res.status(200).json(result);
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }
