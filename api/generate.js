@@ -50,15 +50,17 @@ STORY RULES:
 - Scene N may know ONLY events that happened through Scene N. Never leak future people, props, payoff or ending into earlier images.
 - Physical state carries forward. No teleporting, duplication or reset. Consumables stay the same or decrease unless explicitly replenished.
 - Supporting people appear only when the current beat introduces them.
-CHARACTER + OUTFIT ENGINE:
-- Lock immutable identity across every scene: same person, hairstyle/hair color, body proportions, skin/material treatment, distinctive details, face/faceless setting and accessories that are identity-defining.
-- Clothing is a SEPARATE story state. Do NOT blindly keep the base outfit forever.
-- Infer the most logical clothing from TITLE + location + time + activity. Examples: sleeping can use sleepwear; school uses school uniform when the character has actually changed; office uses workwear; rain changes the SAME outfit to wet unless a real clothing change occurs.
-- Outfit may change ONLY when the story logically requires or explicitly shows a clothing change. Until that moment, copy the previous scene outfit exactly.
-- After a clothing change, lock the NEW outfit exactly into later scenes until another justified change happens.
-- Never change clothes just to create visual variety. Never silently change color, shoes, pants, top, accessories, fabric, or pattern between consecutive scenes.
-- outfit must describe the EXACT clothing visible in that scene. outfit_change_reason must be short Indonesian. Use "TIDAK BERUBAH" when copied from previous scene.
-- If the current scene is the clothing-change beat, make the action and prompts physically clear and non-contradictory.
+CHARACTER + STORY OUTFIT ENGINE:
+- Lock immutable physical identity across every scene: same person, hairstyle/hair color, body proportions, skin/material treatment, distinctive identity details and face/faceless setting.
+- DO NOT treat clothing written in LOCKED MAIN CHARACTER as a mandatory wardrobe. It is only a fallback visual reference when the TITLE and story give no better contextual clue.
+- BEFORE writing scenes, infer the character's logical starting outfit from the TITLE's situation, place, time, role and activity. Example logic: sleeping/just woke up -> sleepwear or believable home clothes; school day -> appropriate uniform only after/when getting ready; office/work -> workwear when actually going to work; sports -> sportswear when doing the activity; formal event -> formal clothing; relaxing at home -> casual homewear.
+- The title/story decides the outfit; do not force an arbitrary white t-shirt, black pants, jeans, or other base clothes into every story.
+- Outfit is a continuous STORY STATE. Scene 1 gets the contextually correct starting outfit. Scene N+1 copies Scene N's outfit exactly unless a visible/logical event changes clothing.
+- A wardrobe change must have a story cause: getting dressed, changing after bathing, changing for school/work/event, replacing soaked/dirty clothes, disguise/costume, or another explicit causal beat. Never change clothes merely for visual variety.
+- Clothing CONDITION is separate from wardrobe identity: wet, dirty, dusty, torn, stained, rolled sleeves, loosened tie, etc. If clothes become wet/dirty/damaged, carry that condition forward realistically. Do not magically become dry/clean between scenes.
+- If the story naturally includes changing out of wet/dirty clothes, show that causal change at the correct beat and then lock the new outfit forward.
+- outfit must state the exact visible clothes in that scene. outfit_change_reason must explain the STORY reason in natural Indonesian. Use "TIDAK BERUBAH" only when both garment identity and relevant condition truly carry forward.
+- Never let outfit logic create a subplot that is not supported by the title.
 PROMPT RULES — PRODUCTION DETAIL:
 - The TITLE is the single source of truth. First build one causal story from the title, then derive every scene, narration, image prompt, video prompt, caption and cover from that SAME story. Never add a random subplot just to make a prompt richer.
 - EVERY scene object MUST include ALL nine fields with non-empty strings: function, start_state, action, end_state, camera, outfit, outfit_change_reason, image_prompt, video_prompt. Never omit end_state or any other required field.\n- Each image_prompt is ONE frozen frame only, normally 100-180 useful English words. Detail must come from the current storyboard state, not invented future events.
@@ -69,13 +71,16 @@ PROMPT RULES — PRODUCTION DETAIL:
 - Never use the shortcut "same as image_prompt". Restate the critical character, outfit, prop and environment state needed to keep video generation consistent.
 - For outfit-change scenes, clearly show the physically plausible transition. Before the change, keep the old outfit; after the change, carry the new outfit forward exactly. Wet/dirty/torn is a condition of the same outfit, not a new outfit.
 - Image/video/cover prompts are ENGLISH. Story states/actions, outfit_change_reason, narration, caption, hook, payoff and cover_text are natural INDONESIAN. outfit can be concise English for prompt consistency.
-NARRATION RULES:
-- Narration is a continuous first-person spoken story in natural Indonesian, casual gue/lo style when suitable. It must retell the SAME causal events in scene order and match what viewers actually see.
-- Do NOT merely list scenes. Connect beats naturally with cause/effect and transitions such as "awalnya", "pas", "ternyata", "gara-gara itu", "akhirnya", etc. Vary wording; do not mechanically repeat these examples.
-- If a scene introduces a person, object, outfit change, problem, discovery or payoff, narration may mention it only at that point or later—never before it visually exists.
-- Do not contradict quantities, locations, actions, outfit state, character state or ending shown by the storyboard.
-- Never expose production/engine language in narration: no "scene", "prompt", "karakter utama", "frame", "timeline", "continuity", "tampilkan", or generation instructions.
-- Narration fits about ${dur} seconds; target about ${Math.round(dur*2.15)} Indonesian spoken words (±15%). It should have a hook, smooth middle escalation, clear payoff, then exactly ONE short contextual CTA that feels connected to the story rather than generic engagement bait.
+NARRATION RULES — NATURAL SPOKEN INDONESIAN:
+- Narration must sound like a real Indonesian creator casually telling ONE story, not reading a storyboard, report, checklist, or AI summary.
+- Use natural conversational phrasing and rhythm. "Gue/lo" is allowed when it fits; contractions and everyday words are preferred over stiff formal wording.
+- Open with a strong natural hook tied directly to the title/event. Then tell the events in the same chronological order viewers see them, using cause-and-effect rather than enumerating actions.
+- Do not narrate every tiny visible movement. Mention only story-relevant actions, reactions, discoveries and consequences. Let obvious visuals speak for themselves.
+- Vary sentence length. Use natural transitions only where they fit; do not mechanically repeat "awalnya", "lalu", "kemudian", "akhirnya" every scene.
+- Avoid stiff phrases such as "saya kemudian", "pada saat itu", "karakter tersebut", "selanjutnya saya melakukan", or production language.
+- The narration must match the title, storyboard, outfit state, props, people, location and payoff exactly. No event may be narrated before it happens visually.
+- Give the speaker a believable reaction/emotion when supported by the story: panik, lega, malu, kesel, bingung, ngakak, kaget, etc., without inventing a new event.
+- Narration fits about ${dur} seconds; target about ${Math.round(dur*2.15)} Indonesian spoken words (±15%). End after the payoff with exactly ONE short contextual CTA that sounds like part of the creator's voice, not generic engagement bait.
 - Caption is not a copy of narration. Write a substantial social-media caption in natural Indonesian: normally 80-140 words, about 2-4 short paragraphs, unless the story truly needs less. Do not make it a one-liner.
 - Caption should expand the feeling/context of the SAME story without retelling every scene beat-by-beat. Keep it easy to read on a phone.
 - End the caption with exactly ONE contextual CTA, and VARY the CTA wording/intent between generations. Choose naturally from patterns such as: ask for the viewer's experience, invite an opinion, ask which moment they relate to, invite them to tag/share with a relevant friend, ask what they would do, or invite a short comment. Do not mechanically repeat the same CTA phrase.
@@ -86,9 +91,9 @@ QUALITY GATE BEFORE RETURNING JSON:
 - Silently verify chronological causality from Scene 1 through Scene ${n}.
 - Verify every scene start_state follows the previous end_state.
 - Verify visible-person counts and prop quantities do not jump without an on-screen cause.
-- Verify identity never changes and outfit changes only at justified story beats.
+- Verify identity never changes. Verify Scene 1 outfit is inferred from the TITLE/story context, not blindly copied from the saved character reference. Verify later outfits follow scene causality and clothing condition persists realistically.
 - Verify image prompts are detailed standalone frozen frames and video prompts are detailed motion instructions, not short summaries.
-- Verify narration, caption and cover describe the same title/story and do not reveal events early.
+- Read narration aloud mentally: it must sound conversational, fluid and human, not like a scene list. Verify narration, caption and cover describe the same title/story and do not reveal events early.
 - If any check fails, repair it before returning JSON.`}
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
@@ -115,7 +120,7 @@ export default async function handler(req,res){
    const scene=await askGroq(system,user,sceneSchema,"vizex_scene_revision",4500);return res.status(200).json({scene});
   }
   const system=coreRules(n,dur);
-  const user=`TITLE: ${title}\nSCENES: ${n}\nDURATION: ${dur} seconds\nVISUAL STYLE: ${style}\nLOCKED MAIN CHARACTER IDENTITY + BASE OUTFIT REFERENCE: ${character}\nImportant: treat the outfit inside the character description only as a BASE REFERENCE, not an eternal outfit lock. Build a logical outfit timeline from the title and scene events. Generate the complete production package now.`;
+  const user=`TITLE: ${title}\nSCENES: ${n}\nDURATION: ${dur} seconds\nVISUAL STYLE: ${style}\nLOCKED MAIN CHARACTER IDENTITY (physical identity is authoritative): ${character}\nIMPORTANT: any outfit mentioned inside this saved character description is NOT authoritative. First infer Scene 1 clothing from TITLE + situation + place + time + activity. Use the saved outfit only as fallback when the story gives no contextual wardrobe clue. Then carry outfit state causally through the scenes. Generate the complete production package now.`;
   const result=await askGroq(system,user,packageSchema,"vizex_animation_package",10000);
   if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Groq menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
   return res.status(200).json(result);
