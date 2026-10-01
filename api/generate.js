@@ -1,9 +1,9 @@
 const sceneSchema={type:"OBJECT",properties:{function:{type:"STRING"},start_state:{type:"STRING"},action:{type:"STRING"},end_state:{type:"STRING"},camera:{type:"STRING"},outfit:{type:"STRING"},outfit_change_reason:{type:"STRING"},image_prompt:{type:"STRING"},video_prompt:{type:"STRING"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
 const packageSchema={type:"OBJECT",properties:{title:{type:"STRING"},hook:{type:"STRING"},payoff:{type:"STRING"},narration:{type:"STRING"},caption:{type:"STRING"},cover_text:{type:"STRING"},cover_prompt:{type:"STRING"},scenes:{type:"ARRAY",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
 async function askGemini(system,user,schema,name,max=9000){
- const model=process.env.GEMINI_MODEL||"gemini-2.5-flash";
+ const model=process.env.GEMINI_MODEL||"gemini-3.8-flash";
  const prompt=`${system}\n\n${user}`;
- const rr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",responseSchema:schema,temperature:0.8,maxOutputTokens:max}})});
+ const rr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",responseSchema:schema,maxOutputTokens:max}})});
  const d=await rr.json();
  if(!rr.ok)throw new Error(d?.error?.message||"Gemini API error.");
  const raw=(d?.candidates?.[0]?.content?.parts||[]).map(p=>p?.text||"").join("").trim();
