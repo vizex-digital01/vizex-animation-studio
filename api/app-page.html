@@ -20,6 +20,10 @@ button.mini,.mini{background:#eadbc9!important;color:#2f241b!important;border-co
 .brand-side{display:flex;align-items:center;gap:10px!important}
 .side-logo{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #c99768;box-shadow:0 6px 18px rgba(92,67,45,.12);flex:0 0 auto}
 .brand-side span{display:inline-block}
+
+/* V9 Storyboard Editor */
+#v9Storyboard textarea{width:100%;resize:vertical;min-height:82px}#v9Storyboard input{width:100%}#v9Storyboard .scene{scroll-margin-top:90px}
+@media(max-width:768px){#v9Storyboard .grid2{grid-template-columns:1fr!important}#v9Storyboard .actions button{width:100%}#v9Storyboard textarea{font-size:16px}}
 </style>
 <style id="vizex-full-cream-theme">
 :root{
@@ -477,7 +481,7 @@ function concept(){
 function pick(i,el){
  chosen=el.dataset.d;
  document.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
- let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve the exact same hairstyle, outfit, body proportions, accessories, colors, and materials in every scene\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
+ let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve identity, hairstyle, body proportions, distinctive details and face setting in every scene. Outfit is a separate story state and may change only when the title/scene logically requires a clothing change; otherwise keep the previous outfit exactly\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="lock"><label>🔒 KUNCI KARAKTER</label><div class="result">${e(lock)}</div><div class="actions"><button class="primary" onclick="scenes()">Buat Storyboard</button></div></div>`);
  document.getElementById("lock").scrollIntoView({behavior:"smooth"});
 }
@@ -866,30 +870,50 @@ function buildLockedNarration(story,dur){
  return titleFirstNarration(story,dur);
 }
 
+let V9_PACKAGE=null;
+function v9Draft(i){
+ const sc=V9_PACKAGE?.scenes?.[i]||{};
+ return {function:document.getElementById(`v9fn${i}`)?.value||sc.function||"",action:document.getElementById(`v9act${i}`)?.value||sc.action||"",outfit:document.getElementById(`v9out${i}`)?.value||sc.outfit||"",camera:document.getElementById(`v9cam${i}`)?.value||sc.camera||""};
+}
+function renderV9Storyboard(){
+ const d=V9_PACKAGE;if(!d)return;const wrap=document.getElementById("v9Storyboard");if(!wrap)return;
+ wrap.innerHTML=`<div class="card"><label>🎬 V9 STORYBOARD EDITOR</label><p class="muted">Edit aksi atau pakaian per scene. Outfit hanya berubah kalau ceritanya memang membutuhkan. Setelah edit, klik <b>Simpan + Regenerate Scene</b> supaya prompt gambar/video ikut sinkron.</p><div class="result">HOOK: ${e(d.hook||"")}\n\nPAYOFF: ${e(d.payoff||"")}</div></div>`+
+ (d.scenes||[]).map((sc,i)=>`<div class="scene" id="v9scene${i}"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3>
+ <label>🎬 AKSI SCENE</label><textarea id="v9act${i}" rows="4">${e(sc.action||"")}</textarea>
+ <div class="grid2" style="margin-top:12px"><div><label>👕 OUTFIT SCENE</label><textarea id="v9out${i}" rows="3">${e(sc.outfit||"")}</textarea></div><div><label>🔄 ALASAN OUTFIT</label><div class="result">${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div></div></div>
+ <label style="margin-top:12px">📷 KAMERA</label><input id="v9cam${i}" value="${e(sc.camera||"")}">
+ <div class="result" style="margin-top:12px">AWAL: ${e(sc.start_state||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div>
+ <div class="actions"><button class="mini primary" onclick="v9RegenerateScene(${i})">🔄 Simpan + Regenerate Scene</button></div></div>`).join("")+
+ `<div class="card"><label>🔒 OUTFIT TIMELINE</label><div class="result">${(d.scenes||[]).map((sc,i)=>`SCENE ${i+1}: ${sc.outfit||"-"} • ${sc.outfit_change_reason||"TIDAK BERUBAH"}`).join("\n")}</div><div class="actions"><button class="primary" onclick="v9FinalPrompts()">✨ Generate Final Prompts</button></div></div>`;
+}
+async function v9RegenerateScene(i){
+ if(!V9_PACKAGE)return;const btn=document.querySelector(`#v9scene${i} button`),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="⏳ Regenerate..."}
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"regenerate_scene",title:v("idea").trim(),sceneCount:+v("n"),duration:+v("duration"),style:v("style"),character:chosen,sceneIndex:i,package:V9_PACKAGE,draft:v9Draft(i)})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Generator error (${r.status})`);V9_PACKAGE.scenes[i]=d.scene;renderV9Storyboard();document.getElementById(`v9scene${i}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+ }catch(err){alert(err.message||String(err));if(btn){btn.disabled=false;btn.textContent=old}}
+}
+async function v9FinalPrompts(){
+ let data=V9_PACKAGE;if(!data)return;const idea=v("idea").trim(),dur=+v("duration"),style=v("style");
+ const buttons=[...document.querySelectorAll("#v9Storyboard button")];buttons.forEach(b=>b.disabled=true);
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"finalize",title:idea,sceneCount:+v("n"),duration:dur,style,character:chosen,package:V9_PACKAGE})});
+  const fresh=await r.json().catch(()=>({}));if(!r.ok)throw new Error(fresh.error||`Generator error (${r.status})`);V9_PACKAGE=data=fresh;renderV9Storyboard();
+ }catch(err){buttons.forEach(b=>b.disabled=false);alert(err.message||String(err));return}
+
+ let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER IDENTITY LOCK: ${chosen}\n\n`;
+ let h=`<div class="card" id="prompts"><label>✨ V9 • FINAL STORY PACKAGE</label><p class="muted">Final prompt memakai storyboard + outfit timeline yang sudah kamu set.</p>`;
+ (data.scenes||[]).forEach((sc,i)=>{txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nOUTFIT: ${sc.outfit}\nALASAN OUTFIT: ${sc.outfit_change_reason}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3><b>👕 OUTFIT</b><div class="result">${e(sc.outfit||"")}\n${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div><br><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state||"")}\n\nAKSI: ${e(sc.action||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera||"")}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`});
+ const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi V9",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div><div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div><div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div><div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
+ document.getElementById("prompts")?.remove();flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts")?.scrollIntoView({behavior:"smooth"});
+}
 async function scenes(){
  const idea=v("idea").trim();if(!idea)return alert("Masukkan judul/ide dulu.");if(!chosen)return alert("Pilih karakter dulu.");
- const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";
- document.getElementById(lid)?.remove();
- flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX GPT ENGINE</label><div class="result">GPT lagi menyusun SATU alur dari judul → ${n} scene → prompt gambar/video → narasi ${dur} detik → caption → cover.\n\nTunggu sebentar...</div></div>`);
- document.getElementById(lid).scrollIntoView({behavior:"smooth"});
- try{
-  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});
-  const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);
-  let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
-  let h=`<div class="card" id="prompts"><label>✨ VIZEX GPT • FINAL STORY PACKAGE</label><p class="muted">Semua bagian dibuat GPT dari satu alur yang sama.</p><div class="result">HOOK: ${e(data.hook||"")}\n\nPAYOFF: ${e(data.payoff||"")}</div>`;
-  (data.scenes||[]).forEach((sc,i)=>{
-   txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;
-   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function)}</h3><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state)}\n\nAKSI: ${e(sc.action)}\n\nAKHIR: ${e(sc.end_state)}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
-  });
-  const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";
-  txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
-  project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi GPT",idea);
-  h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Narasi mengikuti urutan kejadian yang sama dan durasi yang dipilih.</p><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
-  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
-  h+=`<div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
-  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
-  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
- }catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ GPT GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div><p class="muted">Cek OPENAI_API_KEY di Vercel Production lalu Redeploy.</p></div>`)}
+ const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";document.getElementById(lid)?.remove();document.getElementById("v9Storyboard")?.remove();document.getElementById("prompts")?.remove();
+ flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX V9 ENGINE</label><div class="result">GPT lagi bikin storyboard + outfit timeline dari judul. Pakaian boleh berubah hanya kalau scene memang membutuhkan.\n\nTunggu sebentar...</div></div>`);document.getElementById(lid).scrollIntoView({behavior:"smooth"});
+ try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);V9_PACKAGE=data;flow.insertAdjacentHTML("beforeend",'<div id="v9Storyboard"></div>');renderV9Storyboard();document.getElementById("v9Storyboard")?.scrollIntoView({behavior:"smooth"});}
+ catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ V9 GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div></div>`)}
 }
 function fitLifeNarration(parts,dur){
  const target={15:32,30:65,45:98,60:130}[dur]||65;

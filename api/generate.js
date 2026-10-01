@@ -1,172 +1,66 @@
-import {auth} from "../lib/_auth.js";
-const schema = {
-  type: "OBJECT",
-  properties: {
-    title: { type: "STRING" },
-    hook: { type: "STRING" },
-    payoff: { type: "STRING" },
-    narration: { type: "STRING" },
-    caption: { type: "STRING" },
-    cover_text: { type: "STRING" },
-    cover_prompt: { type: "STRING" },
-    scenes: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          function: { type: "STRING" },
-          start_state: { type: "STRING" },
-          action: { type: "STRING" },
-          end_state: { type: "STRING" },
-          camera: { type: "STRING" },
-          image_prompt: { type: "STRING" },
-          video_prompt: { type: "STRING" }
-        },
-        required: ["function","start_state","action","end_state","camera","image_prompt","video_prompt"]
-      }
-    }
-  },
-  required: ["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]
-};
-
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY belum terpasang di Vercel." });
-
-  try {
-    const { title, sceneCount, duration, style, character } = req.body || {};
-    const n = Math.max(3, Math.min(10, Number(sceneCount) || 5));
-    const dur = [15,30,45,60].includes(Number(duration)) ? Number(duration) : 30;
-    if (!String(title || "").trim()) return res.status(400).json({ error: "Judul kosong." });
-    if (!String(character || "").trim()) return res.status(400).json({ error: "Karakter belum dipilih." });
-
-    const prompt = `You are the story director and prompt architect for Vizex Studio. Create ONE coherent short-form visual story from the user's title. The title is the source of truth.
-
-RULES:
+const sceneSchema={type:"object",additionalProperties:false,properties:{function:{type:"string"},start_state:{type:"string"},action:{type:"string"},end_state:{type:"string"},camera:{type:"string"},outfit:{type:"string"},outfit_change_reason:{type:"string"},image_prompt:{type:"string"},video_prompt:{type:"string"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
+const packageSchema={type:"object",additionalProperties:false,properties:{title:{type:"string"},hook:{type:"string"},payoff:{type:"string"},narration:{type:"string"},caption:{type:"string"},cover_text:{type:"string"},cover_prompt:{type:"string"},scenes:{type:"array",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
+function outputText(d){if(d.output_text)return d.output_text;for(const x of d.output||[])if(x.type==="message")for(const c of x.content||[])if(c.type==="output_text"&&c.text)return c.text;return""}
+async function askOpenAI(system,user,schema,name,max=9000){
+ const rr=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:process.env.OPENAI_MODEL||"gpt-5-mini",input:[{role:"system",content:system},{role:"user",content:user}],max_output_tokens:max,text:{format:{type:"json_schema",name,strict:true,schema}}})});
+ const d=await rr.json();if(!rr.ok)throw new Error(d?.error?.message||"OpenAI API error.");const raw=outputText(d);if(!raw)throw new Error("GPT tidak mengembalikan output.");return JSON.parse(raw);
+}
+function coreRules(n,dur){return `You are the story director and prompt architect for Vizex Studio. The title is the source of truth.
+STORY RULES:
 - Exactly ${n} chronological scenes: cause -> reaction -> escalation -> payoff. No unrelated subplot.
-- Build the causal story first, then derive ALL scene states, image prompts, video prompts, narration, caption and cover from that SAME story.
 - Scene N may know ONLY events that happened through Scene N. Never leak future people, props, payoff or ending into earlier images.
-- State carries forward. No teleporting, duplication or reset. Consumables stay the same or decrease unless the story explicitly adds more.
-- If the story starts with one person alone, Scene 1 shows exactly that one person. Introduce supporting people only when the current beat introduces them.
-- Each image_prompt is ONE frozen frame only. Explicitly state exact visible-person count and important prop quantities whenever relevant.
-- IMAGE PROMPT DETAIL STANDARD: every image_prompt must be a production-ready ENGLISH prompt, normally 140-230 words. Describe the locked main character's stable physical identity and outfit, exact visible-person count, each supporting person's distinct appearance when present, facial expression, gaze direction, precise body pose, hand positions, interaction with props, exact prop quantity/state, location, foreground/midground/background, spatial relationships, time of day, key/fill/rim lighting direction and quality, mood, shot size, camera angle, composition, lens/look, depth of field, textures/materials, color palette, visual style, and vertical 9:16 framing.
-- Do NOT pad image prompts with generic adjectives. Every detail must be visually actionable and compatible with the current story state.
-- End every image_prompt with useful continuity constraints: preserve the locked character identity/outfit; do not add unintroduced people or duplicate props; no text, subtitles, watermark, logo, split screen, collage, extra limbs/fingers, deformed hands, or contradictory objects.
-- VIDEO PROMPT DETAIL STANDARD: every video_prompt must be a production-ready ENGLISH motion prompt, normally 120-210 words. Frame 0 must match that scene's image_prompt exactly. Describe the initial pose/object state, then the chronological micro-actions during ONLY this beat: eye/head movement, facial-expression transition, torso/arm/hand motion, prop interaction, supporting-character movement, environmental motion, realistic physics, camera movement, focus behavior, pacing/timing, and the precise end-frame state.
-- Video prompts must NOT redesign the subject, outfit, location, lighting, or props. No teleporting, morphing, object duplication, sudden extra people, time jump, scene transition, montage, or future-story action.
-- The final frame of each video must preserve the scene end_state so continuity can carry into the next scene.
-- Each video_prompt uses that scene image as frame zero and animates ONLY the current beat toward its end_state.
-- Main character identity/outfit remains identical. Supporting people look clearly different.
-- CUSTOMER SELECTION = ABSOLUTE LOCK. The selected VISUAL STYLE and LOCKED MAIN CHARACTER are mandatory production constraints.
-- VISUAL STYLE LOCK: every image_prompt, video_prompt, and cover_prompt MUST explicitly preserve the exact customer-selected visual style. Never switch, blend, reinterpret, or drift into another style/medium between scenes.
-- CHARACTER LOCK: whenever the main character is visible, preserve the exact supplied identity: age impression, hairstyle/hair shape, facial identity, body/proportions, outfit pieces/silhouette, and accessories or absence of accessories.
-- Never redesign, recolor, replace, add accessories, or change the locked outfit unless the story explicitly requires a visible wardrobe change.
-- Pose, expression, gaze, action, framing, and camera angle MAY change; locked identity, outfit, and selected visual style MUST NOT.
-- Supporting characters must look clearly different from the main character while remaining in the SAME selected visual style.
-- Every image_prompt must restate enough of the selected style and locked character description to work as a standalone image-generation prompt with no memory of previous scenes.
-- Every video_prompt must explicitly preserve the selected visual style, character identity, outfit, materials, and proportions from frame zero through the final frame.
-- cover_prompt must use the SAME selected visual style and, when the main character appears, the SAME locked character identity/outfit.
-- Image/video/cover prompts are ENGLISH. Story states/actions, narration, caption, hook, payoff and cover_text are natural INDONESIAN.
+- Physical state carries forward. No teleporting, duplication or reset. Consumables stay the same or decrease unless explicitly replenished.
+- Supporting people appear only when the current beat introduces them.
+CHARACTER + OUTFIT ENGINE:
+- Lock immutable identity across every scene: same person, hairstyle/hair color, body proportions, skin/material treatment, distinctive details, face/faceless setting and accessories that are identity-defining.
+- Clothing is a SEPARATE story state. Do NOT blindly keep the base outfit forever.
+- Infer the most logical clothing from TITLE + location + time + activity. Examples: sleeping can use sleepwear; school uses school uniform when the character has actually changed; office uses workwear; rain changes the SAME outfit to wet unless a real clothing change occurs.
+- Outfit may change ONLY when the story logically requires or explicitly shows a clothing change. Until that moment, copy the previous scene outfit exactly.
+- After a clothing change, lock the NEW outfit exactly into later scenes until another justified change happens.
+- Never change clothes just to create visual variety. Never silently change color, shoes, pants, top, accessories, fabric, or pattern between consecutive scenes.
+- outfit must describe the EXACT clothing visible in that scene. outfit_change_reason must be short Indonesian. Use "TIDAK BERUBAH" when copied from previous scene.
+- If the current scene is the clothing-change beat, make the action and prompts physically clear and non-contradictory.
+PROMPT RULES:
+- Each image_prompt is ONE frozen frame only and explicitly includes the exact CURRENT OUTFIT.
+- Each video_prompt uses that scene image as frame zero, animates ONLY the current beat, and preserves that outfit unless THIS scene explicitly changes clothing.
+- Image/video/cover prompts are ENGLISH. Story states/actions, outfit_change_reason, narration, caption, hook, payoff and cover_text are natural INDONESIAN. outfit can be concise English for prompt consistency.
 - Narration is a continuous first-person spoken story, natural gue/lo style when suitable, retelling the SAME events in scene order.
-- Never expose engine language in narration: do not say karakter utama, tampilkan, scene, timeline, prompt, penyebab langsung, respons harus, or production instructions.
-- Narration must fit about ${dur} seconds; target about ${Math.round(dur * 2.15)} Indonesian spoken words (plus/minus 15%), ending with ONE contextual varied CTA.
-- Caption is not a copy of narration and uses a DIFFERENT contextual CTA.
-- Cover text is short, intriguing, truthful, and does not spoil the ending. Cover prompt requests that exact visible text.
-- Visual format 9:16. No watermark/logo/subtitles in scene images.
-
-TITLE: ${String(title).trim()}
-SCENES: ${n}
-DURATION: ${dur} seconds
-VISUAL STYLE (ABSOLUTE CUSTOMER LOCK): ${String(style || "")}
-LOCKED MAIN CHARACTER (ABSOLUTE CUSTOMER LOCK): ${String(character).trim()}
-IMPORTANT: Treat both selections above as immutable constraints across every scene, image prompt, video prompt, and cover prompt.
-
-Generate the complete production package now.`;
-
-    // Resilient Gemini routing:
-    // 1) preferred model, 2) stable fallback, 3) lightweight fallback.
-    // Transient 429/5xx errors are retried with exponential backoff.
-    const models = [
-      process.env.GEMINI_MODEL || "gemini-3.8-flash",
-      "gemini-3.7-flash",
-      "gemini-3.5-flash-lite"
-    ].filter((m, i, a) => a.indexOf(m) === i);
-
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-    const retryable = status => status === 429 || status >= 500;
-    let d = null;
-    let lastStatus = 502;
-    let lastError = "Semua model Gemini sedang tidak tersedia.";
-
-    for (const model of models) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        let rr;
-        try {
-          rr = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": process.env.GEMINI_API_KEY
-              },
-              body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: {
-                  responseMimeType: "application/json",
-                  responseSchema: schema,
-                  temperature: 0.8,
-                  maxOutputTokens: 8192
-                }
-              })
-            }
-          );
-          d = await rr.json();
-        } catch (networkErr) {
-          lastStatus = 503;
-          lastError = networkErr?.message || "Gangguan jaringan saat menghubungi Gemini.";
-          if (attempt < 2) {
-            await sleep(700 * (2 ** attempt));
-            continue;
-          }
-          break;
-        }
-
-        if (rr.ok) break;
-
-        lastStatus = rr.status;
-        lastError = d?.error?.message || `Gemini API error (${rr.status}).`;
-
-        if (retryable(rr.status) && attempt < 2) {
-          await sleep(700 * (2 ** attempt));
-          continue;
-        }
-        break;
-      }
-
-      if (d?.candidates?.[0]?.content?.parts?.some(p => p?.text)) break;
-    }
-
-    if (!d?.candidates?.[0]?.content?.parts?.some(p => p?.text)) {
-      return res.status(lastStatus).json({
-        error: `${lastError} Vizex sudah mencoba model cadangan otomatis. Coba lagi sebentar lagi.`
-      });
-    }
-
-    const raw = (d?.candidates?.[0]?.content?.parts || []).map(p => p?.text || "").join("").trim();
-    if (!raw) {
-      const reason = d?.candidates?.[0]?.finishReason || d?.promptFeedback?.blockReason || "unknown";
-      return res.status(502).json({ error: `Gemini tidak mengembalikan output (${reason}).` });
-    }
-
-    const result = JSON.parse(raw);
-    if (!Array.isArray(result.scenes) || result.scenes.length !== n) {
-      return res.status(502).json({ error: `Gemini menghasilkan ${result.scenes?.length || 0} scene, seharusnya ${n}. Coba generate lagi.` });
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: err?.message || "Generator gagal." });
+- Never expose production/engine language in narration.
+- Narration fits about ${dur} seconds; target about ${Math.round(dur*2.15)} Indonesian spoken words (±15%), ending with ONE contextual varied CTA.
+- Caption is not a copy of narration. Write a substantial social-media caption in natural Indonesian: normally 80-140 words, about 2-4 short paragraphs, unless the story truly needs less. Do not make it a one-liner.
+- Caption should expand the feeling/context of the SAME story without retelling every scene beat-by-beat. Keep it easy to read on a phone.
+- End the caption with exactly ONE contextual CTA, and VARY the CTA wording/intent between generations. Choose naturally from patterns such as: ask for the viewer's experience, invite an opinion, ask which moment they relate to, invite them to tag/share with a relevant friend, ask what they would do, or invite a short comment. Do not mechanically repeat the same CTA phrase.
+- The caption CTA must be DIFFERENT from the narration CTA and must fit the title/story. Avoid generic engagement bait unrelated to the story.
+- Cover text is short, intriguing, truthful, and does not spoil the ending.
+- Visual format 9:16. No watermark/logo/subtitles in scene images.`}
+export default async function handler(req,res){
+ if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
+ if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY belum terpasang di Vercel."});
+ try{
+  const body=req.body||{}, action=String(body.action||"generate");
+  const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
+  const n=Math.max(3,Math.min(10,Number(body.sceneCount)||5)),dur=[15,30,45,60].includes(Number(body.duration))?Number(body.duration):30;
+  if(!title)return res.status(400).json({error:"Judul kosong."});if(!character)return res.status(400).json({error:"Karakter belum dipilih."});
+  if(action==="finalize"){
+   const pkg=body.package||{};
+   if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
+   const system=coreRules(n,dur)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
+   const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
+   const result=await askOpenAI(system,user,packageSchema,"vizex_finalized_package",10000);
+   if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
+   return res.status(200).json(result);
   }
+  if(action==="regenerate_scene"){
+   const pkg=body.package||{},idx=Math.max(0,Math.min(n-1,Number(body.sceneIndex)||0));
+   const draft=body.draft||{};
+   const system=coreRules(n,dur)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
+   const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
+   const scene=await askOpenAI(system,user,sceneSchema,"vizex_scene_revision",4500);return res.status(200).json({scene});
+  }
+  const system=coreRules(n,dur);
+  const user=`TITLE: ${title}\nSCENES: ${n}\nDURATION: ${dur} seconds\nVISUAL STYLE: ${style}\nLOCKED MAIN CHARACTER IDENTITY + BASE OUTFIT REFERENCE: ${character}\nImportant: treat the outfit inside the character description only as a BASE REFERENCE, not an eternal outfit lock. Build a logical outfit timeline from the title and scene events. Generate the complete production package now.`;
+  const result=await askOpenAI(system,user,packageSchema,"vizex_animation_package",10000);
+  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`GPT menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
+  return res.status(200).json(result);
+ }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }
