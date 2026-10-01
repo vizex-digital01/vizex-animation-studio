@@ -1,6 +1,9 @@
+import {auth} from "./_auth.js";
 const schema={type:"object",properties:{ideas:{type:"array",items:{type:"object",properties:{title:{type:"string"},hook:{type:"string"},visual_hook:{type:"string"},payoff:{type:"string"}},required:["title","hook","visual_hook","payoff"]}}},required:["ideas"]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 export default async function handler(req,res){
+  // V6_AUTH_GUARD
+  const sessionUser=await auth(req); if(!sessionUser) return res.status(401).json({error:"Unauthorized"});
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{

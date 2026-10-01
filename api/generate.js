@@ -1,3 +1,4 @@
+import {auth} from "./_auth.js";
 const schema = {
   type: "OBJECT",
   properties: {

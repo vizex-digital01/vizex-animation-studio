@@ -199,24 +199,60 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 
 <section class="tool" id="settings">
   <h1>Pengaturan</h1>
-  <p class="muted">Atur default workflow Vizex supaya setiap bikin proyek baru nggak perlu setting ulang.</p>
+  <p class="muted">Kelola profil customer, keamanan akun, perangkat aktif, dan default workflow Vizex.</p>
+
   <div class="card">
-    <div class="grid">
-      <div><label>DEFAULT JUMLAH SCENE</label>
-        <select id="setScenes"><option>3</option><option>5</option><option>7</option><option>10</option></select>
-      </div>
-      <div><label>DEFAULT DURASI</label>
-        <select id="setDuration"><option value="15">15 detik</option><option value="30">30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select>
-      </div>
-      <div><label>DEFAULT GAYA VISUAL</label>
-        <select id="setStyle"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select>
-      </div>
+    <label>👤 PROFIL CUSTOMER</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>NAMA / BRAND</label><input id="profileName" placeholder="Nama customer atau brand"></div>
+      <div><label>EMAIL LOGIN</label><input id="profileEmail" disabled></div>
+      <div><label>PAKET</label><input id="profilePlan" disabled></div>
+      <div><label>STATUS AKUN</label><input id="profileStatus" disabled></div>
+      <div><label>BATAS PERANGKAT</label><input id="profileDevices" disabled></div>
+      <div><label>BERGABUNG</label><input id="profileCreated" disabled></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="saveCustomerProfile()">Simpan Profil</button></div>
+    <p class="muted" id="profileMsg"></p>
+  </div>
+
+  <div class="card">
+    <label>🔐 AKUN & KEAMANAN</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>PASSWORD SEKARANG</label><input id="currentPassword" type="password" autocomplete="current-password" placeholder="Password/kode akses sekarang"></div>
+      <div><label>PASSWORD BARU</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="changeCustomerPassword()">Ganti Password</button>
+      <button class="mini ghost" onclick="logoutAllDevices()">Keluar dari Semua Perangkat</button>
+    </div>
+    <p class="muted" id="passwordMsg"></p>
+  </div>
+
+  <div class="card">
+    <label>💻 PERANGKAT AKTIF</label>
+    <p class="muted">Akun hanya bisa dipakai sampai batas perangkat pada paket lo. Perangkat lain bisa dikeluarkan dari sini.</p>
+    <div id="activeSessions"><div class="result">Memuat perangkat...</div></div>
+  </div>
+
+  <div class="card" id="adminCustomerCard" style="display:none">
+    <label>🛡️ KELOLA CUSTOMER • ADMIN</label>
+    <p class="muted">Aktif/nonaktifkan akun, ubah batas perangkat, dan cabut semua sesi customer. Password asli tidak pernah ditampilkan.</p>
+    <div class="actions"><button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button></div>
+    <div id="adminCustomerList"></div>
+  </div>
+
+  <div class="card">
+    <label>⚙️ DEFAULT WORKFLOW</label>
+    <div class="grid" style="margin-top:12px">
+      <div><label>DEFAULT JUMLAH SCENE</label><select id="setScenes"><option>3</option><option>5</option><option>7</option><option>10</option></select></div>
+      <div><label>DEFAULT DURASI</label><select id="setDuration"><option value="15">15 detik</option><option value="30">30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select></div>
+      <div><label>DEFAULT GAYA VISUAL</label><select id="setStyle"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div>
     </div>
     <div class="actions"><button class="primary" onclick="saveVizexSettings()">Simpan Pengaturan</button></div>
   </div>
+
   <div class="card">
-    <label>DATA LOKAL</label>
-    <p class="muted">Data di bawah cuma tersimpan di browser/perangkat ini.</p>
+    <label>DATA LOKAL</label><p class="muted">Data di bawah cuma tersimpan di browser/perangkat ini.</p>
     <div class="statgrid">
       <div class="stat"><b id="statProjects">0</b><span class="muted">Proyek tersimpan</span></div>
       <div class="stat"><b id="statHistory">0</b><span class="muted">Riwayat generate</span></div>
@@ -1331,4 +1367,51 @@ verifySimpleSession();
 </script>
 
 
+
+<script id="vizex-v6-account">
+let VIZEX_ME=null;
+function fmtAccountDate(x){try{return new Date(x).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return "-"}}
+function fmtAccountTime(x){try{return new Date(x).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"})}catch(e){return "-"}}
+async function accountJSON(url,opt={}){
+ const r=await fetch(url,{credentials:"include",...opt,headers:{"Content-Type":"application/json",...(opt.headers||{})}});
+ const d=await r.json().catch(()=>({}));
+ if(r.status===401){location.replace("/");throw new Error("Sesi berakhir")};
+ if(!r.ok)throw new Error(d.error||`Error ${r.status}`);return d;
+}
+async function loadCustomerProfile(){
+ try{
+  const d=await accountJSON("/api/me");VIZEX_ME=d;
+  const tag=document.getElementById("userTag");if(tag)tag.textContent=(d.name||d.email)+" • "+(d.plan||"PRO");
+  const map={profileName:d.name||"",profileEmail:d.email||"",profilePlan:d.plan||"PRO",profileStatus:d.status||"active",profileDevices:String(d.max_devices||1),profileCreated:fmtAccountDate(d.created_at)};
+  Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val});
+  const admin=String(d.plan||"").toUpperCase()==="ADMIN"||d.is_admin===true;
+  const ac=document.getElementById("adminCustomerCard");if(ac)ac.style.display=admin?"block":"none";if(admin)loadAdminCustomers();
+ }catch(e){console.error(e)}
+}
+async function saveCustomerProfile(){
+ const msg=document.getElementById("profileMsg");msg.textContent="Menyimpan...";
+ try{const d=await accountJSON("/api/update-profile",{method:"POST",body:JSON.stringify({name:document.getElementById("profileName").value.trim()})});msg.textContent=d.message||"Profil tersimpan.";await loadCustomerProfile()}catch(e){msg.textContent=e.message}
+}
+async function changeCustomerPassword(){
+ const msg=document.getElementById("passwordMsg"),current_password=document.getElementById("currentPassword").value,new_password=document.getElementById("newPassword").value;
+ if(!current_password||!new_password){msg.textContent="Isi password sekarang dan password baru.";return}
+ msg.textContent="Mengganti password...";
+ try{const d=await accountJSON("/api/change-password",{method:"POST",body:JSON.stringify({current_password,new_password})});msg.textContent=d.message||"Password berhasil diganti.";document.getElementById("currentPassword").value="";document.getElementById("newPassword").value="";await loadActiveSessions()}catch(e){msg.textContent=e.message}
+}
+async function loadActiveSessions(){
+ const el=document.getElementById("activeSessions");if(!el)return;
+ try{const d=await accountJSON("/api/sessions");const rows=d.sessions||[];el.innerHTML=rows.length?rows.map(s=>`<div class="workspace-item"><div><h3>${e(s.device_name||"Perangkat")}${s.current?" • PERANGKAT INI":""}</h3><div class="workspace-meta">Terakhir aktif: ${e(fmtAccountTime(s.last_active))}<br>Berakhir: ${e(fmtAccountTime(s.expires_at))}</div></div><div class="workspace-actions">${s.current?'<span class="tag">AKTIF</span>':`<button class="mini ghost" onclick="revokeDevice('${s.id}')">Keluarkan</button>`}</div></div>`).join(""):'<div class="result">Tidak ada sesi aktif.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+}
+async function revokeDevice(id){if(!confirm("Keluarkan perangkat ini dari akun?"))return;try{await accountJSON("/api/revoke-session",{method:"POST",body:JSON.stringify({session_id:id})});await loadActiveSessions()}catch(e){alert(e.message)}}
+async function logoutAllDevices(){if(!confirm("Keluar dari semua perangkat termasuk perangkat ini?"))return;try{await accountJSON("/api/logout-all",{method:"POST",body:"{}"})}catch(e){}location.replace("/")}
+async function loadAdminCustomers(){
+ const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
+ try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button></div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+}
+async function adminToggleCustomer(id,status){if(!confirm(`${status==='blocked'?'Blokir':'Aktifkan'} customer ini?`))return;try{await accountJSON("/api/admin-customer",{method:"POST",body:JSON.stringify({customer_id:id,action:"status",value:status})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangkat aktif:",String(current||1));if(n===null)return;try{await accountJSON("/api/admin-customer",{method:"POST",body:JSON.stringify({customer_id:id,action:"max_devices",value:Number(n)})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customer",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
+const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
+loadCustomerProfile();
+</script>
 </body></html>
