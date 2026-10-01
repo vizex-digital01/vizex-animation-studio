@@ -73,6 +73,15 @@ button:hover{filter:brightness(1.06)}
 </div>
 
 <script>
+function getVizexDeviceId(){
+ let id=localStorage.getItem("vizexDeviceId");
+ if(!id){id=(crypto.randomUUID?crypto.randomUUID():"dev-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("vizexDeviceId",id)}
+ return id;
+}
+function getVizexDeviceName(){
+ const ua=navigator.userAgent||"";let browser=/Edg\//.test(ua)?"Edge":/Chrome\//.test(ua)?"Chrome":/Firefox\//.test(ua)?"Firefox":/Safari\//.test(ua)?"Safari":"Browser";
+ let os=/Windows/i.test(ua)?"Windows":/Android/i.test(ua)?"Android":/iPhone|iPad/i.test(ua)?"iPhone/iPad":/Mac/i.test(ua)?"Mac":"Perangkat";return browser+" • "+os;
+}
 async function login(){
  const err=document.getElementById("err");
  const btn=document.getElementById("loginBtn");
@@ -85,7 +94,9 @@ async function login(){
      headers:{"Content-Type":"application/json"},
      body:JSON.stringify({
        email:document.getElementById("email").value.trim(),
-       code:document.getElementById("code").value.trim()
+       code:document.getElementById("code").value.trim(),
+       device_id:getVizexDeviceId(),
+       device_name:getVizexDeviceName()
      })
    });
    const d=await r.json().catch(()=>({}));
