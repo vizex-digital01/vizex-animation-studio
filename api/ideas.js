@@ -39,20 +39,24 @@ ${old.length?old.map((x,i)=>`${i+1}. ${x}`).join("\n"):"None yet."}
 Create exactly ${n} fresh ideas now.`;
   const clean=x=>{if(Array.isArray(x))return x.map(clean);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=clean(v);return o};
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const models=[process.env.GEMINI_IDEAS_MODEL,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite"].filter((v,i,a)=>v&&a.indexOf(v)===i);
   const call=async model=>fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,{
    method:"POST",headers:{"Content-Type":"application/json"},
    body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:3000,responseMimeType:"application/json",responseSchema:clean(ideaSchema),thinkingConfig:{thinkingLevel:"low"}}})
   });
-  let model=process.env.GEMINI_IDEAS_MODEL||process.env.GEMINI_MODEL||"gemini-3.8-flash";
-  let rr=await call(model),d=await rr.json();
-  if(rr.status===429||rr.status===503){await sleep(1200);rr=await call(model);d=await rr.json()}
-  if((rr.status===429||rr.status===503)&&model!=="gemini-3.7-flash"){
-   model="gemini-3.7-flash"; await sleep(900); rr=await call(model); d=await rr.json();
+  let rr,d,lastError="Gemini sedang sibuk.";
+  for(const model of models){
+   rr=await call(model); d=await rr.json();
+   if(rr.ok)break;
+   lastError=d?.error?.message||lastError;
+   if([429,500,502,503,504].includes(rr.status)){await sleep(700);continue}
+   if([400,403,404].includes(rr.status)){continue}
+   break;
   }
-  if(!rr.ok)return res.status(rr.status).json({error:d?.error?.message||"Gemini sedang sibuk. Coba lagi sebentar."});
+  if(!rr?.ok)return res.status(rr?.status||503).json({error:lastError+" Semua model Gemini cadangan sudah dicoba."});
   const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
   if(!raw)return res.status(502).json({error:"Gemini tidak mengembalikan ide."});
-  const result=JSON.parse(raw.replace(/^```json\\s*/i,"").replace(/```$/,"").trim());
+  const result=JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim());
   if(!Array.isArray(result.ideas)||!result.ideas.length)return res.status(502).json({error:"Format ide Gemini tidak valid."});
   return res.status(200).json({ideas:result.ideas.slice(0,n)});
  }catch(err){

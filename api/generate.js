@@ -3,22 +3,25 @@ const packageSchema={type:"object",additionalProperties:false,properties:{title:
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function geminiSchema(x){if(Array.isArray(x))return x.map(geminiSchema);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=geminiSchema(v);return o}
 async function askGemini(system,user,schema,name,max=3600){
- const model=process.env.GEMINI_MODEL||"gemini-3.8-flash",key=process.env.GEMINI_API_KEY;
+ const key=process.env.GEMINI_API_KEY;
  if(!key)throw new Error("GEMINI_API_KEY belum diatur.");
- const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+ const models=[process.env.GEMINI_MODEL,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite"].filter((v,i,a)=>v&&a.indexOf(v)===i);
  const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"medium"}}};
- const call=()=>fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
- let r=await call(),d=await r.json();
- if(r.status===429||r.status===503){await sleep(1400);r=await call();d=await r.json()}
- if((r.status===429||r.status===503)&&model!=="gemini-3.7-flash"){
-  await sleep(900);
-  const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${encodeURIComponent(key)}`;
-  r=await fetch(fallbackUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});d=await r.json();
+ let last="Gemini sedang sibuk.";
+ for(const model of models){
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  let r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  let d=await r.json();
+  if(r.ok){
+   const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+   if(!raw){last=`${model} tidak mengembalikan output.`;continue}
+   try{return JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim())}catch{last=`Output ${model} bukan JSON valid.`;continue}
+  }
+  last=d?.error?.message||last;
+  if([429,500,502,503,504,400,403,404].includes(r.status)){await sleep(700);continue}
+  break;
  }
- if(!r.ok)throw new Error(d?.error?.message||"Gemini sedang sibuk. Coba lagi sebentar.");
- const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
- if(!raw)throw new Error("Gemini tidak mengembalikan output.");
- return JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim());
+ throw new Error(last+" Semua model Gemini cadangan sudah dicoba.");
 }
 function coreRules(n,dur){return `You direct Vizex short-form stories. TITLE is absolute source of truth.
 WORK ORDER: silently decide one simple story spine from TITLE first (setup -> trigger -> consequence -> payoff). Then derive every scene from that SAME spine. Only after all scenes are fixed, write narration/caption/cover from those scenes. Never create a second version of the story in narration.
