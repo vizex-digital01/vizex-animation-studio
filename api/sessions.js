@@ -1,2 +1,2 @@
-import {auth} from "./_auth.js";import {db,q} from "./_db.js";
+import {auth} from "../lib/_auth.js";import {db,q} from "../lib/_db.js";
 export default async function handler(req,res){try{const u=await auth(req);if(!u)return res.status(401).json({error:"Unauthorized"});const rows=await db(`customer_sessions?customer_id=eq.${q(u.id)}&expires_at=gt.${q(new Date().toISOString())}&select=id,device_id,device_name,last_active,created_at,expires_at&order=last_active.desc`);return res.status(200).json({sessions:rows.map(x=>({...x,current:x.id===u.session_id}))})}catch(e){return res.status(500).json({error:e.message})}}

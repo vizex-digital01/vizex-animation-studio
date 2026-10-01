@@ -1,5 +1,5 @@
-import {db,q} from "./_db.js";
-import {parseCustomers,hashPassword,verifyPassword,newToken,tokenHash,setSessionCookie} from "./_auth.js";
+import {db,q} from "../lib/_db.js";
+import {parseCustomers,hashPassword,verifyPassword,newToken,tokenHash,setSessionCookie} from "../lib/_auth.js";
 export default async function handler(req,res){
  try{
   if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});

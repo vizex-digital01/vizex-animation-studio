@@ -1,2 +1,2 @@
-import {auth,clearSessionCookie} from "./_auth.js";import {db,q} from "./_db.js";
+import {auth,clearSessionCookie} from "../lib/_auth.js";import {db,q} from "../lib/_db.js";
 export default async function handler(req,res){try{const u=await auth(req,{touch:false});if(u)await db(`customer_sessions?id=eq.${q(u.session_id)}`,{method:"DELETE",headers:{Prefer:"return=minimal"}});clearSessionCookie(res);return res.status(200).json({ok:true})}catch(e){clearSessionCookie(res);return res.status(200).json({ok:true})}}

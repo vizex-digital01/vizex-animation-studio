@@ -1,2 +1,2 @@
-import fs from "fs";import path from "path";import {auth} from "./_auth.js";
+import fs from "fs";import path from "path";import {auth} from "../lib/_auth.js";
 export default async function handler(req,res){try{const u=await auth(req);if(!u){res.statusCode=302;res.setHeader("Location","/");return res.end()}const file=path.join(process.cwd(),"api","app-page.html");const html=fs.readFileSync(file,"utf8");res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");return res.status(200).send(html)}catch(e){res.statusCode=302;res.setHeader("Location","/");return res.end()}}

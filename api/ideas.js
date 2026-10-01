@@ -1,4 +1,4 @@
-import {auth} from "./_auth.js";
+import {auth} from "../lib/_auth.js";
 const schema={type:"object",properties:{ideas:{type:"array",items:{type:"object",properties:{title:{type:"string"},hook:{type:"string"},visual_hook:{type:"string"},payoff:{type:"string"}},required:["title","hook","visual_hook","payoff"]}}},required:["ideas"]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 export default async function handler(req,res){
