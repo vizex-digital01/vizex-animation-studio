@@ -881,7 +881,7 @@ function renderV9Storyboard(){
  (d.scenes||[]).map((sc,i)=>`<div class="scene" id="v9scene${i}"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3>
  <label>🎬 AKSI SCENE</label><textarea id="v9act${i}" rows="4">${e(sc.action||"")}</textarea>
  <div class="grid2" style="margin-top:12px"><div><label>👕 OUTFIT SCENE</label><textarea id="v9out${i}" rows="3">${e(sc.outfit||"")}</textarea></div><div><label>🔄 ALASAN OUTFIT</label><div class="result">${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div></div></div>
- <label style="margin-top:12px">📷 KAMERA</label><input id="v9cam${i}" value="${e(sc.camera||"")}">
+ <label style="margin-top:12px">📷 KAMERA</label><select id="v9cam${i}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option${(sc.camera||"Medium Shot")===x?" selected":""}>${x}</option>`).join("")}</select>
  <div class="result" style="margin-top:12px">AWAL: ${e(sc.start_state||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div>
  <div class="actions"><button class="mini primary" onclick="v9RegenerateScene(${i})">🔄 Simpan + Regenerate Scene</button></div></div>`).join("")+
  `<div class="card"><label>🔒 OUTFIT TIMELINE</label><div class="result">${(d.scenes||[]).map((sc,i)=>`SCENE ${i+1}: ${sc.outfit||"-"} • ${sc.outfit_change_reason||"TIDAK BERUBAH"}`).join("\n")}</div><div class="actions"><button class="primary" onclick="v9FinalPrompts()">✨ Generate Final Prompts</button></div></div>`;
