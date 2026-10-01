@@ -34,19 +34,37 @@ CHARACTER + OUTFIT ENGINE:
 - Never change clothes just to create visual variety. Never silently change color, shoes, pants, top, accessories, fabric, or pattern between consecutive scenes.
 - outfit must describe the EXACT clothing visible in that scene. outfit_change_reason must be short Indonesian. Use "TIDAK BERUBAH" when copied from previous scene.
 - If the current scene is the clothing-change beat, make the action and prompts physically clear and non-contradictory.
-PROMPT RULES:
-- Each image_prompt is ONE frozen frame only and explicitly includes the exact CURRENT OUTFIT.
-- Each video_prompt uses that scene image as frame zero, animates ONLY the current beat, and preserves that outfit unless THIS scene explicitly changes clothing.
+PROMPT RULES — PRODUCTION DETAIL:
+- The TITLE is the single source of truth. First build one causal story from the title, then derive every scene, narration, image prompt, video prompt, caption and cover from that SAME story. Never add a random subplot just to make a prompt richer.
+- Each image_prompt is ONE frozen frame only, normally 100-180 useful English words. Detail must come from the current storyboard state, not invented future events.
+- Every image_prompt must naturally specify: exact visible character count; locked main-character identity and distinctive traits; exact CURRENT OUTFIT including colors/material/condition; pose and body language; current action frozen at one readable instant; exact relevant props and quantities; environment/location and spatial placement; time/weather when relevant; lighting direction/quality; composition; camera angle, shot size and lens feel; depth/background; the selected visual style/material rendering; vertical 9:16; continuity constraints; no watermark, no subtitles/text unless explicitly required, no duplicate people/props, no extra limbs.
+- Do not write vague shortcuts such as "same as previous scene", "same character", or "same as image_prompt" inside a final image prompt. Restate the necessary visual continuity explicitly so each prompt can be used independently.
+- Each video_prompt is normally 80-150 useful English words. Treat the scene image as FRAME ZERO, then describe a clean temporal progression: exact starting pose/state -> character motion -> prop/environment reaction -> camera movement -> pacing -> exact end pose/state that becomes the next continuity state.
+- Video motion must animate ONLY the current scene beat. No new person, object, clothing, location, knowledge, damage, food quantity, weather change or payoff may appear unless the storyboard introduces it in THIS scene.
+- Never use the shortcut "same as image_prompt". Restate the critical character, outfit, prop and environment state needed to keep video generation consistent.
+- For outfit-change scenes, clearly show the physically plausible transition. Before the change, keep the old outfit; after the change, carry the new outfit forward exactly. Wet/dirty/torn is a condition of the same outfit, not a new outfit.
 - Image/video/cover prompts are ENGLISH. Story states/actions, outfit_change_reason, narration, caption, hook, payoff and cover_text are natural INDONESIAN. outfit can be concise English for prompt consistency.
-- Narration is a continuous first-person spoken story, natural gue/lo style when suitable, retelling the SAME events in scene order.
-- Never expose production/engine language in narration.
-- Narration fits about ${dur} seconds; target about ${Math.round(dur*2.15)} Indonesian spoken words (±15%), ending with ONE contextual varied CTA.
+NARRATION RULES:
+- Narration is a continuous first-person spoken story in natural Indonesian, casual gue/lo style when suitable. It must retell the SAME causal events in scene order and match what viewers actually see.
+- Do NOT merely list scenes. Connect beats naturally with cause/effect and transitions such as "awalnya", "pas", "ternyata", "gara-gara itu", "akhirnya", etc. Vary wording; do not mechanically repeat these examples.
+- If a scene introduces a person, object, outfit change, problem, discovery or payoff, narration may mention it only at that point or later—never before it visually exists.
+- Do not contradict quantities, locations, actions, outfit state, character state or ending shown by the storyboard.
+- Never expose production/engine language in narration: no "scene", "prompt", "karakter utama", "frame", "timeline", "continuity", "tampilkan", or generation instructions.
+- Narration fits about ${dur} seconds; target about ${Math.round(dur*2.15)} Indonesian spoken words (±15%). It should have a hook, smooth middle escalation, clear payoff, then exactly ONE short contextual CTA that feels connected to the story rather than generic engagement bait.
 - Caption is not a copy of narration. Write a substantial social-media caption in natural Indonesian: normally 80-140 words, about 2-4 short paragraphs, unless the story truly needs less. Do not make it a one-liner.
 - Caption should expand the feeling/context of the SAME story without retelling every scene beat-by-beat. Keep it easy to read on a phone.
 - End the caption with exactly ONE contextual CTA, and VARY the CTA wording/intent between generations. Choose naturally from patterns such as: ask for the viewer's experience, invite an opinion, ask which moment they relate to, invite them to tag/share with a relevant friend, ask what they would do, or invite a short comment. Do not mechanically repeat the same CTA phrase.
 - The caption CTA must be DIFFERENT from the narration CTA and must fit the title/story. Avoid generic engagement bait unrelated to the story.
 - Cover text is short, intriguing, truthful, and does not spoil the ending.
-- Visual format 9:16. No watermark/logo/subtitles in scene images.`}
+- Visual format 9:16. No watermark/logo/subtitles in scene images.
+QUALITY GATE BEFORE RETURNING JSON:
+- Silently verify chronological causality from Scene 1 through Scene ${n}.
+- Verify every scene start_state follows the previous end_state.
+- Verify visible-person counts and prop quantities do not jump without an on-screen cause.
+- Verify identity never changes and outfit changes only at justified story beats.
+- Verify image prompts are detailed standalone frozen frames and video prompts are detailed motion instructions, not short summaries.
+- Verify narration, caption and cover describe the same title/story and do not reveal events early.
+- If any check fails, repair it before returning JSON.`}
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GROQ_API_KEY)return res.status(500).json({error:"GROQ_API_KEY belum terpasang di Vercel."});
