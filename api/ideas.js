@@ -1,43 +1,62 @@
-import {auth} from "../lib/_auth.js";
-const schema={type:"object",properties:{ideas:{type:"array",items:{type:"object",properties:{title:{type:"string"},hook:{type:"string"},visual_hook:{type:"string"},payoff:{type:"string"}},required:["title","hook","visual_hook","payoff"]}}},required:["ideas"]};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ideaItem={type:"object",additionalProperties:false,properties:{
+ title:{type:"string"},hook:{type:"string"},visual_hook:{type:"string"},payoff:{type:"string"}
+},required:["title","hook","visual_hook","payoff"]};
+const ideaSchema={type:"object",additionalProperties:false,properties:{
+ ideas:{type:"array",items:ideaItem}
+},required:["ideas"]};
+
 export default async function handler(req,res){
-  // V6_AUTH_GUARD
-  const sessionUser=await auth(req); if(!sessionUser) return res.status(401).json({error:"Unauthorized"});
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
- if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
+ if(!process.env.GROQ_API_KEY)return res.status(500).json({error:"GROQ_API_KEY belum terpasang di Vercel."});
  try{
-  const {topic,audience,count,history}=req.body||{},niche=String(topic||"").trim(),target=String(audience||"").trim(),n=Math.max(1,Math.min(30,Number(count)||10));
-  if(!niche)return res.status(400).json({error:"TOPIK / NICHE kosong."});
-  const old=Array.isArray(history)?history.slice(-100).map(String):[];
-  const prompt=`You are Vizex Studio's premium short-form content idea director.
-NICHE/WORLD: ${niche}
-TARGET AUDIENCE: ${target||"general audience"}
-EXACT IDEA COUNT: ${n}
-Treat the niche as a WORLD/CONTEXT to explore, NOT a topic to explain. Explore different places, routines, activities, people, objects, times, problems, emotions, interactions, failures, successes, awkward moments, surprises, and specific lived experiences.
-Return EXACTLY ${n} DISTINCT ideas in natural Indonesian. Each idea contains ONLY: title, hook, visual_hook, payoff.
-title = specific clickable natural story title, not generic advice/listicle.
-hook = one short curiosity/emotion hook.
-visual_hook = concrete 0–3 second opening visual showing a specific action/situation.
-payoff = direct story consequence/reveal, no CTA.
-No scripts, narration, captions, hashtags, CTA, explanations, reasoning, or extra fields.
-Ideas must be meaningfully different, concrete, and genuinely inside "${niche}".
-Do not repeat or closely imitate previous titles: ${old.length?old.join(" | "):"(none)"}.
-If target audience exists, make situations recognizable to them without repeating the audience label in every title.`;
-  const models=[process.env.GEMINI_MODEL||"gemini-3.8-flash","gemini-3.7-flash","gemini-3.5-flash-lite"].filter((x,i,a)=>a.indexOf(x)===i);
-  let data=null,lastStatus=502,lastError="Semua model Gemini sedang tidak tersedia.";
-  for(const model of models){
-   for(let attempt=0;attempt<3;attempt++){
-    const rr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",responseSchema:schema,temperature:1,maxOutputTokens:8192}})});
-    data=await rr.json().catch(()=>({}));if(rr.ok)break;lastStatus=rr.status;lastError=data?.error?.message||`Gemini API error (${rr.status}).`;
-    if((rr.status===429||rr.status>=500)&&attempt<2){await sleep(700*(2**attempt));continue}break;
-   }
-   if(data?.candidates?.[0]?.content?.parts?.some(p=>p?.text))break;
-  }
-  const raw=data?.candidates?.[0]?.content?.parts?.map(p=>p?.text||"").join("").trim();
-  if(!raw)return res.status(lastStatus).json({error:`${lastError} Vizex sudah mencoba model cadangan otomatis.`});
-  const parsed=JSON.parse(raw),ideas=Array.isArray(parsed.ideas)?parsed.ideas:[];
-  if(ideas.length!==n)return res.status(502).json({error:`AI menghasilkan ${ideas.length} ide, seharusnya ${n}. Coba generate lagi.`});
-  return res.status(200).json({ideas});
- }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator ide AI gagal."})}
+  const {topic,audience,count,history}=req.body||{};
+  const niche=String(topic||"").trim();
+  const target=String(audience||"").trim();
+  const n=Math.max(5,Math.min(30,Number(count)||10));
+  if(!niche)return res.status(400).json({error:"Topik / niche kosong."});
+  const old=Array.isArray(history)?history.slice(-120).map(String):[];
+  const system=`You are Vizex Studio's creative idea director. Generate highly varied short-form visual story ideas in natural Indonesian.
+CORE PRINCIPLE:
+- NICHE/TOPIC is only the WORLD or context where stories happen. Do NOT force every title to explain, mention, teach, or literally name the niche.
+- TARGET AUDIENCE is only a relatability lens. Do NOT put the audience label into every title or hook.
+DIVERSITY RULES:
+- Return exactly ${n} ideas.
+- Every idea in this batch must feel materially different in situation, location, activity, object, social interaction, emotion, conflict, and payoff.
+- Deliberately spread ideas across comedy, nostalgia, awkward moments, friendship, light mystery, daily routine, surprise, failure, lucky accident, small conflict, wholesome moments, POV situations, unexpected objects/events, before-after, and relatable observations when appropriate.
+- Do not make all ideas educational, motivational, nostalgic, or problem-solution.
+- Avoid formulaic repeated title structures such as "hal yang...", "momen yang...", "ketika...", or repeatedly naming the niche.
+- Titles must be concrete, visual, specific, and suitable to become a 3-10 scene animation.
+- Avoid near-duplicates of PREVIOUS TITLES. Change the underlying event, not merely wording.
+- Hook must create curiosity without spoiling payoff.
+- visual_hook must describe an instantly readable first 0-3 seconds.
+- payoff must give a satisfying consequence/reveal/emotional turn that belongs to the same story.
+- No hashtags. No production jargon.`;
+  const user=`WORLD / NICHE: ${niche}
+TARGET AUDIENCE (optional lens): ${target||"not specified"}
+PREVIOUS TITLES TO AVOID:
+${old.length?old.map((x,i)=>`${i+1}. ${x}`).join("\n"):"None yet."}
+
+Create exactly ${n} fresh ideas now.`;
+  const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+   method:"POST",
+   headers:{"Authorization":`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
+   body:JSON.stringify({
+    model:process.env.GROQ_MODEL||"openai/gpt-oss-20b",
+    messages:[{role:"system",content:system},{role:"user",content:user}],
+    response_format:{type:"json_schema",json_schema:{name:"vizex_varied_ideas",strict:true,schema:ideaSchema}},
+    max_completion_tokens:8000,
+    reasoning_effort:"low"
+   })
+  });
+  const d=await rr.json();
+  if(!rr.ok)return res.status(rr.status).json({error:d?.error?.message||"Groq API error."});
+  const raw=d?.choices?.[0]?.message?.content?.trim();
+  if(!raw)return res.status(502).json({error:"Groq tidak mengembalikan ide."});
+  const result=JSON.parse(raw);
+  if(!Array.isArray(result.ideas)||!result.ideas.length)return res.status(502).json({error:"Format ide Groq tidak valid."});
+  return res.status(200).json({ideas:result.ideas.slice(0,n)});
+ }catch(err){
+  console.error(err);
+  return res.status(500).json({error:err?.message||"Generator ide gagal."});
+ }
 }

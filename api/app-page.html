@@ -1218,7 +1218,7 @@ async function generatePremiumIdeas(){
   <label>VISUAL HOOK</label><div class="result">${e(x.visual_hook||"")}</div><label>PAYOFF</label><div class="result">${e(x.payoff||"")}</div>
   <div class="actions"><button class="mini primary" data-title="${encodeURIComponent(x.title||"")}" data-hook="${encodeURIComponent(x.hook||"")}" data-visual="${encodeURIComponent(x.visual_hook||"")}" data-payoff="${encodeURIComponent(x.payoff||"")}" onclick="usePremiumIdea(decodeURIComponent(this.dataset.title),decodeURIComponent(this.dataset.hook),decodeURIComponent(this.dataset.visual),decodeURIComponent(this.dataset.payoff),'')">🎬 Buat Animasi</button>
   <button class="mini" data-copy="${encodeURIComponent("IDE #"+(i+1)+"\nJudul: "+(x.title||"")+"\nHook: "+(x.hook||"")+"\nVisual Hook: "+(x.visual_hook||"")+"\nPayoff: "+(x.payoff||""))}" onclick="copyEncoded(this)">📋 Salin</button></div></div>`).join("")}</div>`;
- }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Cek GEMINI_API_KEY / deployment Vercel lalu coba lagi.</p></div>`}
+ }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Cek GROQ_API_KEY / deployment Vercel lalu coba lagi.</p></div>`}
 }
 
 function surpriseIdeas(){
