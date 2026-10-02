@@ -182,6 +182,10 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
     <div>
       <label>TARGET AUDIENCE <span class="muted">(opsional)</span></label>
       <input id="ideaAudienceText" placeholder="Contoh: alumni pondok, Gen Z, mahasiswa, pekerja kantoran">
+      <div style="margin-top:12px">
+        <label>TEMA <span class="muted">(opsional)</span></label>
+        <input id="ideaTheme" placeholder="Contoh: nostalgia, humor, kehidupan sehari-hari, awkward">
+      </div>
     </div>
     <div>
       <label>JUMLAH IDE</label>
@@ -193,6 +197,11 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
         
       </select>
     </div>
+  </div>
+
+  <div style="margin-top:14px">
+    <label>REFERENSI <span class="muted">(opsional — hanya pola/gaya, tidak akan disalin)</span></label>
+    <textarea id="ideaReference" placeholder="Tempel contoh ide, gaya hook, atau pola cerita yang lo suka..."></textarea>
   </div>
 
   <div class="actions">
@@ -1219,7 +1228,8 @@ async function generatePremiumIdeas(){
  out.innerHTML=`<div class="card"><label>✨ VIZEX AI IDEA ENGINE</label><div class="result">AI lagi mencari ${count} ide spesifik dari dunia "${e(topic)}"...\n\nTunggu sebentar...</div></div>`;
  let history=[];try{history=JSON.parse(localStorage.getItem("vizexIdeaTitleHistory")||"[]");if(!Array.isArray(history))history=[]}catch(e){history=[]}
  try{
-  const r=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,audience,count,history:history.slice(-100)})});
+  const theme=v("ideaTheme").trim(),reference=v("ideaReference").trim();
+  const r=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,niche:topic,audience,count,theme,reference,history:history.slice(-100)})});
   const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Idea generator error (${r.status})`);
   const results=Array.isArray(data.ideas)?data.ideas:[];if(!results.length)throw new Error("AI tidak mengembalikan ide.");
   const merged=[...history,...results.map(x=>String(x.title||"").trim())].filter(Boolean);
@@ -1227,7 +1237,11 @@ async function generatePremiumIdeas(){
   out.innerHTML=`<div class="card"><p class="muted">✨ Dibuat AI dari niche sebagai dunia/konteks. Pilih ide untuk langsung dibawa ke Buat Animasi.</p>
   ${results.map((x,i)=>`<div class="saved" style="margin-top:${i?14:0}px;padding:18px"><h3 style="margin:0 0 12px">IDE #${i+1}</h3>
   <label>JUDUL</label><div class="result">${e(x.title||"")}</div><label>HOOK</label><div class="result">${e(x.hook||"")}</div>
-  <label>VISUAL HOOK</label><div class="result">${e(x.visual_hook||"")}</div><label>PAYOFF</label><div class="result">${e(x.payoff||"")}</div>
+  <label>VISUAL HOOK</label><div class="result">${e(x.visual_hook||"")}</div>
+  <label>ALUR STORY • ${Number(x.scene_count)||((x.scenes||[]).length)} SCENE</label>
+  <div class="result">${(Array.isArray(x.scenes)?x.scenes:[]).map(s=>`SCENE ${e(s.scene_number||"")} — ${e(s.location||"")}\nKarakter: ${e(s.characters||"")}\nAksi: ${e(s.action||"")}\nObjek: ${e(s.main_object||"")}\nKejadian: ${e(s.event||"")}`).join("\n\n")}</div>
+  <label>PAYOFF</label><div class="result">${e(x.payoff||"")}</div>
+  <label>CONTENT ANGLE</label><div class="result">${e(x.content_angle||"")}</div>
   <div class="actions"><button class="mini primary" data-title="${encodeURIComponent(x.title||"")}" data-hook="${encodeURIComponent(x.hook||"")}" data-visual="${encodeURIComponent(x.visual_hook||"")}" data-payoff="${encodeURIComponent(x.payoff||"")}" onclick="usePremiumIdea(decodeURIComponent(this.dataset.title),decodeURIComponent(this.dataset.hook),decodeURIComponent(this.dataset.visual),decodeURIComponent(this.dataset.payoff),'')">🎬 Buat Animasi</button>
   <button class="mini" data-copy="${encodeURIComponent("IDE #"+(i+1)+"\nJudul: "+(x.title||"")+"\nHook: "+(x.hook||"")+"\nVisual Hook: "+(x.visual_hook||"")+"\nPayoff: "+(x.payoff||""))}" onclick="copyEncoded(this)">📋 Salin</button></div></div>`).join("")}</div>`;
  }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Gemini utama sedang sibuk. Vizex otomatis mencoba beberapa model Gemini cadangan.</p></div>`}

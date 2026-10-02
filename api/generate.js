@@ -2,11 +2,18 @@ const sceneSchema={type:"object",additionalProperties:false,properties:{function
 const packageSchema={type:"object",additionalProperties:false,properties:{title:{type:"string"},hook:{type:"string"},payoff:{type:"string"},narration:{type:"string"},caption:{type:"string"},cover_text:{type:"string"},cover_prompt:{type:"string"},scenes:{type:"array",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function geminiSchema(x){if(Array.isArray(x))return x.map(geminiSchema);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=geminiSchema(v);return o}
-async function askGemini(system,user,schema,name,max=3600){
+function parseGeminiJson(raw){
+ const cleaned=String(raw||"").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
+ try{return JSON.parse(cleaned)}catch{}
+ const a=cleaned.indexOf("{"), b=cleaned.lastIndexOf("}");
+ if(a>=0&&b>a){try{return JSON.parse(cleaned.slice(a,b+1))}catch{}}
+ return null;
+}
+async function askGemini(system,user,schema,name,max=8192){
  const key=process.env.GEMINI_API_KEY;
  if(!key)throw new Error("GEMINI_API_KEY belum diatur.");
  const models=[process.env.GEMINI_MODEL,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite"].filter((v,i,a)=>v&&a.indexOf(v)===i);
- const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"medium"}}};
+ const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"low"}}};
  let last="Gemini sedang sibuk.";
  for(const model of models){
   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
@@ -15,7 +22,18 @@ async function askGemini(system,user,schema,name,max=3600){
   if(r.ok){
    const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
    if(!raw){last=`${model} tidak mengembalikan output.`;continue}
-   try{return JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim())}catch{last=`Output ${model} bukan JSON valid.`;continue}
+   const parsed=parseGeminiJson(raw);
+   if(parsed)return parsed;
+   // One repair attempt only when the model answered but JSON formatting broke.
+   const repairPayload={systemInstruction:{parts:[{text:"Return ONLY valid JSON matching the supplied response schema. Repair formatting/truncation artifacts without adding commentary."}]},contents:[{role:"user",parts:[{text:"Repair this into valid JSON only:\n"+raw}]}],generationConfig:{maxOutputTokens:max,responseMimeType:"application/json",responseSchema:geminiSchema(schema),thinkingConfig:{thinkingLevel:"low"}}};
+   const rr=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(repairPayload)});
+   const rd=await rr.json();
+   if(rr.ok){
+    const fixed=rd?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+    const repaired=parseGeminiJson(fixed);
+    if(repaired)return repaired;
+   }
+   last=`Output ${model} belum menjadi JSON valid setelah repair.`;continue
   }
   last=d?.error?.message||last;
   if([429,500,502,503,504,400,403,404].includes(r.status)){await sleep(700);continue}
@@ -77,7 +95,7 @@ export default async function handler(req,res){
    if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
    const system=coreRules(n,dur)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
-   const result=await askGemini(system,user,packageSchema,"vizex_finalized_package",3600);
+   const result=await askGemini(system,user,packageSchema,"vizex_finalized_package",8192);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
    return res.status(200).json(result);
   }
@@ -86,7 +104,7 @@ export default async function handler(req,res){
    const draft=body.draft||{};
    const system=coreRules(n,dur)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
-   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",1400);return res.status(200).json({scene});
+   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene});
   }
   const system=coreRules(n,dur);
   const user=`TITLE:${title}
@@ -95,8 +113,8 @@ DURATION:${dur}s
 STYLE:${style}
 IDENTITY:${character}
 Generate one coherent package. Infer outfit from story context; saved outfit is fallback only.`;
-  const result=await askGemini(system,user,packageSchema,"vizex_animation_package",3600);
-  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Groq menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
+  const result=await askGemini(system,user,packageSchema,"vizex_animation_package",8192);
+  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
   return res.status(200).json(result);
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }

@@ -1,89 +1,148 @@
+const sceneIdeaSchema={type:"object",additionalProperties:false,properties:{
+ scene_number:{type:"integer"},location:{type:"string"},characters:{type:"string"},action:{type:"string"},main_object:{type:"string"},event:{type:"string"}
+},required:["scene_number","location","characters","action","main_object","event"]};
 const ideaItem={type:"object",additionalProperties:false,properties:{
- title:{type:"string"},hook:{type:"string"},visual_hook:{type:"string"},payoff:{type:"string"}
-},required:["title","hook","visual_hook","payoff"]};
+ id:{type:"integer"},title:{type:"string"},hook:{type:"string"},scene_count:{type:"integer"},
+ scenes:{type:"array",items:sceneIdeaSchema},payoff:{type:"string"},content_angle:{type:"string"},visual_hook:{type:"string"}
+},required:["id","title","hook","scene_count","scenes","payoff","content_angle","visual_hook"]};
 const ideaSchema={type:"object",additionalProperties:false,properties:{
+ request:{type:"object",additionalProperties:false,properties:{
+  topic:{type:"string"},niche:{type:"string"},target_audience:{type:"string"},number_of_ideas:{type:"integer"}
+ },required:["topic","niche","target_audience","number_of_ideas"]},
  ideas:{type:"array",items:ideaItem}
-},required:["ideas"]};
+},required:["request","ideas"]};
+
+const cleanSchema=x=>{if(Array.isArray(x))return x.map(cleanSchema);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=cleanSchema(v);return o};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function parseJson(raw){
+ const c=String(raw||"").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
+ try{return JSON.parse(c)}catch{}
+ const a=c.indexOf("{"),b=c.lastIndexOf("}");
+ if(a>=0&&b>a){try{return JSON.parse(c.slice(a,b+1))}catch{}}
+ return null;
+}
 
 export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
-  const {topic,audience,count,history}=req.body||{};
-  const niche=String(topic||"").trim();
+  const {topic,niche,audience,count,reference,theme,history}=req.body||{};
+  const topicText=String(topic||niche||"").trim();
+  const nicheText=String(niche||topic||"").trim();
   const target=String(audience||"").trim();
-  const n=Math.max(5,Math.min(30,Number(count)||10));
-  if(!niche)return res.status(400).json({error:"Topik / niche kosong."});
+  const themeText=String(theme||"").trim();
+  const refText=String(reference||"").trim();
+  const n=Math.max(1,Math.min(10,Number(count)||10));
+  if(!nicheText)return res.status(400).json({error:"Topik / niche kosong."});
   const old=Array.isArray(history)?history.slice(-120).map(String):[];
-  const system=`You are VIZEX NICHE & AUDIENCE EXPERT, an elite short-form content strategist.
-Your first job is NOT to generate ideas. Silently build an accurate working model of the user's NICHE and TARGET AUDIENCE, then generate from that understanding.
 
-NICHE MASTERY:
-- Treat the niche as a real lived world, not a keyword to paste into titles.
-- Silently map its people/roles, places, routines, schedules, objects, tools, slang/communication style, social dynamics, common problems, tiny annoyances, desires, fears, status signals, rituals, rules, taboos, seasonal moments, beginner-vs-veteran differences, successes, failures, awkward moments, humor, nostalgia, conflicts, and highly specific everyday details.
-- Prefer details that an insider would recognize. Avoid generic situations that could fit any niche merely by swapping the niche name.
-- Do NOT invent niche-specific facts you are unsure about. Prefer broadly plausible lived details.
-- The title does NOT need to literally mention the niche when the situation itself unmistakably belongs to that world.
+  const system=`Kamu adalah AI Content Idea Generator yang bertugas menghasilkan ide konten storytelling pendek yang menarik, relatable, memiliki alur kejadian yang jelas, dan mudah divisualisasikan.
 
-AUDIENCE MASTERY:
-- Treat target audience as the viewpoint of the content.
-- Ask silently: what would THIS audience instantly recognize, care about, laugh at, fear, remember, debate, share, save, or say "gue banget" to?
-- Adjust situation, stakes, humor, vocabulary, emotion, conflict and payoff to that audience.
-- Do not merely name the audience in the title.
+TUJUAN:
+Buat ide storytelling berdasarkan niche, target audience, tema, referensi, dan riwayat ide user.
 
-IDE DISCOVERY:
-- Explore different sub-contexts inside the niche: different places, times, activities, objects, relationships, emotions, problems and social situations.
-- Across the batch, deliberately vary comedy, awkwardness, nostalgia, friendship, routine, small conflict, failure, surprise, wholesome moments, POV, before/after, relatable observation, and light curiosity where appropriate.
-- Each idea must have a different core situation and payoff. No cosmetic rewrites.
-- Avoid generic motivation, generic life lessons, generic productivity, and generic problem-solution ideas unless they are genuinely native to the niche.
-- Avoid repeating structures such as "ketika...", "POV...", or "hal yang..." across most titles.
-- Use previous-title history as a hard anti-repeat signal: do not recreate the same premise with different wording.
+ATURAN REFERENSI:
+Jangan terpaku pada contoh/referensi. Referensi hanya untuk memahami POLA, GAYA, JENIS KEJADIAN, tingkat humor, relatability, jumlah scene, dan jenis ending. Jangan menyalin judul, karakter, kejadian, konflik, atau ending.
 
-QUALITY GATE BEFORE RETURNING EACH IDEA:
-1. NICHE TEST: Could this idea still work unchanged for a completely different niche? If yes, make it more niche-native.
-2. AUDIENCE TEST: Would the target audience recognize why this is specifically relevant to them? If no, sharpen it.
-3. INSIDER TEST: Does it contain at least one concrete situation/detail/social dynamic native to the niche? If no, improve it.
-4. VARIETY TEST: Is its core situation materially different from the other ideas? If no, replace it.
-5. ANIMATION TEST: Can it become a clear 3-10 scene visual story with setup, progression and payoff? If no, replace it.
+PEMAHAMAN NICHE & AUDIENCE:
+Sebelum membuat ide, pahami niche sebagai dunia nyata: orang/role, lokasi, rutinitas, benda, kebiasaan, aturan sosial, masalah kecil, humor, nostalgia, awkward moment, konflik, dan detail yang dikenali orang dalam niche tersebut.
+Target audience adalah sudut pandang. Pilih situasi, stakes, humor, bahasa, emosi, konflik, dan payoff yang membuat mereka merasa "gue banget", "pernah ngalamin", ingin komentar, share, atau mengingat pengalaman sendiri.
+Jangan hanya menempel nama niche/target pada ide generik.
+
+FORMAT KONTEN:
+Semua ide adalah STORYTELLING dengan 1-5 SCENE.
+- Ada kejadian jelas, awal, perkembangan, dan akhir.
+- Setiap scene terhubung; scene berikutnya melanjutkan scene sebelumnya.
+- Harus ada konflik kecil, masalah, kejadian lucu, kejutan ringan, kesalahpahaman, kebiasaan unik, atau situasi relatable.
+- Bukan kumpulan aktivitas biasa.
+- Cocok untuk video pendek, mudah divisualisasikan, sedikit lokasi/karakter, dan terasa mungkin terjadi di dunia nyata.
+Gunakan jumlah scene sesuai kebutuhan:
+1 = kejadian sangat sederhana.
+2 = setup -> payoff.
+3 = setup -> masalah -> payoff.
+4 = setup -> masalah -> perkembangan -> payoff.
+5 = setup -> masalah -> perkembangan -> titik utama -> payoff.
+Jangan memaksakan 5 scene.
+
+JENIS IDE:
+Utamakan kejadian sehari-hari yang relatable, lucu, tidak terduga, konflik kecil, kebiasaan unik, salah paham, penasaran, nostalgia jika relevan, dan ending memuaskan.
+Pola seperti kehilangan barang, salah ambil, lupa, gagal mencoba, keisengan, berebut, menunggu, terlambat, salah tempat/waktu, menemukan sesuatu, menyembunyikan sesuatu, pura-pura tidak tahu, terganggu, atau kejadian biasa menjadi kacau BOLEH dipakai tetapi jangan dibatasi pola tersebut. Cari pola baru yang native dengan niche.
+
+HOOK:
+Setiap ide wajib punya hook singkat, natural, menarik sejak awal, dan tidak clickbait berlebihan.
+Hindari "Hari ini saya akan...", "Pada video kali ini...", "Jadi guys...", "Ini adalah cerita tentang...".
+Variasikan konstruksi. Contoh gaya hanya sebagai pola: "Awalnya gue cuma mau...", "Kirain bakal biasa aja...", "Gue baru sadar setelah...", "Niatnya cuma sebentar...", "Masalahnya dimulai dari...". Jangan mengulang template hook yang sama.
+
+JUDUL:
+Spesifik, menarik, mudah dipahami, menggambarkan kejadian utama, tidak terlalu panjang, tidak clickbait. Hindari judul generik seperti "Kehidupan Sehari-hari" atau "Keseruan di...".
+
+VISUAL STORYTELLING:
+Setiap scene harus menjelaskan location, characters, action, main_object, dan event agar langsung berguna sebagai dasar ilustrasi/video AI.
+Jaga karakter, pakaian, objek penting, waktu, dan lokasi tetap masuk akal. Jangan pindah lokasi tanpa alasan atau memasukkan objek yang tidak berhubungan.
+
+KREATIVITAS:
+- Jangan generik, jangan mengulang ide lama, dan jangan cuma mengganti kata.
+- Utamakan situasi spesifik dan kejadian kecil yang relatable.
+- Variasikan humor, nostalgia, konflik ringan, absurd yang masih masuk akal, kejadian tak terduga, wholesome, awkward.
+- Tidak semua ending berupa moral; tidak semua sedih.
+- Ending wajib punya payoff.
+- Jangan membesarkan konflik jika tema kehidupan sehari-hari.
+- Jangan terasa seperti iklan.
+- Jangan masukkan AI, bisnis, atau produk jika tidak relevan.
+- Gunakan detail khas lingkungan niche secara masuk akal.
+- Riwayat judul adalah HARD ANTI-REPEAT: premise lama tidak boleh dibuat ulang dengan wording baru.
+
+PERSONAL BRANDING:
+Jika konteksnya personal branding, prioritaskan cerita yang menunjukkan karakter, pengalaman, sudut pandang, kehidupan nyata, dan kedekatan dengan audience tanpa terasa menjual.
+
+QUALITY CHECK:
+Sebelum mengembalikan setiap ide, cek: niche-native, relevan untuk audience, spesifik, berbeda dari ide lain/riwayat, visualizable, scene berkesinambungan, dan payoff berasal dari cerita yang sama.
 
 OUTPUT:
-Return exactly the requested number of ideas in the required JSON schema.
-For every idea:
-- title: specific, visual, natural Indonesian; compelling without clickbait.
-- hook: the curiosity/emotional reason to keep watching.
-- visual_hook: a concrete first 0-3 second visual that instantly communicates the niche situation.
-- payoff: a satisfying, plausible ending/reveal/reaction that belongs to the same story.
-Do not explain your niche analysis. Use it internally to make the ideas feel researched, insider-aware, specific, diverse and deeply relatable.`;
-  const user=`WORLD / NICHE: ${niche}
-TARGET AUDIENCE (optional lens): ${target||"not specified"}
-PREVIOUS TITLES TO AVOID:
-${old.length?old.map((x,i)=>`${i+1}. ${x}`).join("\n"):"None yet."}
+Return ONLY valid JSON matching the response schema. No markdown, no code fence, no explanation.
+visual_hook harus berupa visual konkret 0-3 detik pertama dan konsisten dengan Scene 1.
+scene_count harus sama dengan jumlah object dalam scenes.`;
 
-Create exactly ${n} fresh ideas now.`;
-  const clean=x=>{if(Array.isArray(x))return x.map(clean);if(!x||typeof x!=="object")return x;const o={};for(const [k,v] of Object.entries(x))if(k!=="additionalProperties")o[k]=clean(v);return o};
-  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const user=`INPUT USER
+Topik: ${topicText}
+Niche: ${nicheText}
+Target audience: ${target||"Tidak ditentukan"}
+Tema: ${themeText||"Bebas, tetap relevan dengan niche"}
+Jumlah ide: ${n}
+Referensi: ${refText||"Tidak ada"}
+
+RIWAYAT JUDUL YANG WAJIB DIHINDARI:
+${old.length?old.map((x,i)=>`${i+1}. ${x}`).join("\n"):"Belum ada."}
+
+Buat tepat ${n} ide storytelling baru berdasarkan semua aturan di atas.`;
+
   const models=[process.env.GEMINI_IDEAS_MODEL,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite"].filter((v,i,a)=>v&&a.indexOf(v)===i);
-  const call=async model=>fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,{
-   method:"POST",headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:3000,responseMimeType:"application/json",responseSchema:clean(ideaSchema),thinkingConfig:{thinkingLevel:"low"}}})
-  });
-  let rr,d,lastError="Gemini sedang sibuk.";
+  let last="Gemini sedang sibuk.";
   for(const model of models){
-   rr=await call(model); d=await rr.json();
-   if(rr.ok)break;
-   lastError=d?.error?.message||lastError;
-   if([429,500,502,503,504].includes(rr.status)){await sleep(700);continue}
-   if([400,403,404].includes(rr.status)){continue}
+   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
+   const payload={systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",responseSchema:cleanSchema(ideaSchema),thinkingConfig:{thinkingLevel:"low"}}};
+   const rr=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+   const d=await rr.json();
+   if(rr.ok){
+    const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+    let result=parseJson(raw);
+    if(!result){
+     const repair={systemInstruction:{parts:[{text:"Repair the supplied content into ONLY valid JSON matching the response schema. Do not add explanation."}]},contents:[{role:"user",parts:[{text:"Repair this JSON:\\n"+raw}]}],generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",responseSchema:cleanSchema(ideaSchema),thinkingConfig:{thinkingLevel:"low"}}};
+     const r2=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(repair)});
+     const d2=await r2.json();
+     if(r2.ok)result=parseJson(d2?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join(""));
+    }
+    if(result&&Array.isArray(result.ideas)&&result.ideas.length){
+     result.ideas=result.ideas.slice(0,n).map((x,i)=>({...x,id:i+1,scene_count:Array.isArray(x.scenes)?x.scenes.length:Number(x.scene_count)||1}));
+     return res.status(200).json(result);
+    }
+    last=`Output ${model} belum menjadi JSON valid setelah repair.`;
+    await sleep(500); continue;
+   }
+   last=d?.error?.message||last;
+   if([429,500,502,503,504,400,403,404].includes(rr.status)){await sleep(700);continue}
    break;
   }
-  if(!rr?.ok)return res.status(rr?.status||503).json({error:lastError+" Semua model Gemini cadangan sudah dicoba."});
-  const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
-  if(!raw)return res.status(502).json({error:"Gemini tidak mengembalikan ide."});
-  const result=JSON.parse(raw.replace(/^```json\s*/i,"").replace(/```$/,"").trim());
-  if(!Array.isArray(result.ideas)||!result.ideas.length)return res.status(502).json({error:"Format ide Gemini tidak valid."});
-  return res.status(200).json({ideas:result.ideas.slice(0,n)});
- }catch(err){
-  console.error(err);
-  return res.status(500).json({error:err?.message||"Generator ide gagal."});
- }
+  return res.status(503).json({error:last+" Semua model Gemini cadangan sudah dicoba."});
+ }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator ide gagal."})}
 }
