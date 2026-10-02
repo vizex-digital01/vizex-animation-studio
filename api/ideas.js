@@ -12,7 +12,7 @@ export default async function handler(req,res){
   const {topic,audience,count,history}=req.body||{};
   const niche=String(topic||"").trim();
   const target=String(audience||"").trim();
-  const n=Math.max(5,Math.min(10,Number(count)||10));
+  const n=Math.max(5,Math.min(30,Number(count)||10));
   if(!niche)return res.status(400).json({error:"Topik / niche kosong."});
   const old=Array.isArray(history)?history.slice(-120).map(String):[];
   const system=`You are VIZEX NICHE & AUDIENCE EXPERT, an elite short-form content strategist.
