@@ -1,3 +1,4 @@
+import {auth} from "../lib/_auth.js";
 const sceneIdeaSchema={type:"object",additionalProperties:false,properties:{
  scene_number:{type:"integer"},location:{type:"string"},characters:{type:"string"},action:{type:"string"},main_object:{type:"string"},event:{type:"string"}
 },required:["scene_number","location","characters","action","main_object","event"]};
@@ -23,6 +24,9 @@ function parseJson(raw){
 }
 
 export default async function handler(req,res){
+ const account=await auth(req).catch(()=>null);
+ if(!account)return res.status(401).json({error:"Sesi login tidak valid."});
+ if(String(account.plan||"PRO").toUpperCase()==="FREE")return res.status(403).json({error:"Generator Ide tersedia untuk akun PRO."});
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{

@@ -1,3 +1,4 @@
+import {auth} from "../lib/_auth.js";
 const sceneSchema={type:"object",additionalProperties:false,properties:{function:{type:"string"},start_state:{type:"string"},action:{type:"string"},end_state:{type:"string"},camera:{type:"string"},outfit:{type:"string"},outfit_change_reason:{type:"string"},image_prompt:{type:"string"},video_prompt:{type:"string"}},required:["function","start_state","action","end_state","camera","outfit","outfit_change_reason","image_prompt","video_prompt"]};
 const packageSchema={type:"object",additionalProperties:false,properties:{title:{type:"string"},hook:{type:"string"},payoff:{type:"string"},narration:{type:"string"},caption:{type:"string"},cover_text:{type:"string"},cover_prompt:{type:"string"},scenes:{type:"array",items:sceneSchema}},required:["title","hook","payoff","narration","caption","cover_text","cover_prompt","scenes"]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -83,6 +84,9 @@ cover_text must be exact Indonesian 2-6 words: short, punchy, truthful, readable
 cover_prompt must be English, 100-150 useful words, vertical 9:16, based on the strongest truthful PRE-PAYOFF moment from actual scenes.
 CRITICAL: cover_prompt MUST explicitly instruct the image model to visibly render the exact cover_text value letter-for-letter as the headline. Put headline at top or upper-middle with large bold high-contrast typography, clean safe margins, strong mobile readability and negative space behind it; never cover face/key action. The exact cover_text is the ONLY readable text allowed: no extra words, logo, subtitle, watermark, UI, labels or gibberish. Character identity, outfit/condition, expression, prop/action, environment and lighting must exactly match the chosen scene.`}
 export default async function handler(req,res){
+ const account=await auth(req).catch(()=>null);
+ if(!account)return res.status(401).json({error:"Sesi login tidak valid."});
+ const freePlan=String(account.plan||"PRO").toUpperCase()==="FREE";
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{

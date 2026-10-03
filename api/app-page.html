@@ -1572,4 +1572,23 @@ loadCustomerProfile();
   <div>Follow IG: <a href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener noreferrer" style="font-weight:700;text-decoration:none;color:inherit">@vizex.digital</a></div>
   <div>© 2026 Vizex.Digital. All rights reserved.</div>
 </footer>
-<script>window.VIZEX_PLAN="PRO";async function initPlan(){try{const r=await fetch("/api/me",{credentials:"include"});if(!r.ok)return;const me=await r.json();window.VIZEX_PLAN=String(me.plan||"PRO").toUpperCase();const f=window.VIZEX_PLAN==="FREE",b=document.getElementById("vizexPlanBadge");if(b){b.textContent=f?"FREE PLAN":"👑 PRO";b.classList.toggle("pro",!f)}if(f){const c=document.getElementById("ideaCount");if(c){c.value=Math.min(Number(c.value)||3,3);c.max="3"}document.querySelectorAll("button,a").forEach(el=>{const t=(el.textContent||"").toLowerCase();if(t.includes("pemeriksa konsistensi")||t.includes("regenerate")){el.classList.add("pro-lock");if(!el.textContent.includes("🔒"))el.textContent="🔒 "+el.textContent.trim()}})}}catch(e){}}document.addEventListener("DOMContentLoaded",initPlan);</script></body></html>
+<script>
+function applyFreeWorkspace(){
+ if(window.VIZEX_PLAN!=="FREE")return;
+ // Hide whole navigation entries, not merely grey them out.
+ document.querySelectorAll("button,a,[data-page],[onclick]").forEach(el=>{
+   const t=(el.textContent||"").trim().toLowerCase();
+   if(t.includes("generator ide")||t.includes("pemeriksa konsistensi")||t.includes("proyek saya")||t==="riwayat"||t.includes("regenerate")){
+     el.style.display="none";
+   }
+ });
+ // Force scene selectors to 1-3 only.
+ document.querySelectorAll("select").forEach(sel=>{
+   const id=(sel.id||"").toLowerCase(),label=(sel.closest("div")?.textContent||"").toLowerCase();
+   if(id.includes("scene")||label.includes("jumlah scene")||label.includes("default jumlah scene")){
+     [...sel.options].forEach(o=>{if(Number(o.value||o.textContent)>3)o.remove()});
+     if(Number(sel.value)>3)sel.value="3";
+   }
+ });
+}
+</script><script>window.VIZEX_PLAN="PRO";async function initPlan(){try{const r=await fetch("/api/me",{credentials:"include"});if(!r.ok)return;const me=await r.json();window.VIZEX_PLAN=String(me.plan||"PRO").toUpperCase();const f=window.VIZEX_PLAN==="FREE",b=document.getElementById("vizexPlanBadge");if(b){b.textContent=f?"FREE PLAN":"👑 PRO";b.classList.toggle("pro",!f)}if(f){const c=document.getElementById("ideaCount");if(c){c.value=Math.min(Number(c.value)||3,3);c.max="3"}applyFreeWorkspace()}}catch(e){}}document.addEventListener("DOMContentLoaded",initPlan);</script></body></html>
