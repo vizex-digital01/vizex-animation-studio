@@ -53,7 +53,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
 .success{color:#247a46!important}
 @media(max-width:900px){.shell{grid-template-columns:1fr}.hero{display:none}.login-side{min-height:100vh;padding:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}.mobile-brand img{width:50px;height:50px;border-radius:50%;border:2px solid #c58e5d}.mobile-brand .wordmark{font-size:25px}}
 @media(max-width:480px){.card{padding:25px 20px;border-radius:22px}.card h2{font-size:32px}.links{grid-template-columns:1fr}.social{flex-direction:column;align-items:flex-start}}
-</style>
+.plan-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 18px;padding:5px;background:#f4e9da;border:1px solid #dfc5a6;border-radius:14px}.plan-switch button{border:0;border-radius:10px;padding:11px;font-weight:900;background:transparent;cursor:pointer;color:#725237}.plan-switch button.active{background:#fffaf3;box-shadow:0 3px 12px #6d45251a;color:#20160f}.free-extra{display:none}.free-extra.show{display:block}.plan-copy{font-size:12px;color:#8a6a50;margin:-8px 0 12px}</style>
 </head>
 <body>
 <div class="shell">
@@ -75,7 +75,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
    <h2>Welcome back 👋</h2>
    <div class="sub">Masuk untuk melanjutkan proyek dan cerita berikutnya.</div>
 
-   <label>EMAIL</label>
+   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Masuk dengan akun Vizex PRO lo.</div><div id="freeExtra" class="free-extra"><label>NAMA</label><input id="freeName" placeholder="Nama kamu"></div><label>EMAIL</label>
    <div class="field"><input id="email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
 
    <label>KODE AKSES</label>
@@ -110,6 +110,8 @@ function getVizexDeviceName(){
  const ua=navigator.userAgent||"";let browser=/Edg\//.test(ua)?"Edge":/Chrome\//.test(ua)?"Chrome":/Firefox\//.test(ua)?"Firefox":/Safari\//.test(ua)?"Safari":"Browser";
  let os=/Windows/i.test(ua)?"Windows":/Android/i.test(ua)?"Android":/iPhone|iPad/i.test(ua)?"iPhone/iPad":/Mac/i.test(ua)?"Mac":"Perangkat";return browser+" • "+os;
 }
+let accessMode="pro";
+function setAccessMode(mode){accessMode=mode;const f=mode==="free";freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);freeExtra.classList.toggle("show",f);planCopy.textContent=f?"Buat akun FREE dan langsung coba Vizex.":"Masuk dengan akun Vizex PRO lo.";const b=document.getElementById("loginBtn");if(b)b.textContent=f?"Buat Akun FREE →":"Masuk ke Vizex →";}
 async function login(){
  const err=document.getElementById("err");
  const btn=document.getElementById("loginBtn");
@@ -124,7 +126,9 @@ async function login(){
        email:document.getElementById("email").value.trim(),
        code:document.getElementById("code").value.trim(),
        device_id:getVizexDeviceId(),
-       device_name:getVizexDeviceName()
+       device_name:getVizexDeviceName(),
+       action:accessMode==="free"?"register_free":"login",
+       name:document.getElementById("freeName")?.value.trim()||""
      })
    });
    const d=await r.json().catch(()=>({}));
