@@ -53,7 +53,13 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
 .success{color:#247a46!important}
 @media(max-width:900px){.shell{grid-template-columns:1fr}.hero{display:none}.login-side{min-height:100vh;padding:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}.mobile-brand img{width:50px;height:50px;border-radius:50%;border:2px solid #c58e5d}.mobile-brand .wordmark{font-size:25px}}
 @media(max-width:480px){.card{padding:25px 20px;border-radius:22px}.card h2{font-size:32px}.links{grid-template-columns:1fr}.social{flex-direction:column;align-items:flex-start}}
-.plan-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 18px;padding:5px;background:#f4e9da;border:1px solid #dfc5a6;border-radius:14px}.plan-switch button{border:0;border-radius:10px;padding:11px;font-weight:900;background:transparent;cursor:pointer;color:#725237}.plan-switch button.active{background:#fffaf3;box-shadow:0 3px 12px #6d45251a;color:#20160f}.free-extra{display:none}.free-extra.show{display:block}.plan-copy{font-size:12px;color:#8a6a50;margin:-8px 0 12px}</style>
+.plan-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 18px;padding:5px;background:#f4e9da;border:1px solid #dfc5a6;border-radius:14px}.plan-switch button{border:0;border-radius:10px;padding:11px;font-weight:900;background:transparent;cursor:pointer;color:#725237}.plan-switch button.active{background:#fffaf3;box-shadow:0 3px 12px #6d45251a;color:#20160f}.free-extra{display:none}.free-extra.show{display:block}.plan-copy{font-size:12px;color:#8a6a50;margin:-8px 0 12px}
+.free-gate{display:none;margin:10px 0 16px;padding:15px;border:1px solid #dfc5a6;border-radius:14px;background:#fff9f0}
+.free-gate.show{display:block}.free-gate h3{margin:0 0 7px;font-size:15px}.free-gate p{margin:0 0 10px;font-size:12px;line-height:1.55;color:#765b45}
+.free-gate-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.free-gate-actions a,.free-confirm{display:flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #d9b995;border-radius:10px;padding:10px;font-size:12px;font-weight:900;color:#332116;background:#fff}
+.free-confirm{width:100%;margin-top:8px;background:#d69b63;color:#17100b;cursor:pointer}.free-confirm:disabled{opacity:.45;cursor:not-allowed}
+.free-checks{font-size:11px;margin-top:8px;color:#87684f}
+</style>
 </head>
 <body>
 <div class="shell">
@@ -75,7 +81,17 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
    <h2>Welcome back 👋</h2>
    <div class="sub">Masuk untuk melanjutkan proyek dan cerita berikutnya.</div>
 
-   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Masuk dengan akun Vizex PRO lo.</div><div id="freeExtra" class="free-extra"><label>NAMA</label><input id="freeName" placeholder="Nama kamu"></div><label>EMAIL</label>
+   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Masuk dengan akun Vizex PRO lo.</div><div id="freeGate" class="free-gate">
+<h3>🔓 Buka Akses FREE</h3>
+<p>Untuk mencoba Vizex FREE, dukung dulu @vizex.digital: follow Instagram dan lihat salah satu Reels. Setelah itu kembali ke sini dan lanjut daftar.</p>
+<div class="free-gate-actions">
+<a id="igFollowBtn" href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener" onclick="markFreeStep('follow')">📸 Follow IG</a>
+<a id="igReelsBtn" href="https://www.instagram.com/vizex.digital/reels/" target="_blank" rel="noopener" onclick="markFreeStep('reels')">🎬 Lihat Reels</a>
+</div>
+<div id="freeChecks" class="free-checks">○ Follow IG &nbsp;&nbsp; ○ Lihat Reels</div>
+<button type="button" id="freeConfirmBtn" class="free-confirm" onclick="confirmFreeGate()" disabled>Saya Sudah Follow — Lanjut</button>
+</div>
+<div id="freeExtra" class="free-extra"><label>NAMA</label><input id="freeName" placeholder="Nama kamu"></div><label>EMAIL</label>
    <div class="field"><input id="email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
 
    <label>KODE AKSES</label>
@@ -111,7 +127,19 @@ function getVizexDeviceName(){
  let os=/Windows/i.test(ua)?"Windows":/Android/i.test(ua)?"Android":/iPhone|iPad/i.test(ua)?"iPhone/iPad":/Mac/i.test(ua)?"Mac":"Perangkat";return browser+" • "+os;
 }
 let accessMode="pro";
-function setAccessMode(mode){accessMode=mode;const f=mode==="free";freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);freeExtra.classList.toggle("show",f);planCopy.textContent=f?"Buat akun FREE dan langsung coba Vizex.":"Masuk dengan akun Vizex PRO lo.";const b=document.getElementById("loginBtn");if(b)b.textContent=f?"Buat Akun FREE →":"Masuk ke Vizex →";}
+let freeGatePassed=false,freeFollowClicked=false,freeReelsClicked=false;
+function updateFreeGate(){
+ const c=document.getElementById("freeChecks"),btn=document.getElementById("freeConfirmBtn");
+ if(c)c.textContent=(freeFollowClicked?"✓":"○")+" Follow IG     "+(freeReelsClicked?"✓":"○")+" Lihat Reels";
+ if(btn)btn.disabled=!(freeFollowClicked&&freeReelsClicked);
+}
+function markFreeStep(step){if(step==="follow")freeFollowClicked=true;if(step==="reels")freeReelsClicked=true;updateFreeGate()}
+function confirmFreeGate(){if(!(freeFollowClicked&&freeReelsClicked))return;freeGatePassed=true;freeGate.classList.remove("show");freeExtra.classList.add("show");planCopy.textContent="Akses FREE terbuka. Isi data untuk membuat akun gratis."}
+function setAccessMode(mode){accessMode=mode;const f=mode==="free";freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);
+ freeGate.classList.toggle("show",f&&!freeGatePassed);freeExtra.classList.toggle("show",f&&freeGatePassed);
+ planCopy.textContent=f?(freeGatePassed?"Akses FREE terbuka. Isi data untuk membuat akun gratis.":"Follow @vizex.digital dan lihat Reels untuk membuka pendaftaran FREE."):"Masuk dengan akun Vizex PRO lo.";
+ const b=document.getElementById("loginBtn");if(b){b.textContent=f?"Buat Akun FREE →":"Masuk ke Vizex →";b.style.display=(f&&!freeGatePassed)?"none":""}}
+
 async function login(){
  const err=document.getElementById("err");
  const btn=document.getElementById("loginBtn");
