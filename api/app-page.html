@@ -24,6 +24,11 @@ button.mini,.mini{background:#eadbc9!important;color:#2f241b!important;border-co
 /* V9 Storyboard Editor */
 #v9Storyboard textarea{width:100%;resize:vertical;min-height:82px}#v9Storyboard input{width:100%}#v9Storyboard .scene{scroll-margin-top:90px}
 @media(max-width:768px){#v9Storyboard .grid2{grid-template-columns:1fr!important}#v9Storyboard .actions button{width:100%}#v9Storyboard textarea{font-size:16px}}
+
+.plan-badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900;margin-left:7px;background:#f1e4d2;color:#76512f}
+.plan-badge.pro{background:#2c2119;color:#fff3df}
+.pro-lock{opacity:.58}
+.free-note{padding:10px 12px;border:1px solid #ead8bf;border-radius:12px;background:#fffaf2;font-size:12px;margin:10px 0}
 </style>
 <style id="vizex-full-cream-theme">
 :root{
@@ -1572,4 +1577,24 @@ loadCustomerProfile();
   <div>Follow IG: <a href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener noreferrer" style="font-weight:700;text-decoration:none;color:inherit">@vizex.digital</a></div>
   <div>© 2026 Vizex.Digital. All rights reserved.</div>
 </footer>
-</body></html>
+
+<script>
+window.VIZEX_PLAN="PRO";
+async function initVizexPlan(){
+ try{
+  const r=await fetch("/api/me",{credentials:"include"}); if(!r.ok)return;
+  const me=await r.json(); window.VIZEX_PLAN=String(me.plan||"PRO").toUpperCase();
+  const free=window.VIZEX_PLAN==="FREE", b=document.getElementById("vizexPlanBadge");
+  if(b){b.textContent=free?"FREE PLAN":"👑 PRO";b.classList.toggle("pro",!free)}
+  if(!free)return;
+  const c=document.getElementById("ideaCount"); if(c){c.value=Math.min(Number(c.value)||3,3);c.max="3"}
+  document.querySelectorAll("button,a").forEach(el=>{
+    const t=(el.textContent||"").toLowerCase();
+    if(t.includes("pemeriksa konsistensi")||t.includes("regenerate")){
+      el.classList.add("pro-lock"); if(!el.textContent.includes("🔒"))el.textContent="🔒 "+el.textContent.trim();
+    }
+  });
+ }catch(e){}
+}
+document.addEventListener("DOMContentLoaded",initVizexPlan);
+</script></body></html>
