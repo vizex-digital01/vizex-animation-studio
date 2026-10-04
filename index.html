@@ -145,12 +145,18 @@ function setFreeMode(mode){
  loginBtn.style.display=(reg&&!freeGatePassed)?"none":"";
  loginBtn.textContent=reg?"Buat Akun FREE →":"Masuk Akun FREE →";
 }
-function setAccessMode(mode){
- accessMode=mode;const f=mode==="free";
+function setAccessMode(selectedMode){
+ accessMode=selectedMode;const f=selectedMode==="free";
  freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);
- freeMode.classList.toggle("show",f);
+ document.getElementById("freeMode").classList.toggle("show",f);
  if(f)setFreeMode("login");
- else{freeGate.classList.remove("show");freeExtra.classList.remove("show");planCopy.textContent="Masuk dengan akun Vizex PRO lo.";loginBtn.style.display="";loginBtn.textContent="Masuk ke Vizex →";}
+ else{
+  freeGate.classList.remove("show");
+  freeExtra.classList.remove("show");
+  planCopy.textContent="Masuk dengan akun Vizex PRO lo.";
+  loginBtn.style.display="";
+  loginBtn.textContent="Masuk ke Vizex →";
+ }
 }
 
 async function login(){
@@ -203,7 +209,7 @@ async function premiumLogin(){
    btn.textContent="✓ Berhasil — Membuka Workspace...";
    err.classList.add("success");
  } else {
-   btn.textContent=accessMode==="free"?(freeMode==="register"?"Buat Akun FREE →":"Masuk Akun FREE →"):"Masuk ke Vizex →";
+   btn.textContent="Masuk ke Vizex →";
  }
 }
 </script>
