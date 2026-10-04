@@ -20,6 +20,10 @@ button.mini,.mini{background:#eadbc9!important;color:#2f241b!important;border-co
 .brand-side{display:flex;align-items:center;gap:10px!important}
 .side-logo{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #c99768;box-shadow:0 6px 18px rgba(92,67,45,.12);flex:0 0 auto}
 .brand-side span{display:inline-block}
+
+/* V9 Storyboard Editor */
+#v9Storyboard textarea{width:100%;resize:vertical;min-height:82px}#v9Storyboard input{width:100%}#v9Storyboard .scene{scroll-margin-top:90px}
+@media(max-width:768px){#v9Storyboard .grid2{grid-template-columns:1fr!important}#v9Storyboard .actions button{width:100%}#v9Storyboard textarea{font-size:16px}}
 </style>
 <style id="vizex-full-cream-theme">
 :root{
@@ -107,10 +111,47 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
   box-shadow:0 6px 18px rgba(92,67,45,.12)!important
 }
 </style>
-</head><body><div class="app"><aside class="side"><div class="logo brand-side">
+
+<style id="vizex-v8-mobile">
+/* V8 Mobile Responsive — desktop behavior remains unchanged */
+.mobile-menu-btn,.mobile-overlay{display:none}
+@media(max-width:768px){
+ html,body{overflow-x:hidden}
+ body{font-size:14px}
+ .app{display:block;min-height:100vh}
+ .side{position:fixed!important;z-index:10020;left:0;top:0;width:min(82vw,310px);height:100dvh!important;padding:18px 12px!important;border-right:1px solid #d8c8b6!important;border-bottom:0!important;transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;box-shadow:14px 0 36px rgba(61,48,38,.18)!important}
+ body.mobile-nav-open .side{transform:translateX(0)}
+ .brand-side{margin:0 8px 18px!important}.side-logo{width:40px;height:40px}
+ .nav{display:block!important;overflow:visible!important}.nav button{display:block!important;width:100%!important;min-width:0!important;padding:13px 12px!important;margin:4px 0!important;font-size:14px!important}
+ .mobile-overlay{position:fixed;inset:0;z-index:10010;background:rgba(47,36,27,.34);backdrop-filter:blur(2px)}
+ body.mobile-nav-open .mobile-overlay{display:block}
+ .main{padding:14px!important;max-width:none!important;width:100%!important}
+ .head{position:sticky;top:0;z-index:9000;margin:-14px -14px 14px;padding:10px 14px;background:rgba(246,239,228,.94);backdrop-filter:blur(12px);border-bottom:1px solid #d8c8b6;gap:8px}
+ .head>div:first-child b{font-size:13px}.head>div:first-child img{width:30px!important;height:30px!important}
+ .head>div:last-child{gap:6px!important;min-width:0}.head .tag{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 8px;font-size:10px}.head .mini{padding:8px 9px!important}
+ .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 38px;border:1px solid #cfbca7;border-radius:10px;background:#eadbc9;color:#2f241b;font-size:20px;font-weight:900;cursor:pointer}
+ h1{font-size:28px!important;line-height:1.12;margin:18px 0 7px!important}h2{font-size:21px}h3{font-size:15px}
+ .card{padding:14px!important;margin-top:12px!important;border-radius:14px!important}.grid,.grid3{grid-template-columns:1fr!important;gap:10px!important}
+ input,textarea,select{font-size:16px!important;padding:12px!important;min-height:44px}textarea{min-height:110px}
+ .actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}.actions button,.actions .mini,.actions .primary{width:100%!important;min-height:44px!important;font-size:13px!important}
+ .workspace-item{display:block!important;padding:13px!important}.workspace-actions{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;margin-top:12px!important}.workspace-actions button{width:100%!important;min-height:42px!important}
+ .scene{padding:13px!important;margin:10px 0!important;overflow:hidden}.scene .result,.result{font-size:13px;line-height:1.55;overflow-wrap:anywhere;word-break:break-word;max-width:100%}.scene button{width:100%;min-height:42px;margin-top:7px}
+ .statgrid{grid-template-columns:1fr!important}.stat{padding:12px!important}.stat b{font-size:20px!important}
+ #adminCustomerCard .workspace-item{border-radius:12px}
+ #adminCustomerCard .workspace-actions{grid-template-columns:1fr!important}
+ #adminCustomerCard .actions{grid-template-columns:1fr!important}
+ #premiumIdeaResults .saved{padding:13px!important}
+ .choice{padding:13px!important}.choice .mini{width:100%;min-height:42px}
+ .saved{overflow:hidden}.saved .actions{grid-template-columns:1fr!important}
+ .tool{max-width:100%;overflow:hidden}
+ pre,code{white-space:pre-wrap;overflow-wrap:anywhere}
+}
+@media(max-width:390px){.main{padding:11px!important}.head{margin:-11px -11px 12px;padding:9px 11px}.head>div:first-child b{display:none}.head .tag{max-width:105px}h1{font-size:25px!important}.card{padding:12px!important}}
+</style>
+</head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
-    </div><div class="nav" id="nav"></div></aside><main class="main"><div class="head"><div style="display:flex;align-items:center;gap:9px">
+    </div><div class="nav" id="nav"></div></aside><main class="main"><div class="head"><button class="mobile-menu-btn" type="button" aria-label="Buka menu" onclick="toggleMobileNav()">☰</button><div style="display:flex;align-items:center;gap:9px">
       <img src="/assets/vizex-logo.png" alt="Vizex logo" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #c99768">
       <b>Studio Animasi AI</b>
     </div><div style="display:flex;gap:8px;align-items:center">
@@ -147,9 +188,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
       <select id="ideaCount">
         <option value="5">5 ide</option>
         <option value="10" selected>10 ide</option>
-        <option value="15">15 ide</option>
-        <option value="20">20 ide</option>
-        <option value="30">30 ide</option>
+        
+        
+        
       </select>
     </div>
   </div>
@@ -237,7 +278,22 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
   <div class="card" id="adminCustomerCard" style="display:none">
     <label>🛡️ KELOLA CUSTOMER • ADMIN</label>
     <p class="muted">Aktif/nonaktifkan akun, ubah batas perangkat, dan cabut semua sesi customer. Password asli tidak pernah ditampilkan.</p>
-    <div class="actions"><button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button></div>
+    <div class="actions">
+      <button class="primary" onclick="toggleAddCustomerForm()">＋ Tambah Customer</button>
+      <button class="mini ghost" onclick="loadAdminCustomers()">↻ Refresh Customer</button>
+    </div>
+    <div id="addCustomerForm" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--l);border-radius:13px;background:#fffdf8">
+      <label>➕ CUSTOMER BARU</label>
+      <div class="grid" style="margin-top:12px">
+        <div><label>NAMA / BRAND</label><input id="newCustomerName" placeholder="Contoh: Customer 2"></div>
+        <div><label>EMAIL LOGIN</label><input id="newCustomerEmail" type="email" placeholder="customer2@gmail.com"></div>
+        <div><label>PASSWORD / KODE AKSES</label><input id="newCustomerPassword" type="password" placeholder="Minimal 8 karakter"></div>
+        <div><label>PAKET</label><select id="newCustomerPlan"><option value="PRO">PRO</option><option value="BASIC">BASIC</option><option value="PREMIUM">PREMIUM</option></select></div>
+        <div><label>BATAS PERANGKAT</label><select id="newCustomerDevices"><option value="1">1 perangkat</option><option value="2">2 perangkat</option><option value="3">3 perangkat</option><option value="5">5 perangkat</option><option value="10">10 perangkat</option></select></div>
+      </div>
+      <div class="actions"><button class="primary" onclick="createAdminCustomer()">Buat Customer</button><button class="mini ghost" onclick="toggleAddCustomerForm(false)">Batal</button></div>
+      <p class="muted" id="newCustomerMsg"></p>
+    </div>
     <div id="adminCustomerList"></div>
   </div>
 
@@ -267,6 +323,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 
 
 </main></div><script>
+function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
+function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
+window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
 const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
 let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=JSON.parse(localStorage.getItem("chars")||"[]");
 const nav=document.getElementById("nav");
@@ -422,7 +481,7 @@ function concept(){
 function pick(i,el){
  chosen=el.dataset.d;
  document.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
- let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve the exact same hairstyle, outfit, body proportions, accessories, colors, and materials in every scene\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
+ let lock=`STYLE: ${v("style")}\nMAIN CHARACTER: ${chosen}\nFACE: follow the saved character setting; if faceless, do not generate eyes, eyebrows, nose, mouth, lips, ears, or any facial details\nMAIN CHARACTER CONSISTENCY: preserve identity, hairstyle, body proportions, distinctive details and face setting in every scene. Outfit is a separate story state and may change only when the title/scene logically requires a clothing change; otherwise keep the previous outfit exactly\nSUPPORTING CHARACTERS: if other people appear, keep them clearly different from the main character by using different hairstyles, silhouettes, height, posture, clothing shape, or body language. Do not let supporting characters look identical to the main character.\nFOCUS RULE: only one character is the main locked character; other people are background/supporting characters only.\nFORMAT: vertical 9:16`;
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="lock"><label>🔒 KUNCI KARAKTER</label><div class="result">${e(lock)}</div><div class="actions"><button class="primary" onclick="scenes()">Buat Storyboard</button></div></div>`);
  document.getElementById("lock").scrollIntoView({behavior:"smooth"});
 }
@@ -811,30 +870,50 @@ function buildLockedNarration(story,dur){
  return titleFirstNarration(story,dur);
 }
 
+let V9_PACKAGE=null;
+function v9Draft(i){
+ const sc=V9_PACKAGE?.scenes?.[i]||{};
+ return {function:document.getElementById(`v9fn${i}`)?.value||sc.function||"",action:document.getElementById(`v9act${i}`)?.value||sc.action||"",outfit:document.getElementById(`v9out${i}`)?.value||sc.outfit||"",camera:document.getElementById(`v9cam${i}`)?.value||sc.camera||""};
+}
+function renderV9Storyboard(){
+ const d=V9_PACKAGE;if(!d)return;const wrap=document.getElementById("v9Storyboard");if(!wrap)return;
+ wrap.innerHTML=`<div class="card"><label>🎬 V9 STORYBOARD EDITOR</label><p class="muted">Edit aksi atau pakaian per scene. Outfit hanya berubah kalau ceritanya memang membutuhkan. Setelah edit, klik <b>Simpan + Regenerate Scene</b> supaya prompt gambar/video ikut sinkron.</p><div class="result">HOOK: ${e(d.hook||"")}\n\nPAYOFF: ${e(d.payoff||"")}</div></div>`+
+ (d.scenes||[]).map((sc,i)=>`<div class="scene" id="v9scene${i}"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3>
+ <label>🎬 AKSI SCENE</label><textarea id="v9act${i}" rows="4">${e(sc.action||"")}</textarea>
+ <div class="grid2" style="margin-top:12px"><div><label>👕 OUTFIT SCENE</label><textarea id="v9out${i}" rows="3">${e(sc.outfit||"")}</textarea></div><div><label>🔄 ALASAN OUTFIT</label><div class="result">${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div></div></div>
+ <label style="margin-top:12px">📷 KAMERA</label><select id="v9cam${i}">${["Establishing Wide Shot","Wide Shot","Full Shot","Medium Shot","Medium Close-Up","Close-Up","Low Angle","High Angle","Top-Down","Side Shot","Front Shot","Back Shot","Over-the-Shoulder","Tracking Shot"].map(x=>`<option${(sc.camera||"Medium Shot")===x?" selected":""}>${x}</option>`).join("")}</select>
+ <div class="result" style="margin-top:12px">AWAL: ${e(sc.start_state||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div>
+ <div class="actions"><button class="mini primary" onclick="v9RegenerateScene(${i})">🔄 Simpan + Regenerate Scene</button></div></div>`).join("")+
+ `<div class="card"><label>🔒 OUTFIT TIMELINE</label><div class="result">${(d.scenes||[]).map((sc,i)=>`SCENE ${i+1}: ${sc.outfit||"-"} • ${sc.outfit_change_reason||"TIDAK BERUBAH"}`).join("\n")}</div><div class="actions"><button class="primary" onclick="v9FinalPrompts()">✨ Generate Final Prompts</button></div></div>`;
+}
+async function v9RegenerateScene(i){
+ if(!V9_PACKAGE)return;const btn=document.querySelector(`#v9scene${i} button`),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="⏳ Regenerate..."}
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"regenerate_scene",title:v("idea").trim(),sceneCount:+v("n"),duration:+v("duration"),style:v("style"),character:chosen,sceneIndex:i,package:V9_PACKAGE,draft:v9Draft(i)})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Generator error (${r.status})`);V9_PACKAGE.scenes[i]=d.scene;renderV9Storyboard();document.getElementById(`v9scene${i}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+ }catch(err){alert(err.message||String(err));if(btn){btn.disabled=false;btn.textContent=old}}
+}
+async function v9FinalPrompts(){
+ let data=V9_PACKAGE;if(!data)return;const idea=v("idea").trim(),dur=+v("duration"),style=v("style");
+ const buttons=[...document.querySelectorAll("#v9Storyboard button")];buttons.forEach(b=>b.disabled=true);
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"finalize",title:idea,sceneCount:+v("n"),duration:dur,style,character:chosen,package:V9_PACKAGE})});
+  const fresh=await r.json().catch(()=>({}));if(!r.ok)throw new Error(fresh.error||`Generator error (${r.status})`);V9_PACKAGE=data=fresh;renderV9Storyboard();
+ }catch(err){buttons.forEach(b=>b.disabled=false);alert(err.message||String(err));return}
+
+ let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER IDENTITY LOCK: ${chosen}\n\n`;
+ let h=`<div class="card" id="prompts"><label>✨ V9 • FINAL STORY PACKAGE</label><p class="muted">Final prompt memakai storyboard + outfit timeline yang sudah kamu set.</p>`;
+ (data.scenes||[]).forEach((sc,i)=>{txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nOUTFIT: ${sc.outfit}\nALASAN OUTFIT: ${sc.outfit_change_reason}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function||"")}</h3><b>👕 OUTFIT</b><div class="result">${e(sc.outfit||"")}\n${e(sc.outfit_change_reason||"TIDAK BERUBAH")}</div><br><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state||"")}\n\nAKSI: ${e(sc.action||"")}\n\nAKHIR: ${e(sc.end_state||"")}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera||"")}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt||"")}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt||"")}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`});
+ const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi V9",idea);
+ h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div><div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div><div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div><div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
+ document.getElementById("prompts")?.remove();flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts")?.scrollIntoView({behavior:"smooth"});
+}
 async function scenes(){
  const idea=v("idea").trim();if(!idea)return alert("Masukkan judul/ide dulu.");if(!chosen)return alert("Pilih karakter dulu.");
- const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";
- document.getElementById(lid)?.remove();
- flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX GPT ENGINE</label><div class="result">GPT lagi menyusun SATU alur dari judul → ${n} scene → prompt gambar/video → narasi ${dur} detik → caption → cover.\n\nTunggu sebentar...</div></div>`);
- document.getElementById(lid).scrollIntoView({behavior:"smooth"});
- try{
-  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});
-  const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);
-  let txt=`PROJECT: ${data.title||idea}\nSTYLE: ${style}\nCHARACTER LOCK: ${chosen}\n\n`;
-  let h=`<div class="card" id="prompts"><label>✨ VIZEX GPT • FINAL STORY PACKAGE</label><p class="muted">Semua bagian dibuat GPT dari satu alur yang sama.</p><div class="result">HOOK: ${e(data.hook||"")}\n\nPAYOFF: ${e(data.payoff||"")}</div>`;
-  (data.scenes||[]).forEach((sc,i)=>{
-   txt+=`\nSCENE ${i+1}\nFUNGSI: ${sc.function}\nAWAL: ${sc.start_state}\nAKSI: ${sc.action}\nAKHIR: ${sc.end_state}\nKAMERA: ${sc.camera}\nPROMPT GAMBAR: ${sc.image_prompt}\nPROMPT VIDEO: ${sc.video_prompt}\n`;
-   h+=`<div class="scene"><h3>SCENE ${String(i+1).padStart(2,"0")} • ${e(sc.function)}</h3><b>🎬 ALUR</b><div class="result">AWAL: ${e(sc.start_state)}\n\nAKSI: ${e(sc.action)}\n\nAKHIR: ${e(sc.end_state)}</div><br><b>📷 KAMERA</b><div class="result">${e(sc.camera)}</div><br><b>🖼️ PROMPT GAMBAR</b><div class="result">${e(sc.image_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.image_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Gambar</button><br><br><b>🎥 PROMPT VIDEO</b><div class="result">${e(sc.video_prompt)}</div><button class="mini primary" data-copy="${encodeURIComponent(sc.video_prompt)}" onclick="copyEncoded(this)">📋 Salin Prompt Video</button></div>`;
-  });
-  const narration=data.narration||"",cover=data.cover_prompt||"",caption=data.caption||"";
-  txt+=`\nNARASI (${dur} DETIK)\n${narration}\n\nPROMPT COVER\n${cover}\n\nCAPTION\n${caption}\n`;
-  project=txt;lastNarration=narration;lastCover=cover;lastCaption=caption;addVizexHistory("Paket Animasi GPT",idea);
-  h+=`<div class="card" style="margin-top:18px"><label>🎙️ NARASI UTUH + CTA • ${dur} DETIK</label><p class="muted">Narasi mengikuti urutan kejadian yang sama dan durasi yang dipilih.</p><div class="result">${e(narration)}</div><button class="mini" data-copy="${encodeURIComponent(narration)}" onclick="copyEncoded(this)">📋 Salin Narasi</button></div>`;
-  h+=`<div class="card" style="margin-top:18px"><label>🖼️ PROMPT COVER + TEKS</label><div class="result">TEKS COVER: ${e(data.cover_text||"")}\n\n${e(cover)}</div><button class="mini" data-copy="${encodeURIComponent(cover)}" onclick="copyEncoded(this)">📋 Salin Prompt Cover</button></div>`;
-  h+=`<div class="card" style="margin-top:18px"><label>📝 CAPTION + CTA</label><div class="result">${e(caption)}</div><button class="mini" data-copy="${encodeURIComponent(caption)}" onclick="copyEncoded(this)">📋 Salin Caption</button></div>`;
-  h+=`<div class="actions"><button class="primary" data-copy="${encodeURIComponent(txt)}" onclick="copyEncoded(this)">📋 Salin Semua Prompt</button></div></div>`;
-  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
- }catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ GPT GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div><p class="muted">Cek OPENAI_API_KEY di Vercel Production lalu Redeploy.</p></div>`)}
+ const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";document.getElementById(lid)?.remove();document.getElementById("v9Storyboard")?.remove();document.getElementById("prompts")?.remove();
+ flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX V9 ENGINE</label><div class="result">GPT lagi bikin storyboard + outfit timeline dari judul. Pakaian boleh berubah hanya kalau scene memang membutuhkan.\n\nTunggu sebentar...</div></div>`);document.getElementById(lid).scrollIntoView({behavior:"smooth"});
+ try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);V9_PACKAGE=data;flow.insertAdjacentHTML("beforeend",'<div id="v9Storyboard"></div>');renderV9Storyboard();document.getElementById("v9Storyboard")?.scrollIntoView({behavior:"smooth"});}
+ catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ V9 GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div></div>`)}
 }
 function fitLifeNarration(parts,dur){
  const target={15:32,30:65,45:98,60:130}[dur]||65;
@@ -1121,7 +1200,13 @@ ${storyCTA(idea,"caption")}
  flow.insertAdjacentHTML("beforeend",h);document.getElementById("prompts").scrollIntoView({behavior:"smooth"});
 }
 
+let vizexIdeaBusy=false,vizexIdeaCooldownUntil=0;
 async function generatePremiumIdeas(){
+ if(vizexIdeaBusy)return;
+ const _now=Date.now();
+ if(_now<vizexIdeaCooldownUntil){alert(`Tunggu ${Math.ceil((vizexIdeaCooldownUntil-_now)/1000)} detik sebelum generate lagi.`);return}
+ vizexIdeaBusy=true; vizexIdeaCooldownUntil=_now+15000;
+ setTimeout(()=>{vizexIdeaBusy=false},15000);
  const topic=(v("ideaNiche")||"").trim(), audience=(v("ideaAudienceText")||"").trim(), count=+(v("ideaCount")||10);
  if(!topic)return alert("Masukkan NICHE / TOPIK dulu.");
  const out=document.getElementById("premiumIdeaResults");
@@ -1139,7 +1224,7 @@ async function generatePremiumIdeas(){
   <label>VISUAL HOOK</label><div class="result">${e(x.visual_hook||"")}</div><label>PAYOFF</label><div class="result">${e(x.payoff||"")}</div>
   <div class="actions"><button class="mini primary" data-title="${encodeURIComponent(x.title||"")}" data-hook="${encodeURIComponent(x.hook||"")}" data-visual="${encodeURIComponent(x.visual_hook||"")}" data-payoff="${encodeURIComponent(x.payoff||"")}" onclick="usePremiumIdea(decodeURIComponent(this.dataset.title),decodeURIComponent(this.dataset.hook),decodeURIComponent(this.dataset.visual),decodeURIComponent(this.dataset.payoff),'')">🎬 Buat Animasi</button>
   <button class="mini" data-copy="${encodeURIComponent("IDE #"+(i+1)+"\nJudul: "+(x.title||"")+"\nHook: "+(x.hook||"")+"\nVisual Hook: "+(x.visual_hook||"")+"\nPayoff: "+(x.payoff||""))}" onclick="copyEncoded(this)">📋 Salin</button></div></div>`).join("")}</div>`;
- }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Cek GEMINI_API_KEY / deployment Vercel lalu coba lagi.</p></div>`}
+ }catch(err){out.innerHTML=`<div class="card"><label>⚠️ AI IDEA GENERATOR ERROR</label><div class="result">${e(err?.message||"Generator ide gagal.")}</div><p class="muted">Gemini utama sedang sibuk. Vizex otomatis mencoba beberapa model Gemini cadangan.</p></div>`}
 }
 
 function surpriseIdeas(){
@@ -1404,20 +1489,65 @@ async function loadActiveSessions(){
 }
 async function revokeDevice(id){if(!confirm("Keluarkan perangkat ini dari akun?"))return;try{await accountJSON("/api/revoke-session",{method:"POST",body:JSON.stringify({session_id:id})});await loadActiveSessions()}catch(e){alert(e.message)}}
 async function logoutAllDevices(){if(!confirm("Keluar dari semua perangkat termasuk perangkat ini?"))return;try{await accountJSON("/api/logout-all",{method:"POST",body:"{}"})}catch(e){}location.replace("/")}
+function toggleAddCustomerForm(force){
+ const el=document.getElementById("addCustomerForm");if(!el)return;
+ const show=typeof force==="boolean"?force:el.style.display==="none";
+ el.style.display=show?"block":"none";
+ if(show){const n=document.getElementById("newCustomerName");if(n)n.focus()}
+}
+async function createAdminCustomer(){
+ const msg=document.getElementById("newCustomerMsg");
+ const name=document.getElementById("newCustomerName").value.trim();
+ const email=document.getElementById("newCustomerEmail").value.trim().toLowerCase();
+ const password=document.getElementById("newCustomerPassword").value;
+ const plan=document.getElementById("newCustomerPlan").value;
+ const max_devices=Number(document.getElementById("newCustomerDevices").value)||1;
+ if(!name||!email||!password){msg.textContent="Nama, email, dan password wajib diisi.";return}
+ if(password.length<8){msg.textContent="Password minimal 8 karakter.";return}
+ msg.textContent="Membuat customer...";
+ try{
+  const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({action:"create",name,email,password,plan,max_devices})});
+  msg.textContent=`Customer ${d.customer?.email||email} berhasil dibuat.`;
+  ["newCustomerName","newCustomerEmail","newCustomerPassword"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("newCustomerPlan").value="PRO";document.getElementById("newCustomerDevices").value="1";
+  await loadAdminCustomers();
+ }catch(err){msg.textContent=err.message}
+}
 async function loadAdminCustomers(){
  const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
- try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button><button class="mini ghost" style="border-color:#c98572" onclick="adminDeleteCustomer('${c.id}',${JSON.stringify(c.name||c.email)},${JSON.stringify(c.email)})">🗑 Hapus</button></div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+ try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button>${String(c.plan||'').toUpperCase()!=='ADMIN'?`<button type="button" class="mini ghost vizex-delete-customer" data-customer-id="${e(String(c.id||''))}">🗑 Hapus</button>`:''}</div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+ bindAdminDeleteButtons();
 }
 async function adminToggleCustomer(id,status){if(!confirm(`${status==='blocked'?'Blokir':'Aktifkan'} customer ini?`))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"status",value:status})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangkat aktif:",String(current||1));if(n===null)return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"max_devices",value:Number(n)})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
-async function adminDeleteCustomer(id,name,email){
- const ok=confirm(`Hapus customer ini secara permanen?\n\n${name}\n${email}\n\nSemua sesi login customer juga akan dihapus. Tindakan ini tidak bisa dibatalkan.`);
- if(!ok)return;
+function bindAdminDeleteButtons(){
+ document.querySelectorAll(".vizex-delete-customer").forEach(btn=>{
+  btn.onclick=async function(ev){
+   ev.preventDefault();ev.stopPropagation();
+   const id=this.dataset.customerId;
+   if(!id){this.textContent="ID ERROR";return;}
+   if(this.dataset.confirmDelete!=="yes"){
+    this.dataset.confirmDelete="yes";
+    this.textContent="⚠ Klik Lagi Untuk Hapus";
+    this.style.fontWeight="900";
+    setTimeout(()=>{if(this&&this.isConnected&&this.dataset.confirmDelete==="yes"){this.dataset.confirmDelete="";this.textContent="🗑 Hapus"}},5000);
+    return;
+   }
+   this.disabled=true;this.textContent="⏳ Menghapus...";
+   await adminDeleteCustomer(id,this);
+  };
+ });
+}
+
+async function adminDeleteCustomer(id,btn){
  try{
-  await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"delete"})});
+  const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:String(id),action:"delete"})});
+  if(!d||d.ok!==true)throw new Error(d?.error||"Customer gagal dihapus.");
   await loadAdminCustomers();
- }catch(e){alert(e.message)}
+ }catch(err){
+  if(btn){btn.disabled=false;btn.dataset.confirmDelete="";btn.textContent="❌ "+String(err?.message||"Gagal").slice(0,28);}
+ }
 }
 const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
 loadCustomerProfile();
