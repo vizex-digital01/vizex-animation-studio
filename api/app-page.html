@@ -1658,7 +1658,7 @@ async function adminDeleteCustomer(id,btn){
   if(btn){btn.disabled=false;btn.dataset.confirmDelete="";btn.textContent="❌ "+String(err?.message||"Gagal").slice(0,28);}
  }
 }
-const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
+const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadActiveSessions()};
 loadCustomerProfile();
 </script>
 
