@@ -86,9 +86,9 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
 <p>Untuk mencoba Vizex FREE, dukung dulu @vizex.digital: follow Instagram dan lihat salah satu Reels. Setelah itu kembali ke sini dan lanjut daftar.</p>
 <div class="free-gate-actions">
 <a id="igFollowBtn" href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener" onclick="markFreeStep('follow')">📸 Follow IG</a>
-<a id="igReelsBtn" href="https://www.instagram.com/vizex.digital/reels/" target="_blank" rel="noopener" onclick="markFreeStep('reels')">🎬 Lihat Reels</a>
+<a id="igReelsBtn" href="https://www.instagram.com/vizex.digital/reels/" target="_blank" rel="noopener" onclick="markFreeStep('reels')">🎬 Like Reels</a>
 </div>
-<div id="freeChecks" class="free-checks">○ Follow IG &nbsp;&nbsp; ○ Lihat Reels</div>
+<div id="freeChecks" class="free-checks">○ Follow IG &nbsp;&nbsp; ○ Like Reels</div>
 <button type="button" id="freeConfirmBtn" class="free-confirm" onclick="confirmFreeGate()" disabled>Saya Sudah Follow — Lanjut</button>
 </div>
 <div id="freeExtra" class="free-extra"><label>NAMA</label><input id="freeName" placeholder="Nama kamu"></div><label>EMAIL</label>
@@ -131,7 +131,7 @@ let freeMode="login";
 let freeGatePassed=false,freeFollowClicked=false,freeReelsClicked=false;
 function updateFreeGate(){
  const c=document.getElementById("freeChecks"),btn=document.getElementById("freeConfirmBtn");
- if(c)c.textContent=(freeFollowClicked?"✓":"○")+" Follow IG     "+(freeReelsClicked?"✓":"○")+" Lihat Reels";
+ if(c)c.textContent=(freeFollowClicked?"✓":"○")+" Follow IG     "+(freeReelsClicked?"✓":"○")+" Like Reels";
  if(btn)btn.disabled=!(freeFollowClicked&&freeReelsClicked);
 }
 function markFreeStep(step){if(step==="follow")freeFollowClicked=true;if(step==="reels")freeReelsClicked=true;updateFreeGate()}
@@ -141,7 +141,7 @@ function setFreeMode(mode){
  const reg=freeMode==="register";
  freeLoginBtn.classList.toggle("active",!reg);freeRegisterBtn.classList.toggle("active",reg);
  freeGate.classList.toggle("show",reg&&!freeGatePassed);freeExtra.classList.toggle("show",reg&&freeGatePassed);
- planCopy.textContent=reg?(freeGatePassed?"Isi data untuk membuat akun FREE.":"Daftar baru: follow IG + lihat Reels dulu."):"Sudah punya akun FREE? Masuk langsung tanpa follow ulang.";
+ planCopy.textContent=reg?(freeGatePassed?"Isi data untuk membuat akun FREE.":"Daftar FREE baru: wajib Follow Instagram @vizex.digital + Like Reels dulu."):"Sudah punya akun FREE? Masuk langsung dengan email + password. Tidak perlu Follow/Like ulang.";
  loginBtn.style.display=(reg&&!freeGatePassed)?"none":"";
  loginBtn.textContent=reg?"Buat Akun FREE →":"Masuk Akun FREE →";
 }
