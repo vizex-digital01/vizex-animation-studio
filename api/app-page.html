@@ -148,6 +148,86 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 }
 @media(max-width:390px){.main{padding:11px!important}.head{margin:-11px -11px 12px;padding:9px 11px}.head>div:first-child b{display:none}.head .tag{max-width:105px}h1{font-size:25px!important}.card{padding:12px!important}}
 </style>
+
+<style id="vizex-mobile-simple-v2">
+/* Mobile app shell — desktop remains unchanged */
+@media(max-width:768px){
+ html,body{width:100%;max-width:100%;overflow-x:hidden}
+ body{font-size:14px}
+ .app{display:block!important;min-height:100dvh}
+ .side{
+   position:fixed!important;left:0;top:0;bottom:0;z-index:10020;
+   width:min(84vw,300px)!important;height:100dvh!important;
+   padding:16px 12px!important;overflow-y:auto!important;
+   transform:translateX(-105%);transition:transform .2s ease;
+   border-right:1px solid #d8c8b6!important;border-bottom:0!important;
+   box-shadow:14px 0 34px rgba(47,36,27,.18)!important
+ }
+ body.mobile-nav-open .side{transform:translateX(0)!important}
+ .brand-side{margin:0 8px 14px!important;padding:2px 0 12px;border-bottom:1px solid #d8c8b6}
+ .side-logo{width:38px!important;height:38px!important}
+ .nav{display:block!important;overflow:visible!important}
+ .nav button{
+   display:flex!important;align-items:center!important;width:100%!important;
+   min-width:0!important;min-height:46px!important;margin:3px 0!important;
+   padding:11px 12px!important;border-radius:11px!important;font-size:14px!important
+ }
+ .mobile-overlay{position:fixed!important;inset:0!important;z-index:10010!important;background:rgba(47,36,27,.36)!important;backdrop-filter:blur(2px)}
+ body.mobile-nav-open .mobile-overlay{display:block!important}
+ .main{padding:12px!important;width:100%!important;max-width:none!important;margin:0!important}
+ .head{
+   position:sticky!important;top:0!important;z-index:9000!important;
+   margin:-12px -12px 12px!important;padding:9px 12px!important;
+   min-height:58px!important;background:rgba(246,239,228,.96)!important;
+   backdrop-filter:blur(12px);border-bottom:1px solid #d8c8b6!important;
+   display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:8px!important
+ }
+ .mobile-menu-btn{
+   display:inline-flex!important;align-items:center;justify-content:center;
+   width:40px!important;height:40px!important;border-radius:11px!important;
+   padding:0!important;font-size:21px!important
+ }
+ .head>div:first-of-type{min-width:0!important;gap:7px!important}
+ .head>div:first-of-type img{width:30px!important;height:30px!important}
+ .head>div:first-of-type b{font-size:13px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .head>div:last-child{min-width:0!important;gap:5px!important}
+ .head .tag{max-width:105px!important;padding:6px 7px!important;font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .head .mini{padding:7px 8px!important;font-size:10px!important;min-height:34px!important}
+ h1{font-size:25px!important;line-height:1.12!important;margin:16px 0 6px!important}
+ h2{font-size:20px!important} h3{font-size:15px!important}
+ .muted{font-size:13px!important}
+ .card{padding:13px!important;margin-top:11px!important;border-radius:14px!important;overflow:hidden}
+ .grid,.grid3,.grid2{grid-template-columns:1fr!important;gap:9px!important}
+ input,textarea,select{width:100%!important;max-width:100%!important;font-size:16px!important;padding:11px!important;min-height:44px!important}
+ textarea{min-height:105px!important}
+ .actions{display:flex!important;flex-direction:column!important;gap:7px!important;width:100%!important}
+ .actions button,.actions .primary,.actions .mini{width:100%!important;min-height:43px!important;margin:0!important}
+ .result{max-width:100%!important;overflow-wrap:anywhere!important;word-break:break-word!important;font-size:12.5px!important;padding:11px!important}
+ .scene{padding:12px!important;margin:9px 0!important;border-radius:13px!important;overflow:hidden}
+ .scene .actions{margin-top:9px!important}
+ .scene button{max-width:100%!important}
+ .workspace-item{display:block!important;padding:12px!important;margin-top:8px!important}
+ .workspace-actions{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin-top:10px!important}
+ .workspace-actions button{width:100%!important;min-height:40px!important;margin:0!important}
+ #adminCustomerCard .workspace-actions{grid-template-columns:1fr!important}
+ #addCustomerForm{padding:12px!important}
+ .statgrid{grid-template-columns:1fr!important;gap:8px!important}
+ .stat{padding:11px!important}
+ .choice{padding:12px!important}
+ .saved{padding:11px!important;overflow:hidden}
+ .tool{width:100%!important;max-width:100%!important;overflow:hidden}
+ pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere!important}
+}
+@media(max-width:390px){
+ .main{padding:10px!important}
+ .head{margin:-10px -10px 10px!important;padding:8px 10px!important}
+ .head>div:first-of-type b{display:none!important}
+ .head .tag{max-width:88px!important}
+ h1{font-size:23px!important}
+ .card{padding:11px!important}
+}
+</style>
+
 </head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
@@ -334,6 +414,7 @@ function openTool(id,button){
  document.querySelectorAll(".nav button").forEach(e=>e.classList.remove("on"));
  const target=document.getElementById(id);if(target)target.classList.add("on");
  if(button)button.classList.add("on");
+ if(window.innerWidth<=768)closeMobileNav();
  if(id==="projects")renderProjects();
  if(id==="history")renderHistory();
  if(id==="settings")renderVizexSettings();
@@ -1580,4 +1661,65 @@ async function adminDeleteCustomer(id,btn){
 const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
 loadCustomerProfile();
 </script>
+
+<script>
+/* VIZEX FREE PLAN UI GUARD
+   FREE: Buat Animasi + Pengaturan only.
+   PRO: existing full navigation remains unchanged.
+*/
+(function(){
+  const FREE_BLOCKED = [
+    "generator ide",
+    "karakter",
+    "pemeriksa konsistensi",
+    "proyek saya",
+    "riwayat"
+  ];
+
+  function isFreeAccount(){
+    const plan = String(
+      (window.VIZEX_ME && window.VIZEX_ME.plan) ||
+      (typeof VIZEX_ME !== "undefined" && VIZEX_ME && VIZEX_ME.plan) ||
+      ""
+    ).toUpperCase();
+    return plan === "FREE";
+  }
+
+  function hideFreeOnlyMenus(){
+    if(!isFreeAccount()) return;
+
+    document.querySelectorAll("button,a,[data-page],[data-view],[data-section],.nav-item,.menu-item").forEach(el=>{
+      const text=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+      if(FREE_BLOCKED.some(name=>text===name || text.includes(name))){
+        // Never hide content action buttons accidentally; target sidebar/nav-like ancestors.
+        const navEl = el.closest("aside,nav,.sidebar,.side,.menu") ? el : null;
+        if(navEl) el.style.display="none";
+      }
+    });
+
+    // Extra pass over direct sidebar children for emoji-prefixed labels.
+    document.querySelectorAll("aside *,nav *,.sidebar *").forEach(el=>{
+      const text=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+      if(FREE_BLOCKED.some(name=>text.includes(name))){
+        const clickable=el.closest("button,a");
+        if(clickable) clickable.style.display="none";
+      }
+    });
+  }
+
+  // Run after /api/me has populated VIZEX_ME, and again after DOM updates.
+  const timer=setInterval(()=>{
+    if((window.VIZEX_ME && window.VIZEX_ME.plan) ||
+       (typeof VIZEX_ME !== "undefined" && VIZEX_ME && VIZEX_ME.plan)){
+      hideFreeOnlyMenus();
+      clearInterval(timer);
+    }
+  },120);
+
+  document.addEventListener("DOMContentLoaded",hideFreeOnlyMenus);
+  setTimeout(hideFreeOnlyMenus,600);
+  setTimeout(hideFreeOnlyMenus,1400);
+})();
+</script>
+
 </body></html>
