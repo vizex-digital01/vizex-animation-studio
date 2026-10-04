@@ -1516,27 +1516,38 @@ async function createAdminCustomer(){
 async function loadAdminCustomers(){
  const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
  try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button>${String(c.plan||'').toUpperCase()!=='ADMIN'?`<button type="button" class="mini ghost vizex-delete-customer" data-customer-id="${e(String(c.id||''))}">🗑 Hapus</button>`:''}</div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
+ bindAdminDeleteButtons();
 }
 async function adminToggleCustomer(id,status){if(!confirm(`${status==='blocked'?'Blokir':'Aktifkan'} customer ini?`))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"status",value:status})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangkat aktif:",String(current||1));if(n===null)return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"max_devices",value:Number(n)})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
-document.addEventListener("click",function(ev){
- const btn=ev.target.closest(".vizex-delete-customer");
- if(!btn)return;
- ev.preventDefault();
- ev.stopPropagation();
- adminDeleteCustomer(btn.dataset.customerId);
-});
+function bindAdminDeleteButtons(){
+ document.querySelectorAll(".vizex-delete-customer").forEach(btn=>{
+  btn.onclick=async function(ev){
+   ev.preventDefault();ev.stopPropagation();
+   const id=this.dataset.customerId;
+   if(!id){this.textContent="ID ERROR";return;}
+   if(this.dataset.confirmDelete!=="yes"){
+    this.dataset.confirmDelete="yes";
+    this.textContent="⚠ Klik Lagi Untuk Hapus";
+    this.style.fontWeight="900";
+    setTimeout(()=>{if(this&&this.isConnected&&this.dataset.confirmDelete==="yes"){this.dataset.confirmDelete="";this.textContent="🗑 Hapus"}},5000);
+    return;
+   }
+   this.disabled=true;this.textContent="⏳ Menghapus...";
+   await adminDeleteCustomer(id,this);
+  };
+ });
+}
 
-async function adminDeleteCustomer(id){
- if(!id){alert("ID customer tidak ditemukan.");return;}
- if(!window.confirm("Hapus customer ini secara permanen?\n\nSemua sesi login customer ini juga akan dicabut."))return;
+async function adminDeleteCustomer(id,btn){
  try{
   const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:String(id),action:"delete"})});
   if(!d||d.ok!==true)throw new Error(d?.error||"Customer gagal dihapus.");
-  window.alert("Customer berhasil dihapus.");
   await loadAdminCustomers();
- }catch(err){window.alert("Gagal hapus customer: "+(err?.message||String(err)));}
+ }catch(err){
+  if(btn){btn.disabled=false;btn.dataset.confirmDelete="";btn.textContent="❌ "+String(err?.message||"Gagal").slice(0,28);}
+ }
 }
 const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
 loadCustomerProfile();
