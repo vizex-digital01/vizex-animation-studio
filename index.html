@@ -81,7 +81,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
    <h2>Welcome back 👋</h2>
    <div class="sub">Masuk untuk melanjutkan proyek dan cerita berikutnya.</div>
 
-   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Masuk dengan akun Vizex PRO lo.</div><div id="freeMode" class="free-mode"><button id="freeLoginBtn" type="button" onclick="setFreeMode('login')">Masuk Akun FREE</button><button id="freeRegisterBtn" type="button" onclick="setFreeMode('register')">Daftar FREE</button></div><div id="freeGate" class="free-gate">
+   <div class="plan-switch"><button type="button" id="freeTab" class="active" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Sudah punya akun FREE? Masuk langsung dengan email + password. Tidak perlu Follow/Like ulang.</div><div id="freeMode" class="free-mode show"><button id="freeLoginBtn" class="active" type="button" onclick="setFreeMode('login')">Masuk Akun FREE</button><button id="freeRegisterBtn" type="button" onclick="setFreeMode('register')">Daftar FREE</button></div><div id="freeGate" class="free-gate">
 <h3>🔓 Buka Akses FREE</h3>
 <p>Untuk mencoba Vizex FREE, dukung dulu @vizex.digital: follow Instagram dan lihat salah satu Reels. Setelah itu kembali ke sini dan lanjut daftar.</p>
 <div class="free-gate-actions">
@@ -102,7 +102,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
    <label class="remember"><input id="rememberMe" type="checkbox"> Ingat email saya</label>
 
    <div class="err" id="err"></div>
-   <button id="loginBtn" onclick="premiumLogin()">Masuk ke Vizex →</button>
+   <button id="loginBtn" onclick="premiumLogin()">Masuk Akun FREE →</button>
 
    <div class="links">
     <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20mau%20beli%20akses." target="_blank" rel="noopener">🛒 Beli Akses</a>
@@ -126,7 +126,7 @@ function getVizexDeviceName(){
  const ua=navigator.userAgent||"";let browser=/Edg\//.test(ua)?"Edge":/Chrome\//.test(ua)?"Chrome":/Firefox\//.test(ua)?"Firefox":/Safari\//.test(ua)?"Safari":"Browser";
  let os=/Windows/i.test(ua)?"Windows":/Android/i.test(ua)?"Android":/iPhone|iPad/i.test(ua)?"iPhone/iPad":/Mac/i.test(ua)?"Mac":"Perangkat";return browser+" • "+os;
 }
-let accessMode="pro";
+let accessMode="free";
 let freeMode="login";
 let freeGatePassed=false,freeFollowClicked=false,freeReelsClicked=false;
 function updateFreeGate(){
@@ -203,7 +203,7 @@ async function premiumLogin(){
    btn.textContent="✓ Berhasil — Membuka Workspace...";
    err.classList.add("success");
  } else {
-   btn.textContent="Masuk ke Vizex →";
+   btn.textContent=accessMode==="free"?(freeMode==="register"?"Buat Akun FREE →":"Masuk Akun FREE →"):"Masuk ke Vizex →";
  }
 }
 </script>
