@@ -59,25 +59,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
 .free-gate-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.free-gate-actions a,.free-confirm{display:flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #d9b995;border-radius:10px;padding:10px;font-size:12px;font-weight:900;color:#332116;background:#fff}
 .free-confirm{width:100%;margin-top:8px;background:#d69b63;color:#17100b;cursor:pointer}.free-confirm:disabled{opacity:.45;cursor:not-allowed}
 .free-checks{font-size:11px;margin-top:8px;color:#87684f}
-
-.sub strong{color:#a9693b}
-.password-label{display:flex;align-items:center;justify-content:space-between;margin-top:17px}
-.password-label label{margin:0}
-.forgot,.try-free{border:0;background:transparent;color:#a7683b;font:inherit;font-size:11px;font-weight:900;cursor:pointer;padding:4px 0;text-decoration:none}
-.forgot:hover,.try-free:hover{text-decoration:underline}
-.try-free{margin-left:4px}
-.err{display:none;min-height:0;margin-top:11px;padding:10px 12px;border-radius:11px;border:1px solid #e7b9b3;background:#fff0ee;color:#9e2f24;font-size:12px;font-weight:800;line-height:1.45}
-.err.show{display:block}
-.err.success{display:block;border-color:#b9d8c3;background:#eff9f2;color:#247a46!important}
-.security{text-align:center}
-.security b{padding:0 4px;color:#b89473}
-@media(max-width:480px){
- .password-label{margin-top:16px}
- .plan-copy{line-height:1.55}
- .try-free{display:inline}
-}
-
-</style>
+.free-mode{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.free-mode.show{display:grid}.free-mode button{padding:10px;border:1px solid #d9b995;border-radius:10px;background:#fff;font-weight:900;cursor:pointer}.free-mode button.active{background:#d69b63}</style>
 </head>
 <body>
 <div class="shell">
@@ -97,9 +79,9 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
    <div class="mobile-brand"><img src="/assets/vizex-logo.png" alt="Vizex Studio logo"><div class="wordmark">vizex<b>.studio</b></div></div>
    <div class="status"><span class="dot"></span> Sistem Online</div>
    <h2>Welcome back 👋</h2>
-   <div class="sub"><strong>AI Animation Studio</strong> untuk bikin ide jadi storyboard &amp; prompt siap produksi.</div>
+   <div class="sub">Masuk untuk melanjutkan proyek dan cerita berikutnya.</div>
 
-   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">PRO: masuk dengan akun yang dibuat admin. <button type="button" class="try-free" onclick="setAccessMode('free')">Belum punya akun? Coba FREE</button></div><div id="freeGate" class="free-gate">
+   <div class="plan-switch"><button type="button" id="freeTab" onclick="setAccessMode('free')">🆓 FREE</button><button type="button" id="proTab" class="active" onclick="setAccessMode('pro')">👑 PRO</button></div><div id="planCopy" class="plan-copy">Masuk dengan akun Vizex PRO lo.</div><div id="freeMode" class="free-mode"><button id="freeLoginBtn" type="button" onclick="setFreeMode('login')">Masuk Akun FREE</button><button id="freeRegisterBtn" type="button" onclick="setFreeMode('register')">Daftar FREE</button></div><div id="freeGate" class="free-gate">
 <h3>🔓 Buka Akses FREE</h3>
 <p>Untuk mencoba Vizex FREE, dukung dulu @vizex.digital: follow Instagram dan lihat salah satu Reels. Setelah itu kembali ke sini dan lanjut daftar.</p>
 <div class="free-gate-actions">
@@ -112,7 +94,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
 <div id="freeExtra" class="free-extra"><label>NAMA</label><input id="freeName" placeholder="Nama kamu"></div><label>EMAIL</label>
    <div class="field"><input id="email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
 
-   <div class="password-label"><label>KODE AKSES</label><button type="button" class="forgot" onclick="forgotPassword()">Lupa password?</button></div>
+   <label>KODE AKSES</label>
    <div class="field">
     <input id="code" type="password" autocomplete="current-password" placeholder="Masukkan kode akses" onkeydown="if(event.key==='Enter')login()">
     <button class="eye" type="button" onclick="togglePassword()" aria-label="Lihat atau sembunyikan kode akses">👁</button>
@@ -127,7 +109,7 @@ input:focus{border-color:#bd8452;box-shadow:0 0 0 4px rgba(189,132,82,.12)}
     <a class="linkbtn" href="https://wa.me/6289602897243?text=Halo%20admin%20Vizex%2C%20saya%20butuh%20bantuan%20login." target="_blank" rel="noopener">💬 Hubungi Admin</a>
    </div>
 
-   <div class="security">🔒 Akses aman <b>•</b> Perangkat dikelola <b>•</b> Data tiap akun terpisah</div>
+   <div class="security">🔒 Akses akun dan sesi perangkat dikelola oleh sistem Vizex. Jangan bagikan kode akses atau akun kepada orang lain.</div>
    <div class="social"><span>© 2026 Vizex.Digital</span><span>Follow IG: <a href="https://www.instagram.com/vizex.digital/" target="_blank" rel="noopener noreferrer">@vizex.digital</a></span></div>
   </div>
  </main>
@@ -145,6 +127,7 @@ function getVizexDeviceName(){
  let os=/Windows/i.test(ua)?"Windows":/Android/i.test(ua)?"Android":/iPhone|iPad/i.test(ua)?"iPhone/iPad":/Mac/i.test(ua)?"Mac":"Perangkat";return browser+" • "+os;
 }
 let accessMode="pro";
+let freeMode="login";
 let freeGatePassed=false,freeFollowClicked=false,freeReelsClicked=false;
 function updateFreeGate(){
  const c=document.getElementById("freeChecks"),btn=document.getElementById("freeConfirmBtn");
@@ -152,28 +135,29 @@ function updateFreeGate(){
  if(btn)btn.disabled=!(freeFollowClicked&&freeReelsClicked);
 }
 function markFreeStep(step){if(step==="follow")freeFollowClicked=true;if(step==="reels")freeReelsClicked=true;updateFreeGate()}
-function confirmFreeGate(){
- if(!(freeFollowClicked&&freeReelsClicked))return;
- freeGatePassed=true;
- freeGate.classList.remove("show");
- freeExtra.classList.add("show");
- planCopy.textContent="Akses FREE terbuka. Isi data untuk membuat akun gratis.";
- const b=document.getElementById("loginBtn");
- if(b){b.style.display="";b.textContent="Buat Akun FREE →";}
+function confirmFreeGate(){if(!(freeFollowClicked&&freeReelsClicked))return;freeGatePassed=true;freeGate.classList.remove("show");freeExtra.classList.add("show");planCopy.textContent="Akses FREE terbuka. Isi data untuk membuat akun gratis.";loginBtn.style.display="";loginBtn.textContent="Buat Akun FREE →"}
+function setFreeMode(mode){
+ freeMode=mode==="register"?"register":"login";
+ const reg=freeMode==="register";
+ freeLoginBtn.classList.toggle("active",!reg);freeRegisterBtn.classList.toggle("active",reg);
+ freeGate.classList.toggle("show",reg&&!freeGatePassed);freeExtra.classList.toggle("show",reg&&freeGatePassed);
+ planCopy.textContent=reg?(freeGatePassed?"Isi data untuk membuat akun FREE.":"Daftar baru: follow IG + lihat Reels dulu."):"Sudah punya akun FREE? Masuk langsung tanpa follow ulang.";
+ loginBtn.style.display=(reg&&!freeGatePassed)?"none":"";
+ loginBtn.textContent=reg?"Buat Akun FREE →":"Masuk Akun FREE →";
 }
-function setAccessMode(mode){accessMode=mode;const f=mode==="free";freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);
- freeGate.classList.toggle("show",f&&!freeGatePassed);freeExtra.classList.toggle("show",f&&freeGatePassed);
- if(f) planCopy.textContent=freeGatePassed?"Akses FREE terbuka. Isi data untuk membuat akun gratis.":"Follow @vizex.digital dan lihat Reels untuk membuka pendaftaran FREE.";
- else planCopy.innerHTML='PRO: masuk dengan akun yang dibuat admin. <button type="button" class="try-free" onclick="setAccessMode(\'free\')">Belum punya akun? Coba FREE</button>';
- const b=document.getElementById("loginBtn");if(b){b.textContent=f?"Buat Akun FREE →":"Masuk ke Vizex →";b.style.display=(f&&!freeGatePassed)?"none":""}}
+function setAccessMode(mode){
+ accessMode=mode;const f=mode==="free";
+ freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);
+ freeMode.classList.toggle("show",f);
+ if(f)setFreeMode("login");
+ else{freeGate.classList.remove("show");freeExtra.classList.remove("show");planCopy.textContent="Masuk dengan akun Vizex PRO lo.";loginBtn.style.display="";loginBtn.textContent="Masuk ke Vizex →";}
+}
 
 async function login(){
  const err=document.getElementById("err");
  const btn=document.getElementById("loginBtn");
- err.textContent="";
- err.classList.remove("show","success");
+ err.textContent="Memeriksa...";
  btn.disabled=true;
- btn.textContent="⏳ Memverifikasi...";
  try{
    const r=await fetch("/api/login",{
      method:"POST",
@@ -184,37 +168,21 @@ async function login(){
        code:document.getElementById("code").value.trim(),
        device_id:getVizexDeviceId(),
        device_name:getVizexDeviceName(),
-       action:accessMode==="free"?"register_free":"login",
+       action:(accessMode==="free"&&freeMode==="register")?"register_free":"login",
        name:document.getElementById("freeName")?.value.trim()||""
      })
    });
    const d=await r.json().catch(()=>({}));
-   if(!r.ok){
-     const raw=String(d.error||"Login gagal");
-     err.classList.add("show");
-     if(/diblokir|status.*active/i.test(raw)) err.textContent="Akun dinonaktifkan. Hubungi admin.";
-     else if(/email \/ password salah/i.test(raw)) err.textContent="Email atau password salah.";
-     else err.textContent=raw;
-     return
-   }
-   err.classList.add("show","success");
-   err.textContent=accessMode==="free"?"Akun FREE berhasil dibuat. Membuka Studio...":"Login berhasil. Membuka Studio...";
+   if(!r.ok){err.textContent=d.error||"Login gagal";return}
    location.href="/api/app";
  }catch(e){
-   err.classList.add("show");
-    err.textContent="Tidak bisa terhubung ke server.";
+   err.textContent="Tidak bisa terhubung ke server.";
  }finally{
    btn.disabled=false;
  }
 }
 
 
-function forgotPassword(){
- const err=document.getElementById("err");
- err.classList.remove("success");
- err.classList.add("show");
- err.textContent="Reset password belum aktif. Hubungi admin Vizex untuk bantuan akses.";
-}
 function togglePassword(){
  const el=document.getElementById("code");
  el.type=el.type==="password"?"text":"password";
@@ -225,12 +193,18 @@ if(savedVizexEmail){
  document.getElementById("rememberMe").checked=true;
 }
 async function premiumLogin(){
+ const btn=document.getElementById("loginBtn"),err=document.getElementById("err");
  const email=document.getElementById("email").value.trim();
  if(document.getElementById("rememberMe").checked) localStorage.setItem("vizexRememberEmail",email);
  else localStorage.removeItem("vizexRememberEmail");
+ btn.textContent="Memeriksa akses...";
  await login();
- const btn=document.getElementById("loginBtn");
- if(btn&&!btn.disabled)btn.textContent=accessMode==="free"?"Buat Akun FREE →":"Masuk ke Vizex →";
+ if(!err.textContent || err.textContent==="Memeriksa..."){
+   btn.textContent="✓ Berhasil — Membuka Workspace...";
+   err.classList.add("success");
+ } else {
+   btn.textContent="Masuk ke Vizex →";
+ }
 }
 </script>
 </body>
