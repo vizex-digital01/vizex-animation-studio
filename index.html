@@ -152,7 +152,15 @@ function updateFreeGate(){
  if(btn)btn.disabled=!(freeFollowClicked&&freeReelsClicked);
 }
 function markFreeStep(step){if(step==="follow")freeFollowClicked=true;if(step==="reels")freeReelsClicked=true;updateFreeGate()}
-function confirmFreeGate(){if(!(freeFollowClicked&&freeReelsClicked))return;freeGatePassed=true;freeGate.classList.remove("show");freeExtra.classList.add("show");planCopy.textContent="Akses FREE terbuka. Isi data untuk membuat akun gratis."}
+function confirmFreeGate(){
+ if(!(freeFollowClicked&&freeReelsClicked))return;
+ freeGatePassed=true;
+ freeGate.classList.remove("show");
+ freeExtra.classList.add("show");
+ planCopy.textContent="Akses FREE terbuka. Isi data untuk membuat akun gratis.";
+ const b=document.getElementById("loginBtn");
+ if(b){b.style.display="";b.textContent="Buat Akun FREE →";}
+}
 function setAccessMode(mode){accessMode=mode;const f=mode==="free";freeTab.classList.toggle("active",f);proTab.classList.toggle("active",!f);
  freeGate.classList.toggle("show",f&&!freeGatePassed);freeExtra.classList.toggle("show",f&&freeGatePassed);
  if(f) planCopy.textContent=freeGatePassed?"Akses FREE terbuka. Isi data untuk membuat akun gratis.":"Follow @vizex.digital dan lihat Reels untuk membuka pendaftaran FREE.";
