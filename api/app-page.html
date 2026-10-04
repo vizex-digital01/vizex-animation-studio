@@ -1700,4 +1700,36 @@ loadCustomerProfile();
 })();
 </script>
 
+
+<style>
+body.vizex-free-plan .vizex-pro-only{display:none!important}
+</style>
+<script>
+/* VIZEX FREE LIMIT: fixed 3 scenes + no Regenerate Scene */
+(function(){
+ function isFree(){
+  try{return String((typeof VIZEX_ME!=="undefined"&&VIZEX_ME?.plan)||window.VIZEX_ME?.plan||"").toUpperCase()==="FREE"}catch(e){return false}
+ }
+ function apply(){
+  if(!isFree())return;
+  document.body.classList.add("vizex-free-plan");
+  document.querySelectorAll("select,input").forEach(el=>{
+   const meta=((el.id||"")+" "+(el.name||"")+" "+(el.getAttribute("aria-label")||"")).toLowerCase();
+   if(meta.includes("scene")&&(meta.includes("count")||meta.includes("jumlah"))){
+    if(el.tagName==="SELECT"){[...el.options].forEach(o=>o.disabled=Number(o.value)>3);el.value="3"}
+    else if(el.type==="number"||el.type==="range"){el.max="3";el.value="3"}
+   }
+  });
+  document.querySelectorAll("button,a,[onclick],[data-action]").forEach(el=>{
+   const t=(el.textContent||"").toLowerCase(),a=((el.getAttribute("onclick")||"")+" "+(el.getAttribute("data-action")||"")).toLowerCase();
+   if((t.includes("regenerate")&&t.includes("scene"))||a.includes("regenerate_scene")||a.includes("regeneratescene"))
+    el.style.setProperty("display","none","important");
+  });
+ }
+ document.addEventListener("DOMContentLoaded",apply);
+ let n=0;const iv=setInterval(()=>{apply();if(++n>40)clearInterval(iv)},150);
+ new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
 </body></html>

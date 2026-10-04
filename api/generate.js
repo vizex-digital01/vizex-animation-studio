@@ -91,8 +91,10 @@ export default async function handler(req,res){
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const body=req.body||{}, action=String(body.action||"generate");
+   if(freePlan&&action==="regenerate_scene")return res.status(403).json({error:"Regenerate Scene tersedia untuk akun PRO."});
   const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
-  const n=Math.max(3,Math.min(10,Number(body.sceneCount)||5)),dur=[15,30,45,60].includes(Number(body.duration))?Number(body.duration):30;
+  const requestedScenes=Number(body.sceneCount)||5;
+   const n=freePlan?3:Math.max(3,Math.min(10,requestedScenes)),dur=[15,30,45,60].includes(Number(body.duration))?Number(body.duration):30;
   if(!title)return res.status(400).json({error:"Judul kosong."});if(!character)return res.status(400).json({error:"Karakter belum dipilih."});
   if(action==="finalize"){
    const pkg=body.package||{};
