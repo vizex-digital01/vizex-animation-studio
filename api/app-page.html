@@ -1663,62 +1663,40 @@ loadCustomerProfile();
 </script>
 
 <script>
-/* VIZEX FREE PLAN UI GUARD
-   FREE: Buat Animasi + Pengaturan only.
-   PRO: existing full navigation remains unchanged.
+/* VIZEX FREE NAV V2
+   FREE visible: Buat Animasi, Karakter, Pengaturan.
+   FREE hidden: Generator Ide, Pemeriksa Konsistensi, Proyek Saya, Riwayat.
+   PRO unchanged.
 */
 (function(){
-  const FREE_BLOCKED = [
-    "generator ide",
-    "karakter",
-    "pemeriksa konsistensi",
-    "proyek saya",
-    "riwayat"
-  ];
+ const blocked=["generator ide","pemeriksa konsistensi","proyek saya","riwayat"];
 
-  function isFreeAccount(){
-    const plan = String(
-      (window.VIZEX_ME && window.VIZEX_ME.plan) ||
-      (typeof VIZEX_ME !== "undefined" && VIZEX_ME && VIZEX_ME.plan) ||
-      ""
-    ).toUpperCase();
-    return plan === "FREE";
-  }
+ function getPlan(){
+   try{
+     if(typeof VIZEX_ME!=="undefined" && VIZEX_ME) return String(VIZEX_ME.plan||"").toUpperCase();
+   }catch(e){}
+   return String(window.VIZEX_ME?.plan||"").toUpperCase();
+ }
 
-  function hideFreeOnlyMenus(){
-    if(!isFreeAccount()) return;
+ function enforceFreeNav(){
+   if(getPlan()!=="FREE") return;
+   const roots=[...document.querySelectorAll("aside,nav,.sidebar,#sidebar")];
+   roots.forEach(root=>{
+     root.querySelectorAll("button,a").forEach(el=>{
+       const t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+       if(blocked.some(x=>t.includes(x))) el.style.setProperty("display","none","important");
+     });
+   });
+ }
 
-    document.querySelectorAll("button,a,[data-page],[data-view],[data-section],.nav-item,.menu-item").forEach(el=>{
-      const text=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-      if(FREE_BLOCKED.some(name=>text===name || text.includes(name))){
-        // Never hide content action buttons accidentally; target sidebar/nav-like ancestors.
-        const navEl = el.closest("aside,nav,.sidebar,.side,.menu") ? el : null;
-        if(navEl) el.style.display="none";
-      }
-    });
-
-    // Extra pass over direct sidebar children for emoji-prefixed labels.
-    document.querySelectorAll("aside *,nav *,.sidebar *").forEach(el=>{
-      const text=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-      if(FREE_BLOCKED.some(name=>text.includes(name))){
-        const clickable=el.closest("button,a");
-        if(clickable) clickable.style.display="none";
-      }
-    });
-  }
-
-  // Run after /api/me has populated VIZEX_ME, and again after DOM updates.
-  const timer=setInterval(()=>{
-    if((window.VIZEX_ME && window.VIZEX_ME.plan) ||
-       (typeof VIZEX_ME !== "undefined" && VIZEX_ME && VIZEX_ME.plan)){
-      hideFreeOnlyMenus();
-      clearInterval(timer);
-    }
-  },120);
-
-  document.addEventListener("DOMContentLoaded",hideFreeOnlyMenus);
-  setTimeout(hideFreeOnlyMenus,600);
-  setTimeout(hideFreeOnlyMenus,1400);
+ const run=()=>{enforceFreeNav()};
+ document.addEventListener("DOMContentLoaded",run);
+ let tries=0;
+ const iv=setInterval(()=>{
+   run();
+   if(++tries>40)clearInterval(iv);
+ },150);
+ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
 
