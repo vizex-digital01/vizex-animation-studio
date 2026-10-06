@@ -42,6 +42,47 @@ async function askGemini(system,user,schema,name,max=8192){
  }
  throw new Error(last+" Semua model Gemini cadangan sudah dicoba.");
 }
+
+const narrationSchema={type:"object",additionalProperties:false,properties:{narration:{type:"string"}},required:["narration"]};
+function wordCount(text){return String(text||"").trim().split(/\s+/).filter(Boolean).length}
+function narrationRange(dur){
+ return ({15:[30,35],30:[60,70],45:[90,105],60:[120,140]})[Number(dur)]||[60,70];
+}
+async function enforceNarrationDuration(result,dur,title){
+ if(!result||typeof result!=="object")return result;
+ const [min,max]=narrationRange(dur);
+ let count=wordCount(result.narration);
+ if(count>=min&&count<=max)return result;
+
+ const scenes=Array.isArray(result.scenes)?result.scenes:[];
+ const system=`You are Vizex's strict Indonesian voice-over duration editor.
+Rewrite ONLY narration. Return JSON with exactly one field: narration.
+The final narration MUST contain ${min}-${max} words total for a ${dur}-second video, including CTA words.
+Count words before answering and rewrite until the count is inside that range.
+Follow the supplied scenes in exact chronological order. Every person, object, action, reaction, consequence and payoff must already exist in the scenes.
+Do not invent dialogue, backstory, objects, people or events.
+Make the narration sound like one flowing casual Indonesian story using consistent gue/lo, not a scene list.
+Do not mention scene, camera, frame, prompt or video production.
+Keep CTAs natural and inside the word budget: ${dur===15?"maximum 1 ending CTA":dur===30?"up to 2 short CTAs: one contextual mid-story CTA only if natural and one ending CTA":"2-3 short contextual CTAs distributed naturally without interrupting the story"}.
+Do not stack generic like/comment/follow commands.`;
+
+ const user=`TITLE: ${title}
+DURATION: ${dur} seconds
+REQUIRED WORD RANGE: ${min}-${max}
+CURRENT NARRATION (${count} words): ${String(result.narration||"")}
+SCENES: ${JSON.stringify(scenes)}
+Rewrite the narration now.`;
+
+ try{
+   const fixed=await askGemini(system,user,narrationSchema,"vizex_narration_duration_fix",2048);
+   const fixedCount=wordCount(fixed?.narration);
+   if(fixed?.narration && fixedCount>=min && fixedCount<=max)result.narration=fixed.narration;
+ }catch(e){
+   console.error("Narration duration repair failed:",e);
+ }
+ return result;
+}
+
 function coreRules(n,dur,freePlan=false){return `You direct Vizex short-form stories. TITLE is absolute source of truth.
 WORK ORDER: silently decide one simple story spine from TITLE first (setup -> trigger -> consequence -> payoff). Then derive every scene from that SAME spine. Only after all scenes are fixed, write narration/caption/cover from those scenes. Never create a second version of the story in narration.
 STORY: exactly ${n} chronological scenes built directly from TITLE, with the simplest believable cause -> reaction -> escalation -> payoff. Do not add random strangers, secret notes/messages, mystery boxes, sudden discoveries, magical coincidences or unrelated twists unless TITLE explicitly requires them. Scene N knows only events already introduced. Each action must be physically plausible from start_state and must produce end_state. The next scene start_state must inherit the previous end_state. State, people, props, quantities, food amount, damage/wetness, outfit condition and location carry forward; nothing teleports, duplicates, resets, dries/cleans magically or appears early.
@@ -120,7 +161,8 @@ export default async function handler(req,res){
    if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
    const system=coreRules(n,dur,freePlan)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
-   const result=await askGemini(system,user,packageSchema,"vizex_finalized_package",8192);
+   let result=await askGemini(system,user,packageSchema,"vizex_finalized_package",8192);
+   result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
    return res.status(200).json(result);
   }
