@@ -228,15 +228,6 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 }
 </style>
 
-
-<style id="vizex-pro-suite-style">
-#blueprint .hero,#ideation .hero,#scriptbuilder .hero,#video2script .hero,#funnel .hero,#contentplan .hero{margin-bottom:16px}
-.pro-plan-grid{display:grid;gap:10px;margin-top:14px}
-@media(max-width:768px){
- #blueprint .actions button,#ideation .actions button,#scriptbuilder .actions button,#video2script .actions button,#funnel .actions button,#contentplan .actions button{width:100%}
-}
-</style>
-
 </head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
@@ -411,78 +402,11 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 <section class="tool" id="cover" style="display:none"><h1>Cover Prompt Generator</h1><p class="muted">Prompt thumbnail/cover dengan character lock.</p><div class="card"><div class="grid"><select id="coverShot"><option>Medium Shot</option><option>Close-up Composition</option><option>Wide Cinematic Shot</option><option>Dynamic Low Angle</option></select><select id="coverText"><option>No text in image</option><option>Leave empty space for title</option></select></div><input id="coverHook" placeholder="Hook cover..."><div class="actions"><button class="primary" onclick="makeCover()">Generate Cover Prompt</button></div><div id="coverOut"></div></div></section>
 
 
-<section class="tool vizex-pro-only" id="blueprint">
-  <div class="hero"><span class="pill">🏠 PRO CREATOR SYSTEM</span><h1>Master Blueprint</h1><p>Bangun fondasi brand dan konten sekali, lalu pakai ulang di workflow Vizex.</p></div>
-  <div class="card"><div class="grid">
-    <div><label>BRAND / CREATOR</label><input id="bpBrand" placeholder="Contoh: Vizex Digital"></div>
-    <div><label>NICHE</label><input id="bpNiche" placeholder="Contoh: AI animation & content creator"></div>
-    <div><label>TARGET AUDIENCE</label><input id="bpAudience" placeholder="Siapa yang mau lo jangkau?"></div>
-    <div><label>GOAL UTAMA</label><select id="bpGoal"><option>Growth / Awareness</option><option>Engagement</option><option>Lead Generation</option><option>Sales / Conversion</option><option>Authority</option></select></div>
-  </div><label>POSITIONING / VALUE</label><textarea id="bpValue" placeholder="Apa yang bikin brand/konten lo beda?"></textarea>
-  <label>TONE & GAYA KOMUNIKASI</label><textarea id="bpTone" placeholder="Contoh: santai, tajam, Gen Z, edukatif tanpa terasa menggurui"></textarea>
-  <div class="actions"><button class="primary" onclick="saveMasterBlueprint()">💾 Simpan Blueprint</button><button class="ghost" onclick="copyMasterBlueprint()">Copy Blueprint</button></div>
-  <div id="bpMsg" class="result">Blueprint tersimpan khusus akun ini di browser.</div></div>
-</section>
-
-<section class="tool vizex-pro-only" id="ideation">
-  <div class="hero"><span class="pill">💬 PRO CREATOR SYSTEM</span><h1>Ideation Room</h1><p>Ubah satu topik jadi kumpulan angle konten yang siap dikembangkan.</p></div>
-  <div class="card"><div class="grid">
-    <div><label>TOPIK UTAMA</label><input id="irTopic" placeholder="Contoh: susah konsisten bikin konten"></div>
-    <div><label>JUMLAH ANGLE</label><select id="irCount"><option>5</option><option selected>10</option><option>15</option></select></div>
-  </div><label>KONTEKS / MASALAH AUDIENCE</label><textarea id="irContext" placeholder="Masukkan insight, masalah, atau situasi spesifik..."></textarea>
-  <div class="actions"><button class="primary" onclick="buildIdeationRoom()">✨ Buat Angle</button><button class="ghost" onclick="sendIdeationToCreate()">🎬 Kirim ke Buat Animasi</button></div>
-  <div id="irOut"></div></div>
-</section>
-
-<section class="tool vizex-pro-only" id="scriptbuilder">
-  <div class="hero"><span class="pill">✍️ PRO CREATOR SYSTEM</span><h1>Script Builder</h1><p>Susun hook, body, payoff, dan CTA menjadi draft script pendek.</p></div>
-  <div class="card"><div class="grid">
-    <div><label>JUDUL / IDE</label><input id="sbIdea" placeholder="Ide utama video"></div>
-    <div><label>DURASI</label><select id="sbDuration"><option>15 detik</option><option selected>30 detik</option><option>45 detik</option><option>60 detik</option></select></div>
-  </div>
-  <label>HOOK</label><textarea id="sbHook" placeholder="Kalimat pembuka yang bikin berhenti scroll..."></textarea>
-  <label>POIN UTAMA</label><textarea id="sbBody" placeholder="Isi inti / urutan cerita..."></textarea>
-  <label>CTA</label><input id="sbCta" placeholder="Contoh: Follow buat part berikutnya">
-  <div class="actions"><button class="primary" onclick="buildScriptDraft()">📝 Susun Script</button><button class="ghost" onclick="sendScriptToCreate()">🎬 Jadikan Ide Animasi</button><button class="ghost" onclick="copyProOutput('sbOut')">Copy</button></div>
-  <div id="sbOut"></div></div>
-</section>
-
-<section class="tool vizex-pro-only" id="video2script">
-  <div class="hero"><span class="pill">🎥 PRO CREATOR SYSTEM</span><h1>Video to Script</h1><p>Bedah catatan/transkrip video menjadi struktur script yang bisa dipakai ulang. Tempel transkrip atau rangkuman videonya.</p></div>
-  <div class="card">
-    <label>TRANSKRIP / CATATAN VIDEO</label><textarea id="vtsInput" style="min-height:190px" placeholder="Tempel transkrip, subtitle, atau rangkuman video di sini..."></textarea>
-    <div class="grid"><div><label>FORMAT OUTPUT</label><select id="vtsFormat"><option>Short-form 30 detik</option><option>Short-form 60 detik</option><option>Storytelling</option><option>Educational</option></select></div><div><label>ANGLE BARU</label><input id="vtsAngle" placeholder="Opsional: angle yang mau dipakai"></div></div>
-    <div class="actions"><button class="primary" onclick="convertVideoToScript()">⚡ Susun Ulang Script</button><button class="ghost" onclick="copyProOutput('vtsOut')">Copy</button></div>
-    <div id="vtsOut"></div>
-  </div>
-</section>
-
-<section class="tool vizex-pro-only" id="funnel">
-  <div class="hero"><span class="pill">🧲 PRO CREATOR SYSTEM</span><h1>Funnel Quick Start</h1><p>Bikin alur konten dari attention sampai conversion tanpa mulai dari halaman kosong.</p></div>
-  <div class="card"><div class="grid">
-    <div><label>PRODUK / OFFER</label><input id="fqOffer" placeholder="Apa yang lo jual / tawarkan?"></div>
-    <div><label>TARGET</label><input id="fqTarget" placeholder="Siapa calon pembelinya?"></div>
-    <div><label>MASALAH UTAMA</label><input id="fqPain" placeholder="Masalah paling terasa"></div>
-    <div><label>CTA</label><input id="fqCta" placeholder="DM, link bio, checkout, daftar..."></div>
-  </div><div class="actions"><button class="primary" onclick="buildFunnel()">🧲 Buat Funnel</button><button class="ghost" onclick="copyProOutput('fqOut')">Copy</button></div><div id="fqOut"></div></div>
-</section>
-
-<section class="tool vizex-pro-only" id="contentplan">
-  <div class="hero"><span class="pill">📅 PRO CREATOR SYSTEM</span><h1>Content Plan</h1><p>Susun kalender konten praktis berdasarkan niche, objective, dan frekuensi posting.</p></div>
-  <div class="card"><div class="grid">
-    <div><label>NICHE / TEMA</label><input id="cpNiche" placeholder="Contoh: AI creator"></div>
-    <div><label>PERIODE</label><select id="cpDays"><option value="7">7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option></select></div>
-    <div><label>OBJECTIVE</label><select id="cpGoal"><option>Growth</option><option>Engagement</option><option>Leads</option><option>Sales</option></select></div>
-    <div><label>FORMAT UTAMA</label><select id="cpFormat"><option>Reels / Shorts</option><option>Carousel</option><option>Mixed Content</option></select></div>
-  </div><div class="actions"><button class="primary" onclick="buildContentPlan()">📅 Buat Content Plan</button><button class="ghost" onclick="copyProOutput('cpOut')">Copy</button></div><div id="cpOut"></div></div>
-</section>
-
-
 </main></div><script>
 function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
 function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
 window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
-const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["blueprint","🏠 Master Blueprint"],["ideation","💬 Ideation Room"],["scriptbuilder","✍️ Script Builder"],["video2script","🎥 Video to Script"],["funnel","🧲 Funnel Quick Start"],["contentplan","📅 Content Plan"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
+const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
 let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=[];
 const nav=document.getElementById("nav");
 function openTool(id,button){
@@ -1745,7 +1669,7 @@ loadCustomerProfile();
    PRO unchanged.
 */
 (function(){
- const blocked=["generator ide","master blueprint","ideation room","script builder","video to script","funnel quick start","content plan","pemeriksa konsistensi","proyek saya","riwayat"];
+ const blocked=["generator ide","pemeriksa konsistensi","proyek saya","riwayat"];
 
  function getPlan(){
    try{
@@ -1805,83 +1729,6 @@ body.vizex-free-plan .vizex-pro-only{display:none!important}
  document.addEventListener("DOMContentLoaded",apply);
  let n=0;const iv=setInterval(()=>{apply();if(++n>40)clearInterval(iv)},150);
  new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
-})();
-</script>
-
-
-<script id="vizex-pro-creator-suite">
-(function(){
- const key=n=>{try{return typeof vizexAccountKey==="function"?vizexAccountKey(n):n}catch(e){return n}};
- const val=id=>(document.getElementById(id)?.value||"").trim();
- const set=(id,html)=>{const x=document.getElementById(id);if(x)x.innerHTML=html};
- const esc=x=>String(x||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- window.copyProOutput=async function(id){
-   const t=document.getElementById(id)?.innerText||"";
-   if(!t)return;
-   try{await navigator.clipboard.writeText(t)}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove()}
- };
- window.saveMasterBlueprint=function(){
-   const data={brand:val("bpBrand"),niche:val("bpNiche"),audience:val("bpAudience"),goal:val("bpGoal"),value:val("bpValue"),tone:val("bpTone")};
-   localStorage.setItem(key("vizexProBlueprint"),JSON.stringify(data));
-   set("bpMsg",'<div class="result">✅ Blueprint tersimpan untuk akun ini.</div>');
- };
- window.copyMasterBlueprint=function(){
-   const text=`MASTER BLUEPRINT\nBrand: ${val("bpBrand")}\nNiche: ${val("bpNiche")}\nAudience: ${val("bpAudience")}\nGoal: ${val("bpGoal")}\nValue: ${val("bpValue")}\nTone: ${val("bpTone")}`;
-   navigator.clipboard?.writeText(text);
- };
- function hydrateBlueprint(){
-   try{const d=JSON.parse(localStorage.getItem(key("vizexProBlueprint"))||"null");if(!d)return;
-   [["bpBrand","brand"],["bpNiche","niche"],["bpAudience","audience"],["bpGoal","goal"],["bpValue","value"],["bpTone","tone"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&d[k]!=null)el.value=d[k]})}catch(e){}
- }
- window.buildIdeationRoom=function(){
-   const topic=val("irTopic"),ctx=val("irContext"),n=Math.max(1,Math.min(15,Number(val("irCount"))||10));
-   if(!topic)return set("irOut",'<div class="result">Isi topik dulu.</div>');
-   const angles=["Masalah yang sering disepelekan","Kesalahan paling umum","Mitos vs realita","POV pengalaman pribadi","Before vs after","3 langkah praktis","Hal yang gue harap tahu lebih awal","Eksperimen / challenge","Pendapat kontra-arus","Checklist cepat","Studi kasus mini","Cerita kegagalan","Shortcut yang aman","FAQ paling sering","Prediksi / tren"];
-   const rows=angles.slice(0,n).map((a,i)=>`<div class="workspace-item"><div><h3>${i+1}. ${esc(a)}</h3><div class="workspace-meta">${esc(topic)}${ctx?" — "+esc(ctx):""}</div></div></div>`).join("");
-   set("irOut",rows);
- };
- window.sendIdeationToCreate=function(){
-   const topic=val("irTopic");if(!topic)return;
-   const idea=document.getElementById("idea");if(idea)idea.value=topic+(val("irContext")?" — "+val("irContext"):"");
-   const b=document.querySelector('.nav button[data-tool="create"]');if(typeof openTool==="function")openTool("create",b);
- };
- window.buildScriptDraft=function(){
-   const idea=val("sbIdea"),hook=val("sbHook"),body=val("sbBody"),cta=val("sbCta"),dur=val("sbDuration");
-   if(!idea&&!hook&&!body)return set("sbOut",'<div class="result">Isi ide, hook, atau poin utama dulu.</div>');
-   set("sbOut",`<div class="result"><b>${esc(idea||"SCRIPT DRAFT")}</b><br><br><b>HOOK</b><br>${esc(hook||"Mulai dengan konflik/pertanyaan paling kuat.")}<br><br><b>BODY • ${esc(dur)}</b><br>${esc(body||"Bangun konteks → masalah → insight → payoff.")}<br><br><b>CTA</b><br>${esc(cta||"Arahkan penonton ke aksi berikutnya.")}</div>`);
- };
- window.sendScriptToCreate=function(){
-   const idea=[val("sbIdea"),val("sbHook"),val("sbBody"),val("sbCta")].filter(Boolean).join("\n");
-   if(!idea)return;const el=document.getElementById("idea");if(el)el.value=idea;
-   const b=document.querySelector('.nav button[data-tool="create"]');if(typeof openTool==="function")openTool("create",b);
- };
- window.convertVideoToScript=function(){
-   const raw=val("vtsInput");if(!raw)return set("vtsOut",'<div class="result">Tempel transkrip/catatan video dulu.</div>');
-   const clean=raw.replace(/\s+/g," ").trim(), sentences=clean.split(/(?<=[.!?])\s+/).filter(Boolean);
-   const hook=sentences[0]||clean.slice(0,160), core=sentences.slice(1,6).join(" ")||clean, payoff=sentences.slice(-2).join(" ")||core;
-   set("vtsOut",`<div class="result"><b>FORMAT: ${esc(val("vtsFormat"))}</b><br><br><b>HOOK</b><br>${esc(hook)}<br><br><b>CORE</b><br>${esc(core)}<br><br><b>PAYOFF</b><br>${esc(payoff)}${val("vtsAngle")?`<br><br><b>ANGLE BARU</b><br>${esc(val("vtsAngle"))}`:""}</div>`);
- };
- window.buildFunnel=function(){
-   const offer=val("fqOffer"),target=val("fqTarget"),pain=val("fqPain"),cta=val("fqCta");
-   if(!offer)return set("fqOut",'<div class="result">Isi produk / offer dulu.</div>');
-   const stages=[
-    ["1. ATTENTION",`Konten problem-aware untuk ${target||"target audience"}: ${pain||"angkat masalah utama yang mereka rasakan"}.`],
-    ["2. TRUST",`Tunjukkan insight, proses, bukti, atau mini case study yang relevan dengan ${offer}.`],
-    ["3. DESIRE",`Perlihatkan outcome dan perubahan setelah masalah terselesaikan.`],
-    ["4. CONVERSION",`Offer: ${offer}. CTA: ${cta||"arahkan ke DM / link bio / checkout"}.`]
-   ];
-   set("fqOut",stages.map(x=>`<div class="workspace-item"><div><h3>${esc(x[0])}</h3><div class="workspace-meta">${esc(x[1])}</div></div></div>`).join(""));
- };
- window.buildContentPlan=function(){
-   const niche=val("cpNiche");if(!niche)return set("cpOut",'<div class="result">Isi niche / tema dulu.</div>');
-   const days=Number(val("cpDays"))||7,goal=val("cpGoal"),format=val("cpFormat");
-   const pillars=["Problem / pain point","How-to praktis","Story / pengalaman","Myth busting","Case study","Opinion / POV","Checklist","Behind the scenes","FAQ","Before-after"];
-   let html='<div class="pro-plan-grid">';
-   for(let i=0;i<days;i++){const p=pillars[i%pillars.length];html+=`<div class="workspace-item"><div><h3>Hari ${i+1} • ${esc(p)}</h3><div class="workspace-meta">${esc(niche)} • ${esc(format)} • Objective: ${esc(goal)}</div></div></div>`}
-   html+='</div>';set("cpOut",html);
- };
- document.addEventListener("DOMContentLoaded",hydrateBlueprint);
- setTimeout(hydrateBlueprint,700);
 })();
 </script>
 
