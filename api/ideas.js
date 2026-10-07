@@ -30,12 +30,19 @@ export default async function handler(req,res){
  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
-  const {topic,niche,audience,count,reference,theme,history}=req.body||{};
+  const {topic,niche,audience,count,reference,theme,history,funnel}=req.body||{};
   const topicText=String(topic||niche||"").trim();
   const nicheText=String(niche||topic||"").trim();
   const target=String(audience||"").trim();
   const themeText=String(theme||"").trim();
   const refText=String(reference||"").trim();
+  const funnelStage=["TOFU","MOFU","BOFU"].includes(String(funnel||"").toUpperCase())?String(funnel).toUpperCase():"TOFU";
+  const funnelRules={
+   TOFU:"AWARENESS: target orang yang belum kenal brand/creator. Buat ide yang luas tapi tetap niche-relevant, relatable, curiosity-driven, shareable, mudah dipahami orang baru, dan menarik perhatian tanpa hard selling. Jangan menjadikan produk/offer sebagai pusat ide. CTA bila ada harus ringan seperti opini, pengalaman, share, atau rasa penasaran.",
+   MOFU:"TRUST / CONSIDERATION: target audience yang sudah sadar masalah/topik. Bangun kepercayaan lewat edukasi praktis, pengalaman, kesalahan umum, myth vs fact, comparison, process, insight, proof-of-expertise, atau problem solving. Tetap storytelling dan visual. Jangan hard selling; arahkan audience makin yakin bahwa creator memahami masalah mereka.",
+   BOFU:"CONVERSION: target audience yang sudah dekat dengan keputusan. Ide boleh membahas solusi/offer, manfaat konkret, objection handling, proof/result, before-after yang masuk akal, use case, FAQ, risiko menunda, atau alasan memilih solusi. Tetap content-first dan storytelling; CTA harus natural, relevan, spesifik, dan tidak terasa spam."
+  };
+  const funnelInstruction=funnelRules[funnelStage];
   const n=Math.max(1,Math.min(10,Number(count)||10));
   if(!nicheText)return res.status(400).json({error:"Topik / niche kosong."});
   const old=Array.isArray(history)?history.slice(-120).map(String):[];
@@ -43,7 +50,11 @@ export default async function handler(req,res){
   const system=`Kamu adalah AI Content Idea Generator yang bertugas menghasilkan ide konten storytelling pendek yang menarik, relatable, memiliki alur kejadian yang jelas, dan mudah divisualisasikan.
 
 TUJUAN:
-Buat ide storytelling berdasarkan niche, target audience, tema, referensi, dan riwayat ide user.
+Buat ide storytelling berdasarkan niche, target audience, tema, referensi, riwayat ide user, dan tahap funnel yang dipilih.
+
+TAHAP FUNNEL WAJIB:
+${funnelStage} — ${funnelInstruction}
+Semua ide dalam respons harus sesuai intent tahap funnel ini. Jangan hanya menempel label TOFU/MOFU/BOFU pada judul. Funnel harus mengubah angle, awareness level, hook, konflik, payoff, dan CTA secara nyata.
 
 ATURAN REFERENSI:
 Jangan terpaku pada contoh/referensi. Referensi hanya untuk memahami POLA, GAYA, JENIS KEJADIAN, tingkat humor, relatability, jumlah scene, dan jenis ending. Jangan menyalin judul, karakter, kejadian, konflik, atau ending.
@@ -107,7 +118,7 @@ Return ONLY valid JSON matching the response schema. No markdown, no code fence,
 visual_hook harus berupa visual konkret 0-3 detik pertama dan konsisten dengan Scene 1.
 scene_count harus sama dengan jumlah object dalam scenes.`;
 
-  const user=`INPUT USER
+  const user=`FUNNEL: ${funnelStage} — ${funnelInstruction}\nINPUT USER
 Topik: ${topicText}
 Niche: ${nicheText}
 Target audience: ${target||"Tidak ditentukan"}

@@ -148,86 +148,14 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 }
 @media(max-width:390px){.main{padding:11px!important}.head{margin:-11px -11px 12px;padding:9px 11px}.head>div:first-child b{display:none}.head .tag{max-width:105px}h1{font-size:25px!important}.card{padding:12px!important}}
 </style>
-
-<style id="vizex-mobile-simple-v2">
-/* Mobile app shell — desktop remains unchanged */
-@media(max-width:768px){
- html,body{width:100%;max-width:100%;overflow-x:hidden}
- body{font-size:14px}
- .app{display:block!important;min-height:100dvh}
- .side{
-   position:fixed!important;left:0;top:0;bottom:0;z-index:10020;
-   width:min(84vw,300px)!important;height:100dvh!important;
-   padding:16px 12px!important;overflow-y:auto!important;
-   transform:translateX(-105%);transition:transform .2s ease;
-   border-right:1px solid #d8c8b6!important;border-bottom:0!important;
-   box-shadow:14px 0 34px rgba(47,36,27,.18)!important
- }
- body.mobile-nav-open .side{transform:translateX(0)!important}
- .brand-side{margin:0 8px 14px!important;padding:2px 0 12px;border-bottom:1px solid #d8c8b6}
- .side-logo{width:38px!important;height:38px!important}
- .nav{display:block!important;overflow:visible!important}
- .nav button{
-   display:flex!important;align-items:center!important;width:100%!important;
-   min-width:0!important;min-height:46px!important;margin:3px 0!important;
-   padding:11px 12px!important;border-radius:11px!important;font-size:14px!important
- }
- .mobile-overlay{position:fixed!important;inset:0!important;z-index:10010!important;background:rgba(47,36,27,.36)!important;backdrop-filter:blur(2px)}
- body.mobile-nav-open .mobile-overlay{display:block!important}
- .main{padding:12px!important;width:100%!important;max-width:none!important;margin:0!important}
- .head{
-   position:sticky!important;top:0!important;z-index:9000!important;
-   margin:-12px -12px 12px!important;padding:9px 12px!important;
-   min-height:58px!important;background:rgba(246,239,228,.96)!important;
-   backdrop-filter:blur(12px);border-bottom:1px solid #d8c8b6!important;
-   display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:8px!important
- }
- .mobile-menu-btn{
-   display:inline-flex!important;align-items:center;justify-content:center;
-   width:40px!important;height:40px!important;border-radius:11px!important;
-   padding:0!important;font-size:21px!important
- }
- .head>div:first-of-type{min-width:0!important;gap:7px!important}
- .head>div:first-of-type img{width:30px!important;height:30px!important}
- .head>div:first-of-type b{font-size:13px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .head>div:last-child{min-width:0!important;gap:5px!important}
- .head .tag{max-width:105px!important;padding:6px 7px!important;font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .head .mini{padding:7px 8px!important;font-size:10px!important;min-height:34px!important}
- h1{font-size:25px!important;line-height:1.12!important;margin:16px 0 6px!important}
- h2{font-size:20px!important} h3{font-size:15px!important}
- .muted{font-size:13px!important}
- .card{padding:13px!important;margin-top:11px!important;border-radius:14px!important;overflow:hidden}
- .grid,.grid3,.grid2{grid-template-columns:1fr!important;gap:9px!important}
- input,textarea,select{width:100%!important;max-width:100%!important;font-size:16px!important;padding:11px!important;min-height:44px!important}
- textarea{min-height:105px!important}
- .actions{display:flex!important;flex-direction:column!important;gap:7px!important;width:100%!important}
- .actions button,.actions .primary,.actions .mini{width:100%!important;min-height:43px!important;margin:0!important}
- .result{max-width:100%!important;overflow-wrap:anywhere!important;word-break:break-word!important;font-size:12.5px!important;padding:11px!important}
- .scene{padding:12px!important;margin:9px 0!important;border-radius:13px!important;overflow:hidden}
- .scene .actions{margin-top:9px!important}
- .scene button{max-width:100%!important}
- .workspace-item{display:block!important;padding:12px!important;margin-top:8px!important}
- .workspace-actions{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin-top:10px!important}
- .workspace-actions button{width:100%!important;min-height:40px!important;margin:0!important}
- #adminCustomerCard .workspace-actions{grid-template-columns:1fr!important}
- #addCustomerForm{padding:12px!important}
- .statgrid{grid-template-columns:1fr!important;gap:8px!important}
- .stat{padding:11px!important}
- .choice{padding:12px!important}
- .saved{padding:11px!important;overflow:hidden}
- .tool{width:100%!important;max-width:100%!important;overflow:hidden}
- pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere!important}
-}
-@media(max-width:390px){
- .main{padding:10px!important}
- .head{margin:-10px -10px 10px!important;padding:8px 10px!important}
- .head>div:first-of-type b{display:none!important}
- .head .tag{max-width:88px!important}
- h1{font-size:23px!important}
- .card{padding:11px!important}
-}
+<style id="vizex-funnel-idea-style">
+.funnel-box{margin-top:16px}
+.funnel-picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.funnel-pick{border:1px solid #d9c3a8;background:#fffaf3;border-radius:16px;padding:15px 10px;cursor:pointer;display:flex;flex-direction:column;gap:5px;align-items:center;font:inherit;color:inherit}
+.funnel-pick b{font-size:16px}.funnel-pick span{font-size:13px;opacity:.72}
+.funnel-pick.active{outline:2px solid #d8a46d;background:#f5e6d3}
+@media(max-width:650px){.funnel-picks{grid-template-columns:1fr}.funnel-pick{flex-direction:row;justify-content:center;gap:9px}}
 </style>
-
 </head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
@@ -275,10 +203,21 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
     </div>
   </div>
 
+  <div class="funnel-box">
+    <label>TAHAP FUNNEL</label>
+    <div class="funnel-picks">
+      <button type="button" class="funnel-pick active" data-funnel="TOFU" onclick="selectIdeaFunnel('TOFU',this)"><b>🌱 TOFU</b><span>Awareness</span></button>
+      <button type="button" class="funnel-pick" data-funnel="MOFU" onclick="selectIdeaFunnel('MOFU',this)"><b>🔥 MOFU</b><span>Trust</span></button>
+      <button type="button" class="funnel-pick" data-funnel="BOFU" onclick="selectIdeaFunnel('BOFU',this)"><b>💰 BOFU</b><span>Conversion</span></button>
+    </div>
+    <input type="hidden" id="ideaFunnel" value="TOFU">
+    <div id="ideaFunnelHint" class="muted" style="margin-top:8px">Awareness — ide luas, relatable, curiosity-driven, tanpa hard selling.</div>
+  </div>
+
   <div class="actions">
     <button class="primary" onclick="generatePremiumIdeas()">✨ Buat Ide</button>
     <button class="ghost" onclick="surpriseIdeas()">🎲 Acak Topik</button>
-    <button class="ghost" onclick="localStorage.removeItem(vizexIdeaHistoryKey());alert('Riwayat judul direset. Generate berikutnya akan mulai fresh lagi.')">♻️ Reset Riwayat Judul</button>
+    <button class="ghost" onclick="localStorage.removeItem('vizexIdeaTitleHistory');alert('Riwayat judul direset. Generate berikutnya akan mulai fresh lagi.')">♻️ Reset Riwayat Judul</button>
   </div>
 </div>
 
@@ -407,14 +346,13 @@ function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
 function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
 window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
 const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
-let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=[];
+let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=JSON.parse(localStorage.getItem("chars")||"[]");
 const nav=document.getElementById("nav");
 function openTool(id,button){
  document.querySelectorAll(".tool").forEach(e=>e.classList.remove("on"));
  document.querySelectorAll(".nav button").forEach(e=>e.classList.remove("on"));
  const target=document.getElementById(id);if(target)target.classList.add("on");
  if(button)button.classList.add("on");
- if(window.innerWidth<=768)closeMobileNav();
  if(id==="projects")renderProjects();
  if(id==="history")renderHistory();
  if(id==="settings")renderVizexSettings();
@@ -422,37 +360,9 @@ function openTool(id,button){
 }
 tools.forEach((x,i)=>{let b=document.createElement("button");b.textContent=x[1];b.dataset.tool=x[0];if(!i)b.className="on";b.onclick=()=>openTool(x[0],b);nav.appendChild(b)});
 
-const VIZEX_PROJECTS_BASE="vizexProjectsV40";
-const VIZEX_HISTORY_BASE="vizexHistoryV40";
-const VIZEX_SETTINGS_BASE="vizexSettingsV40";
-const VIZEX_CHARS_BASE="chars";
-const VIZEX_IDEA_HISTORY_BASE="vizexIdeaTitleHistory";
-function vizexAccountId(){
- const raw=VIZEX_ME?.id||VIZEX_ME?.email||"not-logged-in";
- return String(raw).trim().toLowerCase().replace(/[^a-z0-9@._-]+/g,"_");
-}
-function vizexAccountKey(base){return `${base}::${vizexAccountId()}`}
-function vizexProjectsKey(){return vizexAccountKey(VIZEX_PROJECTS_BASE)}
-function vizexHistoryKey(){return vizexAccountKey(VIZEX_HISTORY_BASE)}
-function vizexSettingsKey(){return vizexAccountKey(VIZEX_SETTINGS_BASE)}
-function vizexCharsKey(){return vizexAccountKey(VIZEX_CHARS_BASE)}
-function vizexIdeaHistoryKey(){return vizexAccountKey(VIZEX_IDEA_HISTORY_BASE)}
-function migrateLegacyAdminLocalData(){
- const admin=String(VIZEX_ME?.plan||"").toUpperCase()==="ADMIN"||VIZEX_ME?.is_admin===true;
- if(!admin)return;
- [[VIZEX_PROJECTS_BASE,vizexProjectsKey()],[VIZEX_HISTORY_BASE,vizexHistoryKey()],[VIZEX_SETTINGS_BASE,vizexSettingsKey()],[VIZEX_CHARS_BASE,vizexCharsKey()],[VIZEX_IDEA_HISTORY_BASE,vizexIdeaHistoryKey()]].forEach(([oldKey,newKey])=>{
-  if(localStorage.getItem(newKey)===null && localStorage.getItem(oldKey)!==null)localStorage.setItem(newKey,localStorage.getItem(oldKey));
- });
-}
-function hydrateAccountLocalData(){
- migrateLegacyAdminLocalData();
- chars=safeLocalArray(vizexCharsKey());
- renderChars();
- applyVizexDefaults();
- renderVizexSettings();
- renderProjects();
- renderHistory();
-}
+const VIZEX_PROJECTS_KEY="vizexProjectsV40";
+const VIZEX_HISTORY_KEY="vizexHistoryV40";
+const VIZEX_SETTINGS_KEY="vizexSettingsV40";
 
 function safeLocalArray(key){
  try{const x=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(x)?x:[]}catch(e){return []}
@@ -482,17 +392,17 @@ function currentProjectData(){
 function saveCurrentProject(){
  const idea=(v("idea")||"").trim();
  if(!idea)return alert("Isi ide dulu sebelum simpan proyek.");
- let list=safeLocalArray(vizexProjectsKey());
+ let list=safeLocalArray(VIZEX_PROJECTS_KEY);
  const data=currentProjectData();
  const same=list.findIndex(x=>String(x.idea).toLowerCase()===idea.toLowerCase());
  if(same>=0){data.id=list[same].id;list[same]=data}else list.unshift(data);
  list=list.slice(0,50);
- localStorage.setItem(vizexProjectsKey(),JSON.stringify(list));
+ localStorage.setItem(VIZEX_PROJECTS_KEY,JSON.stringify(list));
  renderProjects();renderVizexSettings();
  alert("Proyek tersimpan di browser ini.");
 }
 function loadProject(id){
- const p=safeLocalArray(vizexProjectsKey()).find(x=>String(x.id)===String(id));
+ const p=safeLocalArray(VIZEX_PROJECTS_KEY).find(x=>String(x.id)===String(id));
  if(!p)return alert("Proyek tidak ditemukan.");
  document.getElementById("idea").value=p.idea||"";
  document.getElementById("n").value=String(p.scenes||"5");
@@ -506,13 +416,13 @@ function loadProject(id){
 }
 function deleteProject(id){
  if(!confirm("Hapus proyek ini?"))return;
- const list=safeLocalArray(vizexProjectsKey()).filter(x=>String(x.id)!==String(id));
- localStorage.setItem(vizexProjectsKey(),JSON.stringify(list));
+ const list=safeLocalArray(VIZEX_PROJECTS_KEY).filter(x=>String(x.id)!==String(id));
+ localStorage.setItem(VIZEX_PROJECTS_KEY,JSON.stringify(list));
  renderProjects();renderVizexSettings();
 }
 function renderProjects(){
  const el=document.getElementById("projectList");if(!el)return;
- const list=safeLocalArray(vizexProjectsKey());
+ const list=safeLocalArray(VIZEX_PROJECTS_KEY);
  if(!list.length){el.innerHTML='<div class="result">Belum ada proyek tersimpan.</div>';return;}
  el.innerHTML=list.map(p=>`<div class="workspace-item">
    <div><h3>${e(p.idea||"Tanpa judul")}</h3>
@@ -521,13 +431,13 @@ function renderProjects(){
  </div>`).join("");
 }
 function addVizexHistory(type,title){
- let list=safeLocalArray(vizexHistoryKey());
+ let list=safeLocalArray(VIZEX_HISTORY_KEY);
  list.unshift({id:Date.now(),time:Date.now(),type:type||"Generate",title:title||"Tanpa judul",style:v("style")||"",scenes:v("n")||""});
- localStorage.setItem(vizexHistoryKey(),JSON.stringify(list.slice(0,100)));
+ localStorage.setItem(VIZEX_HISTORY_KEY,JSON.stringify(list.slice(0,100)));
 }
 function renderHistory(){
  const el=document.getElementById("historyList");if(!el)return;
- const list=safeLocalArray(vizexHistoryKey());
+ const list=safeLocalArray(VIZEX_HISTORY_KEY);
  if(!list.length){el.innerHTML='<div class="result">Belum ada riwayat generate.</div>';return;}
  el.innerHTML=list.map(x=>`<div class="workspace-item">
    <div><h3>${e(x.title||"Tanpa judul")}</h3>
@@ -542,7 +452,7 @@ function historyToCreate(encoded){
 }
 function clearVizexHistory(){
  if(!confirm("Hapus semua riwayat generate?"))return;
- localStorage.removeItem(vizexHistoryKey());renderHistory();renderVizexSettings();
+ localStorage.removeItem(VIZEX_HISTORY_KEY);renderHistory();renderVizexSettings();
 }
 function resetCreateForm(){
  if((v("idea")||"").trim() && !confirm("Mulai proyek baru? Input sekarang akan dikosongkan."))return;
@@ -552,23 +462,23 @@ function resetCreateForm(){
  applyVizexDefaults();
 }
 function applyVizexDefaults(){
- const s=safeLocalObject(vizexSettingsKey());
+ const s=safeLocalObject(VIZEX_SETTINGS_KEY);
  if(s.scenes && document.getElementById("n"))document.getElementById("n").value=String(s.scenes);
  if(s.duration && document.getElementById("duration"))document.getElementById("duration").value=String(s.duration);
  if(s.style && document.getElementById("style"))document.getElementById("style").value=s.style;
 }
 function renderVizexSettings(){
- const s=safeLocalObject(vizexSettingsKey());
+ const s=safeLocalObject(VIZEX_SETTINGS_KEY);
  const ss=document.getElementById("setScenes"),sd=document.getElementById("setDuration"),st=document.getElementById("setStyle");
  if(ss)ss.value=String(s.scenes||"5");if(sd)sd.value=String(s.duration||"30");if(st)st.value=s.style||"3D Vinyl Toy";
  const p=document.getElementById("statProjects"),h=document.getElementById("statHistory"),c=document.getElementById("statChars");
- if(p)p.textContent=safeLocalArray(vizexProjectsKey()).length;
- if(h)h.textContent=safeLocalArray(vizexHistoryKey()).length;
+ if(p)p.textContent=safeLocalArray(VIZEX_PROJECTS_KEY).length;
+ if(h)h.textContent=safeLocalArray(VIZEX_HISTORY_KEY).length;
  if(c)c.textContent=chars.length;
 }
 function saveVizexSettings(){
  const data={scenes:v("setScenes"),duration:v("setDuration"),style:v("setStyle")};
- localStorage.setItem(vizexSettingsKey(),JSON.stringify(data));
+ localStorage.setItem(VIZEX_SETTINGS_KEY,JSON.stringify(data));
  applyVizexDefaults();renderVizexSettings();
  alert("Pengaturan default tersimpan.");
 }
@@ -1310,6 +1220,14 @@ ${storyCTA(idea,"caption")}
 }
 
 let vizexIdeaBusy=false,vizexIdeaCooldownUntil=0;
+let VIZEX_IDEA_FUNNEL="TOFU";
+function selectIdeaFunnel(stage,btn){
+ VIZEX_IDEA_FUNNEL=["TOFU","MOFU","BOFU"].includes(stage)?stage:"TOFU";
+ const hidden=document.getElementById("ideaFunnel");if(hidden)hidden.value=VIZEX_IDEA_FUNNEL;
+ document.querySelectorAll(".funnel-pick").forEach(x=>x.classList.toggle("active",x.dataset.funnel===VIZEX_IDEA_FUNNEL));
+ const hint=document.getElementById("ideaFunnelHint");
+ if(hint)hint.textContent=VIZEX_IDEA_FUNNEL==="TOFU"?"Awareness — ide luas, relatable, curiosity-driven, tanpa hard selling.":VIZEX_IDEA_FUNNEL==="MOFU"?"Trust — edukasi, problem solving, pengalaman, comparison, dan authority.":"Conversion — offer, benefit, objection, proof, urgency, dan CTA natural.";
+}
 async function generatePremiumIdeas(){
  if(vizexIdeaBusy)return;
  const _now=Date.now();
@@ -1320,13 +1238,13 @@ async function generatePremiumIdeas(){
  if(!topic)return alert("Masukkan NICHE / TOPIK dulu.");
  const out=document.getElementById("premiumIdeaResults");
  out.innerHTML=`<div class="card"><label>✨ VIZEX AI IDEA ENGINE</label><div class="result">AI lagi mencari ${count} ide spesifik dari dunia "${e(topic)}"...\n\nTunggu sebentar...</div></div>`;
- let history=[];try{history=JSON.parse(localStorage.getItem(vizexIdeaHistoryKey())||"[]");if(!Array.isArray(history))history=[]}catch(e){history=[]}
+ let history=[];try{history=JSON.parse(localStorage.getItem("vizexIdeaTitleHistory")||"[]");if(!Array.isArray(history))history=[]}catch(e){history=[]}
  try{
-  const r=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,audience,count,history:history.slice(-100)})});
+  const r=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,audience,count,history:history,funnel:(document.getElementById("ideaFunnel")?.value||VIZEX_IDEA_FUNNEL).slice(-100)})});
   const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Idea generator error (${r.status})`);
   const results=Array.isArray(data.ideas)?data.ideas:[];if(!results.length)throw new Error("AI tidak mengembalikan ide.");
   const merged=[...history,...results.map(x=>String(x.title||"").trim())].filter(Boolean);
-  localStorage.setItem(vizexIdeaHistoryKey(),JSON.stringify([...new Set(merged)].slice(-250)));
+  localStorage.setItem("vizexIdeaTitleHistory",JSON.stringify([...new Set(merged)].slice(-250)));
   out.innerHTML=`<div class="card"><p class="muted">✨ Dibuat AI dari niche sebagai dunia/konteks. Pilih ide untuk langsung dibawa ke Buat Animasi.</p>
   ${results.map((x,i)=>`<div class="saved" style="margin-top:${i?14:0}px;padding:18px"><h3 style="margin:0 0 12px">IDE #${i+1}</h3>
   <label>JUDUL</label><div class="result">${e(x.title||"")}</div><label>HOOK</label><div class="result">${e(x.hook||"")}</div>
@@ -1360,7 +1278,7 @@ function ideas(){let t=v("topic")||"konten";let a=["Kesalahan yang cuma dipahami
 function saveChar(){
  let name=v("cn").trim();if(!name)return alert("Isi nama karakter dulu.");
  chars.push({n:name,h:v("ch"),o:v("co"),b:v("cb"),d:v("cd"),f:v("cf")});
- localStorage.setItem(vizexCharsKey(),JSON.stringify(chars));renderChars();
+ localStorage.setItem("chars",JSON.stringify(chars));renderChars();
  alert("Karakter tersimpan. Sekarang bisa langsung dipakai di menu Buat Animasi.");
 }
 function useChar(i){
@@ -1376,7 +1294,7 @@ function useChar(i){
 function renderChars(){
  charSaved.innerHTML=chars.length?chars.map((x,i)=>`<div class="saved"><b>⭐ ${e(x.n)}</b><div class="muted">Rambut: ${e(x.h||"-")} • Pakaian: ${e(x.o||"-")} • ${e(x.b||"")} ${e(x.d||"")}</div><div class="actions"><button class="mini" onclick="useChar(${i})">Pakai di Buat Animasi</button><button class="mini ghost" onclick="delChar(${i})">Hapus</button></div></div>`).join(""):`<p class="muted">Belum ada karakter tersimpan.</p>`;
 }
-function delChar(i){chars.splice(i,1);localStorage.setItem(vizexCharsKey(),JSON.stringify(chars));renderChars()}renderChars();
+function delChar(i){chars.splice(i,1);localStorage.setItem("chars",JSON.stringify(chars));renderChars()}renderChars();
 function env(){envOut.innerHTML=`<div class="result">ENVIRONMENT LOCK\nLocation: ${e(v("en"))}\nMood/time: ${e(v("em"))}\nDetails: ${e(v("ed"))}\nKeep architecture, props, lighting logic and spatial layout consistent across connected scenes.</div>`}
 function cam(){camOut.innerHTML=`<div class="result">${e(v("shot"))}, ${e(v("move"))}; cinematic framing, smooth intentional camera motion, subject remains readable, preserve continuity and avoid sudden perspective jumps.</div>`}
 function check(){let s=v("checkIn").toLowerCase(),issues=[];if(!s.includes("faceless"))issues.push("⚠ Faceless lock tidak disebut.");if(!s.includes("consistent")&&!s.includes("same locked"))issues.push("⚠ Character consistency kurang eksplisit.");if(!s.includes("9:16"))issues.push("⚠ Aspect ratio 9:16 tidak disebut.");if(!s.includes("no watermark"))issues.push("⚠ No-watermark rule tidak disebut.");checkOut.innerHTML=`<div class="result">${issues.length?issues.join("\n"):"✓ Aturan dasar konsistensi terdeteksi."}\n\nCatatan: checker MVP ini berbasis rule, belum AI semantic checker.</div>`}
@@ -1574,7 +1492,7 @@ async function accountJSON(url,opt={}){
 }
 async function loadCustomerProfile(){
  try{
-  const d=await accountJSON("/api/me");VIZEX_ME=d;hydrateAccountLocalData();
+  const d=await accountJSON("/api/me");VIZEX_ME=d;
   const tag=document.getElementById("userTag");if(tag)tag.textContent=(d.name||d.email)+" • "+(d.plan||"PRO");
   const map={profileName:d.name||"",profileEmail:d.email||"",profilePlan:d.plan||"PRO",profileStatus:d.status||"active",profileDevices:String(d.max_devices||1),profileCreated:fmtAccountDate(d.created_at)};
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val});
@@ -1624,112 +1542,22 @@ async function createAdminCustomer(){
 }
 async function loadAdminCustomers(){
  const el=document.getElementById("adminCustomerList");if(!el)return;el.innerHTML='<div class="result">Memuat customer...</div>';
- try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button>${String(c.plan||'').toUpperCase()!=='ADMIN'?`<button type="button" class="mini ghost vizex-delete-customer" data-customer-id="${e(String(c.id||''))}">🗑 Hapus</button>`:''}</div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
- bindAdminDeleteButtons();
+ try{const d=await accountJSON("/api/admin-customers");el.innerHTML=(d.customers||[]).map(c=>`<div class="workspace-item"><div><h3>${e(c.name||c.email)}</h3><div class="workspace-meta">${e(c.email)} • ${e(c.plan||"PRO")} • ${e(c.status||"active")}<br>Perangkat: ${c.active_sessions||0}/${c.max_devices||1}</div></div><div class="workspace-actions"><button class="mini ghost" onclick="adminToggleCustomer('${c.id}','${c.status==='active'?'blocked':'active'}')">${c.status==='active'?'Blokir':'Aktifkan'}</button><button class="mini ghost" onclick="adminSetDeviceLimit('${c.id}',${c.max_devices||1})">Batas Device</button><button class="mini ghost" onclick="adminRevokeAll('${c.id}')">Cabut Sesi</button>${String(c.plan||'').toUpperCase()!=='ADMIN'?`<button type="button" class="mini ghost" onclick="adminDeleteCustomer('${c.id}')">🗑 Hapus</button>`:''}</div></div>`).join("")||'<div class="result">Belum ada customer di database.</div>'}catch(err){el.innerHTML=`<div class="result">${e(err.message)}</div>`}
 }
 async function adminToggleCustomer(id,status){if(!confirm(`${status==='blocked'?'Blokir':'Aktifkan'} customer ini?`))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"status",value:status})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminSetDeviceLimit(id,current){const n=prompt("Maksimal perangkat aktif:",String(current||1));if(n===null)return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"max_devices",value:Number(n)})});await loadAdminCustomers()}catch(e){alert(e.message)}}
 async function adminRevokeAll(id){if(!confirm("Cabut semua sesi customer ini?"))return;try{await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:id,action:"revoke_all"})});await loadAdminCustomers()}catch(e){alert(e.message)}}
-function bindAdminDeleteButtons(){
- document.querySelectorAll(".vizex-delete-customer").forEach(btn=>{
-  btn.onclick=async function(ev){
-   ev.preventDefault();ev.stopPropagation();
-   const id=this.dataset.customerId;
-   if(!id){this.textContent="ID ERROR";return;}
-   if(this.dataset.confirmDelete!=="yes"){
-    this.dataset.confirmDelete="yes";
-    this.textContent="⚠ Klik Lagi Untuk Hapus";
-    this.style.fontWeight="900";
-    setTimeout(()=>{if(this&&this.isConnected&&this.dataset.confirmDelete==="yes"){this.dataset.confirmDelete="";this.textContent="🗑 Hapus"}},5000);
-    return;
-   }
-   this.disabled=true;this.textContent="⏳ Menghapus...";
-   await adminDeleteCustomer(id,this);
-  };
- });
-}
-
-async function adminDeleteCustomer(id,btn){
+async function adminDeleteCustomer(id){
+ if(!id){alert("ID customer tidak ditemukan.");return;}
+ if(!window.confirm("Hapus customer ini secara permanen?\n\nSemua sesi login customer ini juga akan dicabut."))return;
  try{
   const d=await accountJSON("/api/admin-customers",{method:"POST",body:JSON.stringify({customer_id:String(id),action:"delete"})});
   if(!d||d.ok!==true)throw new Error(d?.error||"Customer gagal dihapus.");
+  window.alert("Customer berhasil dihapus.");
   await loadAdminCustomers();
- }catch(err){
-  if(btn){btn.disabled=false;btn.dataset.confirmDelete="";btn.textContent="❌ "+String(err?.message||"Gagal").slice(0,28);}
- }
+ }catch(err){window.alert("Gagal hapus customer: "+(err?.message||String(err)));}
 }
-const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadActiveSessions()};
+const _oldRenderVizexSettings=renderVizexSettings;renderVizexSettings=function(){_oldRenderVizexSettings();loadCustomerProfile();loadActiveSessions()};
 loadCustomerProfile();
 </script>
-
-<script>
-/* VIZEX FREE NAV V2
-   FREE visible: Buat Animasi, Karakter, Pengaturan.
-   FREE hidden: Generator Ide, Pemeriksa Konsistensi, Proyek Saya, Riwayat.
-   PRO unchanged.
-*/
-(function(){
- const blocked=["generator ide","pemeriksa konsistensi","proyek saya","riwayat"];
-
- function getPlan(){
-   try{
-     if(typeof VIZEX_ME!=="undefined" && VIZEX_ME) return String(VIZEX_ME.plan||"").toUpperCase();
-   }catch(e){}
-   return String(window.VIZEX_ME?.plan||"").toUpperCase();
- }
-
- function enforceFreeNav(){
-   if(getPlan()!=="FREE") return;
-   const roots=[...document.querySelectorAll("aside,nav,.sidebar,#sidebar")];
-   roots.forEach(root=>{
-     root.querySelectorAll("button,a").forEach(el=>{
-       const t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-       if(blocked.some(x=>t.includes(x))) el.style.setProperty("display","none","important");
-     });
-   });
- }
-
- const run=()=>{enforceFreeNav()};
- document.addEventListener("DOMContentLoaded",run);
- let tries=0;
- const iv=setInterval(()=>{
-   run();
-   if(++tries>40)clearInterval(iv);
- },150);
- new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});
-})();
-</script>
-
-
-<style>
-body.vizex-free-plan .vizex-pro-only{display:none!important}
-</style>
-<script>
-/* VIZEX FREE LIMIT: fixed 3 scenes + no Regenerate Scene */
-(function(){
- function isFree(){
-  try{return String((typeof VIZEX_ME!=="undefined"&&VIZEX_ME?.plan)||window.VIZEX_ME?.plan||"").toUpperCase()==="FREE"}catch(e){return false}
- }
- function apply(){
-  if(!isFree())return;
-  document.body.classList.add("vizex-free-plan");
-  document.querySelectorAll("select,input").forEach(el=>{
-   const meta=((el.id||"")+" "+(el.name||"")+" "+(el.getAttribute("aria-label")||"")).toLowerCase();
-   if(meta.includes("scene")&&(meta.includes("count")||meta.includes("jumlah"))){
-    if(el.tagName==="SELECT"){[...el.options].forEach(o=>o.disabled=Number(o.value)>3);el.value="3"}
-    else if(el.type==="number"||el.type==="range"){el.max="3";el.value="3"}
-   }
-  });
-  document.querySelectorAll("button,a,[onclick],[data-action]").forEach(el=>{
-   const t=(el.textContent||"").toLowerCase(),a=((el.getAttribute("onclick")||"")+" "+(el.getAttribute("data-action")||"")).toLowerCase();
-   if((t.includes("regenerate")&&t.includes("scene"))||a.includes("regenerate_scene")||a.includes("regeneratescene"))
-    el.style.setProperty("display","none","important");
-  });
- }
- document.addEventListener("DOMContentLoaded",apply);
- let n=0;const iv=setInterval(()=>{apply();if(++n>40)clearInterval(iv)},150);
- new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
-})();
-</script>
-
 </body></html>
