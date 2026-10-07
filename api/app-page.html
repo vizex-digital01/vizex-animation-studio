@@ -237,6 +237,11 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 }
 </style>
 
+<style id="vizex-assessment-style">
+#assessment textarea{min-height:96px}#assessment .card{position:relative}
+#assessment .hero h1,#blueprint .hero h1{letter-spacing:-.03em}
+@media(max-width:768px){#assessment .actions button{width:100%}}
+</style>
 </head><body><div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div><div class="app"><aside class="side"><div class="logo brand-side">
       <img src="/assets/vizex-logo.png" class="side-logo" alt="Vizex Studio logo">
       <span>vizex<b>.studio</b></span>
@@ -411,8 +416,33 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 <section class="tool" id="cover" style="display:none"><h1>Cover Prompt Generator</h1><p class="muted">Prompt thumbnail/cover dengan character lock.</p><div class="card"><div class="grid"><select id="coverShot"><option>Medium Shot</option><option>Close-up Composition</option><option>Wide Cinematic Shot</option><option>Dynamic Low Angle</option></select><select id="coverText"><option>No text in image</option><option>Leave empty space for title</option></select></div><input id="coverHook" placeholder="Hook cover..."><div class="actions"><button class="primary" onclick="makeCover()">Generate Cover Prompt</button></div><div id="coverOut"></div></div></section>
 
 
+
+<section class="tool vizex-pro-only" id="assessment">
+ <div class="hero"><span class="pill">🧭 LANGKAH 01 • PRO</span><h1>Assessment Personal Branding</h1><p>Isi sekali supaya Vizex memahami siapa lo, audience, offer, karakter komunikasi, dan tujuan konten. Data tersimpan khusus akun ini.</p></div>
+ <div class="card">
+  <div class="grid">
+   <div><label>NAMA / BRAND</label><input id="asBrand" placeholder="Nama creator / brand"></div>
+   <div><label>NICHE UTAMA</label><input id="asNiche" placeholder="Bidang utama lo"></div>
+   <div><label>PERAN / KEAHLIAN</label><input id="asRole" placeholder="Contoh: creator, owner, educator"></div>
+   <div><label>PLATFORM UTAMA</label><select id="asPlatform"><option>TikTok</option><option>Instagram Reels</option><option>YouTube Shorts</option><option>Multi-platform</option></select></div>
+   <div><label>TARGET AUDIENCE</label><input id="asAudience" placeholder="Siapa yang mau lo bantu?"></div>
+   <div><label>USIA / PROFIL AUDIENCE</label><input id="asAudienceProfile" placeholder="Contoh: Gen Z 18–27, creator pemula"></div>
+   <div><label>GOAL KONTEN</label><select id="asGoal"><option>Growth / Awareness</option><option>Authority / Trust</option><option>Engagement</option><option>Lead Generation</option><option>Sales / Conversion</option></select></div>
+   <div><label>PRODUK / OFFER</label><input id="asOffer" placeholder="Produk/jasa yang ditawarkan"></div>
+  </div>
+  <label>MASALAH TERBESAR AUDIENCE</label><textarea id="asPain" placeholder="Apa masalah, frustrasi, atau hambatan utama mereka?"></textarea>
+  <label>HASIL YANG AUDIENCE INGINKAN</label><textarea id="asDesire" placeholder="Transformasi / outcome yang mereka cari"></textarea>
+  <label>PENGALAMAN, KEKUATAN & CERITA UNIK</label><textarea id="asStory" placeholder="Pengalaman, skill, bukti, sudut pandang, atau cerita yang bikin lo berbeda"></textarea>
+  <label>POSITIONING / USP</label><textarea id="asUsp" placeholder="Kenapa audience harus mengikuti / memilih lo?"></textarea>
+  <label>GAYA KOMUNIKASI</label><textarea id="asTone" placeholder="Contoh: santai gue/lo, tajam, lucu, storytelling, edukatif"></textarea>
+  <label>TOPIK YANG MAU SERING DIBAHAS</label><textarea id="asTopics" placeholder="Pisahkan dengan koma"></textarea>
+  <div class="actions"><button class="primary" onclick="saveAssessmentAndBlueprint()">🧬 Simpan & Bangun Master Blueprint</button><button class="ghost" onclick="loadAssessment()">↻ Muat Data</button></div>
+  <div id="asMsg"></div>
+ </div>
+</section>
 <section class="tool vizex-pro-only" id="blueprint">
-  <div class="hero"><span class="pill">🏠 PRO CREATOR SYSTEM</span><h1>Master Blueprint</h1><p>Bangun fondasi brand dan konten sekali, lalu pakai ulang di workflow Vizex.</p></div>
+  <div class="hero"><span class="pill">🧬 LANGKAH 02 • PRO</span><h1>Master Blueprint</h1><p>“Otak” sistem Vizex. Blueprint disintesis dari Assessment dan otomatis dibaca seluruh PRO Creator Tools.</p>
+<div id="bpStatus" class="result">Belum ada Blueprint. Selesaikan Assessment untuk membangunnya.</div></div>
   <div class="card"><div class="grid">
     <div><label>BRAND / CREATOR</label><input id="bpBrand" placeholder="Contoh: Vizex Digital"></div>
     <div><label>NICHE</label><input id="bpNiche" placeholder="Contoh: AI animation & content creator"></div>
@@ -482,7 +512,7 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
 function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
 window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
-const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["blueprint","🏠 Master Blueprint"],["ideation","💬 Ideation Room"],["scriptbuilder","✍️ Script Builder"],["video2script","🎥 Video to Script"],["funnel","🧲 Funnel Quick Start"],["contentplan","📅 Content Plan"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
+const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["assessment","🧭 Assessment"],["blueprint","🏠 Master Blueprint"],["ideation","💬 Ideation Room"],["scriptbuilder","✍️ Script Builder"],["video2script","🎥 Video to Script"],["funnel","🧲 Funnel Quick Start"],["contentplan","📅 Content Plan"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
 let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=[];
 const nav=document.getElementById("nav");
 function openTool(id,button){
@@ -494,6 +524,8 @@ function openTool(id,button){
  if(id==="projects")renderProjects();
  if(id==="history")renderHistory();
  if(id==="settings")renderVizexSettings();
+ if(id==="assessment"&&typeof loadAssessment==="function")loadAssessment();
+ if(id==="blueprint"&&typeof refreshBlueprintStatus==="function")refreshBlueprintStatus();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 tools.forEach((x,i)=>{let b=document.createElement("button");b.textContent=x[1];b.dataset.tool=x[0];if(!i)b.className="on";b.onclick=()=>openTool(x[0],b);nav.appendChild(b)});
@@ -1745,7 +1777,7 @@ loadCustomerProfile();
    PRO unchanged.
 */
 (function(){
- const blocked=["generator ide","master blueprint","ideation room","script builder","video to script","funnel quick start","content plan","pemeriksa konsistensi","proyek saya","riwayat"];
+ const blocked=["generator ide","assessment","master blueprint","ideation room","script builder","video to script","funnel quick start","content plan","pemeriksa konsistensi","proyek saya","riwayat"];
 
  function getPlan(){
    try{
@@ -1880,6 +1912,57 @@ body.vizex-free-plan .vizex-pro-only{display:none!important}
    for(let i=0;i<days;i++){const p=pillars[i%pillars.length];html+=`<div class="workspace-item"><div><h3>Hari ${i+1} • ${esc(p)}</h3><div class="workspace-meta">${esc(niche)} • ${esc(format)} • Objective: ${esc(goal)}</div></div></div>`}
    html+='</div>';set("cpOut",html);
  };
+ 
+ const AS_BASE="vizexProAssessmentV2", BP_BASE="vizexProBlueprintV2";
+ function accountStore(base){try{return typeof vizexAccountKey==="function"?vizexAccountKey(base):base}catch(e){return base}}
+ function getAssessment(){try{return JSON.parse(localStorage.getItem(accountStore(AS_BASE))||"null")}catch(e){return null}}
+ function getBlueprint(){try{return JSON.parse(localStorage.getItem(accountStore(BP_BASE))||"null")}catch(e){return null}}
+ function blueprintContext(){
+   const b=getBlueprint(); if(!b)return "";
+   return `BRAND CONTEXT — Brand: ${b.brand||"-"}; Niche: ${b.niche||"-"}; Role: ${b.role||"-"}; Audience: ${b.audience||"-"}; Audience profile: ${b.audienceProfile||"-"}; Core pain: ${b.pain||"-"}; Desired outcome: ${b.desire||"-"}; Positioning/USP: ${b.usp||"-"}; Offer: ${b.offer||"-"}; Goal: ${b.goal||"-"}; Tone: ${b.tone||"-"}; Content pillars: ${b.pillars||"-"}; Story assets: ${b.story||"-"}.`;
+ }
+ window.loadAssessment=function(){
+   const d=getAssessment(); if(!d)return;
+   const map={asBrand:"brand",asNiche:"niche",asRole:"role",asPlatform:"platform",asAudience:"audience",asAudienceProfile:"audienceProfile",asGoal:"goal",asOffer:"offer",asPain:"pain",asDesire:"desire",asStory:"story",asUsp:"usp",asTone:"tone",asTopics:"topics"};
+   Object.entries(map).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=d[k]||""});
+ };
+ window.saveAssessmentAndBlueprint=function(){
+   const d={brand:val("asBrand"),niche:val("asNiche"),role:val("asRole"),platform:val("asPlatform"),audience:val("asAudience"),audienceProfile:val("asAudienceProfile"),goal:val("asGoal"),offer:val("asOffer"),pain:val("asPain"),desire:val("asDesire"),story:val("asStory"),usp:val("asUsp"),tone:val("asTone"),topics:val("asTopics")};
+   if(!d.brand||!d.niche||!d.audience||!d.pain){return set("asMsg",'<div class="result">Isi minimal Brand, Niche, Target Audience, dan Masalah Audience.</div>')}
+   localStorage.setItem(accountStore(AS_BASE),JSON.stringify(d));
+   const bp={...d,pillars:d.topics||[d.pain,d.desire,d.story].filter(Boolean).join(" • "),createdAt:new Date().toISOString()};
+   localStorage.setItem(accountStore(BP_BASE),JSON.stringify(bp));
+   // Mirror into existing blueprint controls/storage for compatibility.
+   [["bpBrand",bp.brand],["bpNiche",bp.niche],["bpAudience",bp.audience],["bpGoal",bp.goal],["bpValue",bp.usp||bp.desire],["bpTone",bp.tone]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v||""});
+   localStorage.setItem(key("vizexProBlueprint"),JSON.stringify({brand:bp.brand,niche:bp.niche,audience:bp.audience,goal:bp.goal,value:bp.usp||bp.desire,tone:bp.tone}));
+   set("asMsg",'<div class="result">✅ Assessment tersimpan. Master Blueprint berhasil dibangun dan sekarang dipakai seluruh PRO Tools.</div>');
+   refreshBlueprintStatus();
+ };
+ function refreshBlueprintStatus(){
+   const b=getBlueprint(), el=document.getElementById("bpStatus"); if(!el)return;
+   el.innerHTML=b?`✅ <b>Blueprint aktif:</b> ${esc(b.brand)} • ${esc(b.niche)} • ${esc(b.audience)}<br><span class="muted">Semua PRO Tools akan memakai konteks ini otomatis.</span>`:'Belum ada Blueprint. Selesaikan Assessment untuk membangunnya.';
+ }
+ function prependContext(id){
+   const el=document.getElementById(id); if(!el)return;
+   const ctx=blueprintContext(); if(ctx && !el.value.includes("BRAND CONTEXT"))el.value=(el.value?el.value+"\n\n":"")+ctx;
+ }
+ // Existing tools automatically inherit the Blueprint without asking user to repeat profile.
+ const oldBuildIdeation=window.buildIdeationRoom;
+ window.buildIdeationRoom=function(){const b=getBlueprint();if(b){if(!val("irTopic"))document.getElementById("irTopic").value=b.pillars||b.niche;if(!val("irContext"))document.getElementById("irContext").value=`Audience: ${b.audience}. Pain: ${b.pain}. Goal: ${b.goal}. Tone: ${b.tone}.`;}return oldBuildIdeation()};
+ const oldScript=window.buildScriptDraft;
+ window.buildScriptDraft=function(){const b=getBlueprint();if(b){if(!val("sbIdea"))document.getElementById("sbIdea").value=`${b.niche} untuk ${b.audience}`;if(!val("sbBody"))document.getElementById("sbBody").value=`Masalah: ${b.pain}\nOutcome: ${b.desire}\nPositioning: ${b.usp}`;if(!val("sbCta")&&b.offer)document.getElementById("sbCta").value=`Arahkan secara natural ke ${b.offer}`;}return oldScript()};
+ const oldFunnel=window.buildFunnel;
+ window.buildFunnel=function(){const b=getBlueprint();if(b){if(!val("fqOffer"))document.getElementById("fqOffer").value=b.offer;if(!val("fqTarget"))document.getElementById("fqTarget").value=b.audience;if(!val("fqPain"))document.getElementById("fqPain").value=b.pain;}return oldFunnel()};
+ const oldPlan=window.buildContentPlan;
+ window.buildContentPlan=function(){const b=getBlueprint();if(b){if(!val("cpNiche"))document.getElementById("cpNiche").value=b.pillars||b.niche;const g=document.getElementById("cpGoal");if(g&&b.goal){const txt=b.goal.toLowerCase();if(txt.includes("sales"))g.value="Sales";else if(txt.includes("lead"))g.value="Leads";else if(txt.includes("engagement"))g.value="Engagement";else g.value="Growth";}}return oldPlan()};
+ // When sending to the main animation generator, append blueprint context to the concept.
+ const oldSendIdea=window.sendIdeationToCreate;
+ window.sendIdeationToCreate=function(){oldSendIdea();prependContext("idea")};
+ const oldSendScript=window.sendScriptToCreate;
+ window.sendScriptToCreate=function(){oldSendScript();prependContext("idea")};
+ document.addEventListener("DOMContentLoaded",()=>{loadAssessment();refreshBlueprintStatus()});
+ setTimeout(()=>{loadAssessment();refreshBlueprintStatus()},900);
+
  document.addEventListener("DOMContentLoaded",hydrateBlueprint);
  setTimeout(hydrateBlueprint,700);
 })();
