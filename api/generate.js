@@ -21,8 +21,20 @@ async function askGemini(system,user,schema,name,max=8192){
   let r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   let d=await r.json();
   if(r.ok){
-   const raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
-   if(!raw){last=`${model} tidak mengembalikan output.`;continue}
+   let raw=d?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+   if(!raw){
+    const finish=d?.candidates?.[0]?.finishReason||"EMPTY";
+    const retryPayload={...payload,generationConfig:{...payload.generationConfig,maxOutputTokens:Math.max(max,16384)}};
+    delete retryPayload.generationConfig.thinkingConfig;
+    await sleep(500);
+    const retry=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(retryPayload)});
+    const retryData=await retry.json();
+    if(retry.ok){
+     raw=retryData?.candidates?.[0]?.content?.parts?.map(x=>x?.text||"").join("").trim();
+     if(!raw){last=`${model} tidak mengembalikan output (finishReason: ${retryData?.candidates?.[0]?.finishReason||finish}).`;continue}
+     d=retryData;
+    }else{last=retryData?.error?.message||`${model} retry gagal setelah output kosong (finishReason: ${finish}).`;continue}
+   }
    const parsed=parseGeminiJson(raw);
    if(parsed)return parsed;
    // One repair attempt only when the model answered but JSON formatting broke.
@@ -163,7 +175,7 @@ export default async function handler(req,res){
    if(!Array.isArray(pkg.scenes)||pkg.scenes.length!==n)return res.status(400).json({error:"Storyboard belum lengkap."});
    const system=coreRules(n,dur,freePlan)+`\nFINALIZATION MODE: The supplied storyboard scene actions and outfit timeline are authoritative. Rebuild synchronized start/end states, image/video prompts, narration, caption and cover around them. Preserve the user's intended actions and outfit choices unless they are physically impossible; repair only the minimum needed for continuity. Do not silently revert an edited outfit.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nEDITED STORYBOARD: ${JSON.stringify(pkg.scenes)}\nORIGINAL HOOK/PAYOFF: ${JSON.stringify({hook:pkg.hook,payoff:pkg.payoff})}\nReturn the complete finalized package with exactly ${n} scenes.`;
-   let result=await askGemini(system,user,packageSchema,"vizex_finalized_package",8192);
+   let result=await askGemini(system,user,packageSchema,"vizex_finalized_package",16384);
    result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
    return res.status(200).json(result);
@@ -183,8 +195,9 @@ DURATION:${dur}s
 STYLE:${style}
 IDENTITY:${character}
 Generate one coherent package. Infer outfit from story context; saved outfit is fallback only.`;
-  const result=await askGemini(system,user,packageSchema,"vizex_animation_package",8192);
-  if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
+  let result=await askGemini(system,user,packageSchema,"vizex_animation_package",16384);
+   result=await enforceNarrationDuration(result,dur,title);
+   if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
   return res.status(200).json(result);
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }
