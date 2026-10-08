@@ -248,7 +248,7 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
     </div></div>
 
 <section class="tool on" id="create"><h1>Buat Animasi</h1><p class="muted">Ide → gaya visual → karakter → kunci karakter → storyboard → prompt → ekspor.</p>
-<div class="card"><div class="grid"><div><label>IDE</label><textarea id="idea" placeholder="Contoh: Alumni pondok mendengar bel lama..."></textarea></div><div><label>JUMLAH SCENE</label><select id="n"><option>3</option><option selected>5</option><option>7</option><option>10</option></select><br><br><label>DURASI VIDEO / NARASI</label><select id="duration"><option value="15">15 detik</option><option value="30" selected>30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select><br><br><label>GAYA VISUAL</label><select id="style"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div></div><div class="actions">
+<div class="card"><div class="grid"><div><label>IDE</label><textarea id="idea" placeholder="Contoh: Alumni pondok mendengar bel lama..."></textarea></div><div><label>JUMLAH SCENE</label><select id="n"><option value="3">3</option><option value="5" selected>5</option><option value="7">7</option><option value="10">10</option></select><br><br><label>DURASI VIDEO / NARASI</label><select id="duration"><option value="15">15 detik</option><option value="30" selected>30 detik</option><option value="45">45 detik</option><option value="60">60 detik</option></select><br><br><label>GAYA VISUAL</label><select id="style"><option>3D Vinyl Toy</option><option>Stylized 3D</option><option>Clay Stop-Motion</option><option>Anime 3D</option><option>Cinematic Realistic</option></select></div></div><div class="actions">
 <button class="primary" onclick="concept()">Generate Concept + Karakter</button>
 <button class="mini ghost" onclick="saveCurrentProject()">💾 Simpan Proyek</button>
 <button class="mini ghost" onclick="resetCreateForm()">🆕 Proyek Baru</button>
@@ -1035,7 +1035,7 @@ async function v9FinalPrompts(){
  let data=V9_PACKAGE;if(!data)return;const idea=v("idea").trim(),dur=+v("duration"),style=v("style");
  const buttons=[...document.querySelectorAll("#v9Storyboard button")];buttons.forEach(b=>b.disabled=true);
  try{
-  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"finalize",title:idea,sceneCount:+v("n"),duration:dur,style,character:chosen,package:V9_PACKAGE})});
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"finalize",title:idea,sceneCount:(String(VIZEX_ME?.plan||"").toUpperCase()==="FREE"?3:+v("n")),duration:dur,style,character:chosen,package:V9_PACKAGE})});
   const fresh=await r.json().catch(()=>({}));if(!r.ok)throw new Error(fresh.error||`Generator error (${r.status})`);V9_PACKAGE=data=fresh;renderV9Storyboard();
  }catch(err){buttons.forEach(b=>b.disabled=false);alert(err.message||String(err));return}
 
@@ -1050,7 +1050,7 @@ async function scenes(){
  const idea=v("idea").trim();if(!idea)return alert("Masukkan judul/ide dulu.");if(!chosen)return alert("Pilih karakter dulu.");
  const n=+v("n"),dur=+v("duration"),style=v("style"),lid="gptLoading";document.getElementById(lid)?.remove();document.getElementById("v9Storyboard")?.remove();document.getElementById("prompts")?.remove();
  flow.insertAdjacentHTML("beforeend",`<div class="card" id="${lid}"><label>✨ VIZEX V9 ENGINE</label><div class="result">GPT lagi bikin storyboard + outfit timeline dari judul. Pakaian boleh berubah hanya kalau scene memang membutuhkan.\n\nTunggu sebentar...</div></div>`);document.getElementById(lid).scrollIntoView({behavior:"smooth"});
- try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:n,duration:dur,style,character:chosen})});const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);V9_PACKAGE=data;flow.insertAdjacentHTML("beforeend",'<div id="v9Storyboard"></div>');renderV9Storyboard();document.getElementById("v9Storyboard")?.scrollIntoView({behavior:"smooth"});}
+ try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:idea,sceneCount:(String(VIZEX_ME?.plan||"").toUpperCase()==="FREE"?3:n),duration:dur,style,character:chosen})});const data=await r.json().catch(()=>({}));document.getElementById(lid)?.remove();if(!r.ok)throw new Error(data.error||`Generator error (${r.status})`);V9_PACKAGE=data;flow.insertAdjacentHTML("beforeend",'<div id="v9Storyboard"></div>');renderV9Storyboard();document.getElementById("v9Storyboard")?.scrollIntoView({behavior:"smooth"});}
  catch(err){document.getElementById(lid)?.remove();flow.insertAdjacentHTML("beforeend",`<div class="card"><label>⚠️ V9 GENERATOR ERROR</label><div class="result">${e(err.message||String(err))}</div></div>`)}
 }
 function fitLifeNarration(parts,dur){
@@ -1743,30 +1743,37 @@ loadCustomerProfile();
 body.vizex-free-plan .vizex-pro-only{display:none!important}
 </style>
 <script>
-/* VIZEX FREE LIMIT: fixed 3 scenes + no Regenerate Scene */
+/* VIZEX FREE LIMIT: scene selector id=n, fixed 3 scenes, no regenerate */
 (function(){
  function isFree(){
   try{return String((typeof VIZEX_ME!=="undefined"&&VIZEX_ME?.plan)||window.VIZEX_ME?.plan||"").toUpperCase()==="FREE"}catch(e){return false}
  }
  function apply(){
-  if(!isFree())return;
-  document.body.classList.add("vizex-free-plan");
-  document.querySelectorAll("select,input").forEach(el=>{
-   const meta=((el.id||"")+" "+(el.name||"")+" "+(el.getAttribute("aria-label")||"")).toLowerCase();
-   if(meta.includes("scene")&&(meta.includes("count")||meta.includes("jumlah"))){
-    if(el.tagName==="SELECT"){[...el.options].forEach(o=>o.disabled=Number(o.value)>3);el.value="3"}
-    else if(el.type==="number"||el.type==="range"){el.max="3";el.value="3"}
+  const free=isFree(),el=document.getElementById("n");
+  if(el){
+   if(free){
+    if(el.value!=="3")el.value="3";
+    [...el.options].forEach(o=>{if(o.value!=="3"&&!o.disabled)o.disabled=true;else if(o.value==="3"&&o.disabled)o.disabled=false});
+    if(!el.dataset.vizexFreeBound){
+     el.addEventListener("change",()=>{if(isFree()&&el.value!=="3")el.value="3"});
+     el.dataset.vizexFreeBound="1";
+    }
+   }else{
+    [...el.options].forEach(o=>{if(o.disabled)o.disabled=false});
    }
-  });
-  document.querySelectorAll("button,a,[onclick],[data-action]").forEach(el=>{
-   const t=(el.textContent||"").toLowerCase(),a=((el.getAttribute("onclick")||"")+" "+(el.getAttribute("data-action")||"")).toLowerCase();
-   if((t.includes("regenerate")&&t.includes("scene"))||a.includes("regenerate_scene")||a.includes("regeneratescene"))
-    el.style.setProperty("display","none","important");
+  }
+  document.body.classList.toggle("vizex-free-plan",free);
+  document.querySelectorAll("button,a,[onclick],[data-action]").forEach(node=>{
+   const t=(node.textContent||"").toLowerCase(),a=((node.getAttribute("onclick")||"")+" "+(node.getAttribute("data-action")||"")).toLowerCase();
+   if((t.includes("regenerate")&&t.includes("scene"))||a.includes("regenerate_scene")||a.includes("regeneratescene")){
+    if(free)node.style.setProperty("display","none","important");
+    else if(node.style.getPropertyValue("display")==="none"&&node.style.getPropertyPriority("display")==="important")node.style.removeProperty("display");
+   }
   });
  }
  document.addEventListener("DOMContentLoaded",apply);
- let n=0;const iv=setInterval(()=>{apply();if(++n>40)clearInterval(iv)},150);
- new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
+ const iv=setInterval(apply,500);
+ window.addEventListener("pageshow",apply);
 })();
 </script>
 
