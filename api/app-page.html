@@ -337,6 +337,9 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
   </div>
 </section>
 
+<section class="tool" id="prostudio"><h1>✨ PRO Prompt Studio</h1><p class="muted">7 asisten AI untuk menyempurnakan prompt animasi Vizex. Pilih tool, isi brief, generate, lalu kirim hasilnya ke Buat Animasi.</p>
+<div class="card"><label>PILIH TOOL</label><div class="vizex-studio-tools" id="vizexStudioTabs"><button type="button" data-studio="director" onclick="vizexStudioChoose('director',this)">🎬 AI Director Room</button><button type="button" data-studio="dna" onclick="vizexStudioChoose('dna',this)">🧬 Character DNA Studio</button><button type="button" data-studio="voice" onclick="vizexStudioChoose('voice',this)">🎙️ Voiceover & Subtitle</button><button type="button" data-studio="hook" onclick="vizexStudioChoose('hook',this)">🪝 Viral Hook Lab</button><button type="button" data-studio="style" onclick="vizexStudioChoose('style',this)">🎨 Visual Style Locker</button><button type="button" data-studio="quality" onclick="vizexStudioChoose('quality',this)">🔍 Pre-Render Quality Check</button><button type="button" data-studio="repurpose" onclick="vizexStudioChoose('repurpose',this)">🔁 Content Repurpose</button></div><p id="vizexStudioDesc" class="muted"></p><div class="grid" style="margin-top:14px"><div><label>IDE / CERITA / PRODUK</label><textarea id="vizexStudioBrief" placeholder="Contoh: Anak kos masak mi terakhir, lalu teman sekamar datang..."></textarea></div><div><label>KONTEKS TAMBAHAN (OPSIONAL)</label><textarea id="vizexStudioContext" placeholder="Target audiens, gaya visual, karakter, scene, durasi, atau tempel prompt lama untuk diaudit"></textarea></div></div><div class="actions"><button class="primary" type="button" onclick="vizexStudioGenerate()">✨ Generate dengan Gemini</button><button class="mini" type="button" onclick="vizexStudioUseIdea()">↗ Kirim ide ke Buat Animasi</button><button class="mini" type="button" onclick="vizexStudioCopy()">📋 Salin hasil</button></div><div id="vizexStudioStatus" class="muted" style="margin-top:12px"></div><div id="vizexStudioOutput" class="result" style="display:none"></div></div></section>
+<style>.vizex-studio-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px}.vizex-studio-tools button{border:1px solid #cdbba7;border-radius:10px;padding:11px;background:#f3e7d7;color:#2f241b;text-align:left;cursor:pointer}.vizex-studio-tools button.active{background:#dfbd98;border-color:#a97a4c;font-weight:800}#vizexStudioOutput{white-space:pre-wrap;overflow-wrap:anywhere;max-height:650px;overflow:auto}@media(max-width:760px){.vizex-studio-tools{grid-template-columns:1fr 1fr}}</style>
 <section class="tool" id="settings">
   <h1>Pengaturan</h1>
   <p class="muted">Kelola profil customer, keamanan akun, perangkat aktif, dan default workflow Vizex.</p>
@@ -425,7 +428,7 @@ table,th,td{border-color:#d8c8b6!important;color:#2f241b!important}
 function toggleMobileNav(){document.body.classList.toggle("mobile-nav-open")}
 function closeMobileNav(){document.body.classList.remove("mobile-nav-open")}
 window.addEventListener("resize",()=>{if(window.innerWidth>768)closeMobileNav()});
-const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"]];
+const tools=[["create","🎬 Buat Animasi"],["ideas","💡 Generator Ide"],["characters","🧍 Karakter"],["check","🔒 Pemeriksa Konsistensi"],["projects","📁 Proyek Saya"],["history","📚 Riwayat"],["settings","⚙️ Pengaturan"],["prostudio","✨ PRO Prompt Studio"]];
 let project="",chosen=null,lastNarration="",lastCaption="",lastCover="",selectedIdeaMeta=null, chars=[];
 const nav=document.getElementById("nav");
 function openTool(id,button){
@@ -1777,4 +1780,32 @@ body.vizex-free-plan .vizex-pro-only{display:none!important}
 })();
 </script>
 
-</body></html>
+<script>
+const VIZEX_STUDIO_TOOLS = {"director": "Shot list, kamera, lighting, gerakan, dan transisi antar-scene.", "dna": "Identitas karakter konsisten untuk image dan video prompt.", "voice": "Narasi sesuai durasi, timing subtitle, dan format SRT.", "hook": "Variasi hook visual 3 detik pertama yang sesuai cerita.", "style": "Style bible untuk warna, material, lighting, lensa, dan mood.", "quality": "Audit kontinuitas, gerakan, props, dan prompt sebelum render.", "repurpose": "Adaptasi konsep ke Reels, Shorts, TikTok, dan iklan."};
+let vizexStudioTool="director",vizexStudioResult="";
+function vizexStudioChoose(id,btn){
+ if(!Object.prototype.hasOwnProperty.call(VIZEX_STUDIO_TOOLS,id))return;
+ vizexStudioTool=id;
+ document.querySelectorAll("[data-studio]").forEach(b=>b.classList.toggle("active",b.dataset.studio===id));
+ document.getElementById("vizexStudioDesc").textContent=VIZEX_STUDIO_TOOLS[id];
+}
+async function vizexStudioGenerate(){
+ const status=document.getElementById("vizexStudioStatus"),out=document.getElementById("vizexStudioOutput");
+ if(!["PRO","ADMIN"].includes(String(VIZEX_ME?.plan||"").toUpperCase())){status.textContent="Khusus akun PRO/ADMIN.";return;}
+ const brief=document.getElementById("vizexStudioBrief").value.trim();
+ if(brief.length<5){status.textContent="Isi ide/cerita minimal 5 karakter.";return;}
+ status.textContent="Gemini sedang menyusun hasil...";out.style.display="none";
+ try{
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"studio_tool",tool:vizexStudioTool,brief,context:document.getElementById("vizexStudioContext").value})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||"Gagal generate");
+  vizexStudioResult=String(d.result||"");out.textContent=vizexStudioResult;out.style.display="block";status.textContent="Selesai. Hasil bisa disalin dan dipakai sebagai referensi prompt animasi.";
+ }catch(e){status.textContent="Gagal: "+e.message;}
+}
+function vizexStudioCopy(){if(!vizexStudioResult){alert("Generate dulu, cuy.");return;}navigator.clipboard?.writeText(vizexStudioResult).then(()=>alert("Hasil disalin.")).catch(()=>prompt("Salin hasil:",vizexStudioResult));}
+function vizexStudioUseIdea(){
+ const brief=document.getElementById("vizexStudioBrief").value.trim();if(!brief){alert("Isi ide dulu.");return;}
+ document.getElementById("idea").value=brief;
+ openTool("create",document.querySelector('[data-tool="create"]'));
+}
+document.addEventListener("DOMContentLoaded",()=>vizexStudioChoose("director"));
+</script></body></html>

@@ -158,6 +158,17 @@ COVER V2:
 cover_text must be exact Indonesian 2-6 words: short, punchy, truthful, readable at thumbnail size, curiosity-driven without spoiling payoff.
 cover_prompt must be English, 100-150 useful words, vertical 9:16, based on the strongest truthful PRE-PAYOFF moment from actual scenes.
 CRITICAL: cover_prompt MUST explicitly instruct the image model to visibly render the exact cover_text value letter-for-letter as the headline. Put headline at top or upper-middle with large bold high-contrast typography, clean safe margins, strong mobile readability and negative space behind it; never cover face/key action. The exact cover_text is the ONLY readable text allowed: no extra words, logo, subtitle, watermark, UI, labels or gibberish. Character identity, outfit/condition, expression, prop/action, environment and lighting must exactly match the chosen scene.`}
+
+const studioToolSchema={type:"object",additionalProperties:false,properties:{result:{type:"string"}},required:["result"]};
+const studioGuides={
+ director:"AI Director Room: produce an actionable scene-by-scene shot plan with precise camera preset, frame zero, movement, ending frame, lighting, transition and separate English image/video prompt fragments. Stay faithful to input story; avoid impossible cuts.",
+ dna:"Character DNA Studio: produce a reusable character identity lock in English: face, hair, silhouette, proportions, clothing baseline, expressions, negative constraints, consistent reference prompt and scene consistency checklist. Do not invent demographic details unnecessarily.",
+ voice:"Voiceover & Subtitle Studio: write natural Indonesian narration based only on supplied story; include time-coded subtitle cues and valid SRT block. Estimate duration and spoken word count; never pretend to synthesize audio.",
+ hook:"Viral Hook Lab: generate 10 distinctive honest hooks for the first 1-3 seconds, each with Indonesian spoken hook, English first-frame visual prompt, camera movement, and bridge to the core story. No clickbait unrelated to story.",
+ style:"Visual Style Locker: generate a reusable visual style bible with English style lock, palette, lighting, materials, lens, aspect ratio 9:16, environment rules, positive/negative prompt and continuity constraints.",
+ quality:"Pre-Render Quality Check: audit supplied prompt or concept for identity/outfit, prop count, scene state continuity, physical motion, camera coherence, narration consistency and duration. Distinguish confirmed issues from unknowns; provide corrected image/video prompt suggestions without inventing missing scenes.",
+ repurpose:"Content Repurpose: adapt the SAME original concept for TikTok, Reels, Shorts and soft-sell ad. For each provide hook, 3-5 beat plan, image/video prompt directions, CTA and caption. Preserve characters and key story facts."
+};
 export default async function handler(req,res){
  const account=await auth(req).catch(()=>null);
  if(!account)return res.status(401).json({error:"Sesi login tidak valid."});
@@ -166,6 +177,16 @@ export default async function handler(req,res){
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const body=req.body||{}, action=String(body.action||"generate");
+  if(action==="studio_tool"){
+   if(freePlan)return res.status(403).json({error:"PRO Prompt Studio hanya untuk PRO/ADMIN."});
+   const tool=String(body.tool||""),brief=String(body.brief||"").trim().slice(0,6000),context=String(body.context||"").trim().slice(0,9000);
+   if(!Object.prototype.hasOwnProperty.call(studioGuides,tool))return res.status(400).json({error:"Tool tidak valid."});
+   if(brief.length<5)return res.status(400).json({error:"Isi ide minimal 5 karakter."});
+   const system="You are Vizex Studio's professional animation prompt production assistant. Output in clear Indonesian with English prompts where requested. Create practical, usable content, not marketing fluff. Never claim that images, videos or audio have been generated. Respect original story facts, character identity, scene continuity, realistic motion, vertical 9:16 framing.\\n"+studioGuides[tool];
+   const user="IDE/BRIEF:\\n"+brief+"\\nKONTEKS/REFERENSI:\\n"+context+"\\nReturn complete actionable output formatted as readable plain text in result.";
+   const result=await askGemini(system,user,studioToolSchema,"vizex_studio_"+tool,8192);
+   return res.status(200).json({result:String(result?.result||"")});
+  }
   const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
   const requestedScenes=Number(body.sceneCount)||5;
   const n=freePlan?3:Math.max(3,Math.min(10,requestedScenes)),dur=[15,30,45,60].includes(Number(body.duration))?Number(body.duration):30;
