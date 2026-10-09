@@ -158,17 +158,6 @@ COVER V2:
 cover_text must be exact Indonesian 2-6 words: short, punchy, truthful, readable at thumbnail size, curiosity-driven without spoiling payoff.
 cover_prompt must be English, 100-150 useful words, vertical 9:16, based on the strongest truthful PRE-PAYOFF moment from actual scenes.
 CRITICAL: cover_prompt MUST explicitly instruct the image model to visibly render the exact cover_text value letter-for-letter as the headline. Put headline at top or upper-middle with large bold high-contrast typography, clean safe margins, strong mobile readability and negative space behind it; never cover face/key action. The exact cover_text is the ONLY readable text allowed: no extra words, logo, subtitle, watermark, UI, labels or gibberish. Character identity, outfit/condition, expression, prop/action, environment and lighting must exactly match the chosen scene.`}
-
-const studioToolSchema={type:"object",additionalProperties:false,properties:{result:{type:"string"}},required:["result"]};
-const studioGuides={
- director:"AI Director Room: produce an actionable scene-by-scene shot plan with precise camera preset, frame zero, movement, ending frame, lighting, transition and separate English image/video prompt fragments. Stay faithful to input story; avoid impossible cuts.",
- dna:"Character DNA Studio: produce a reusable character identity lock in English: face, hair, silhouette, proportions, clothing baseline, expressions, negative constraints, consistent reference prompt and scene consistency checklist. Do not invent demographic details unnecessarily.",
- voice:"Voiceover & Subtitle Studio: write natural Indonesian narration based only on supplied story; include time-coded subtitle cues and valid SRT block. Estimate duration and spoken word count; never pretend to synthesize audio.",
- hook:"Viral Hook Lab: generate 10 distinctive honest hooks for the first 1-3 seconds, each with Indonesian spoken hook, English first-frame visual prompt, camera movement, and bridge to the core story. No clickbait unrelated to story.",
- style:"Visual Style Locker: generate a reusable visual style bible with English style lock, palette, lighting, materials, lens, aspect ratio 9:16, environment rules, positive/negative prompt and continuity constraints.",
- quality:"Pre-Render Quality Check: audit supplied prompt or concept for identity/outfit, prop count, scene state continuity, physical motion, camera coherence, narration consistency and duration. Distinguish confirmed issues from unknowns; provide corrected image/video prompt suggestions without inventing missing scenes.",
- repurpose:"Content Repurpose: adapt the SAME original concept for TikTok, Reels, Shorts and soft-sell ad. For each provide hook, 3-5 beat plan, image/video prompt directions, CTA and caption. Preserve characters and key story facts."
-};
 export default async function handler(req,res){
  const account=await auth(req).catch(()=>null);
  if(!account)return res.status(401).json({error:"Sesi login tidak valid."});
@@ -177,15 +166,21 @@ export default async function handler(req,res){
  if(!process.env.GEMINI_API_KEY)return res.status(500).json({error:"GEMINI_API_KEY belum terpasang di Vercel."});
  try{
   const body=req.body||{}, action=String(body.action||"generate");
-  if(action==="studio_tool"){
-   if(freePlan)return res.status(403).json({error:"PRO Prompt Studio hanya untuk PRO/ADMIN."});
-   const tool=String(body.tool||""),brief=String(body.brief||"").trim().slice(0,6000),context=String(body.context||"").trim().slice(0,9000);
-   if(!Object.prototype.hasOwnProperty.call(studioGuides,tool))return res.status(400).json({error:"Tool tidak valid."});
-   if(brief.length<5)return res.status(400).json({error:"Isi ide minimal 5 karakter."});
-   const system="You are Vizex Studio's professional animation prompt production assistant. Output in clear Indonesian with English prompts where requested. Create practical, usable content, not marketing fluff. Never claim that images, videos or audio have been generated. Respect original story facts, character identity, scene continuity, realistic motion, vertical 9:16 framing.\\n"+studioGuides[tool];
-   const user="IDE/BRIEF:\\n"+brief+"\\nKONTEKS/REFERENSI:\\n"+context+"\\nReturn complete actionable output formatted as readable plain text in result.";
-   const result=await askGemini(system,user,studioToolSchema,"vizex_studio_"+tool,8192);
-   return res.status(200).json({result:String(result?.result||"")});
+  if(action==="post_tool"){
+   if(freePlan)return res.status(403).json({error:"Fitur tambahan hanya untuk PRO/ADMIN."});
+   const kind=String(body.kind||"");
+   const guides={
+    subtitles:"Write natural Indonesian subtitles synchronized to the existing narration. Return valid SRT with sequential numbering and HH:MM:SS,mmm timestamps. Preserve narration words exactly where possible. The total duration is the given duration. Include a brief VO direction above the SRT.",
+    hooks:"Provide exactly 10 alternative first-three-second hooks that accurately fit the supplied animation scenes. For each include a spoken Indonesian hook and an English 9:16 first-frame visual prompt plus camera direction. No false clickbait or spoilers.",
+    repurpose:"Produce ready-to-use prompt adaptations for TikTok, Instagram Reels, YouTube Shorts, and a short ad. Each includes a truthful opening hook, scene-beat adjustments, English visual/video direction, and Indonesian caption/CTA. Keep character identity, outfit and actual story events consistent. Do not claim to render videos."
+   };
+   if(!Object.prototype.hasOwnProperty.call(guides,kind))return res.status(400).json({error:"Jenis fitur tidak valid."});
+   const pkg=body.package;
+   if(!pkg||!Array.isArray(pkg.scenes)||!pkg.scenes.length)return res.status(400).json({error:"Generate animasi terlebih dahulu."});
+   const context=JSON.stringify({title:String(body.title||"").slice(0,500),duration:Number(body.duration)||30,character:String(body.character||"").slice(0,3000),style:String(body.style||"").slice(0,200),narration:pkg.narration,scenes:pkg.scenes.map(s=>({function:s.function,action:s.action,outfit:s.outfit,start_state:s.start_state,end_state:s.end_state,camera:s.camera}))}).slice(0,19000);
+   const schema={type:"object",additionalProperties:false,properties:{result:{type:"string"}},required:["result"]};
+   const result=await askGemini("You are a precise animation production assistant for Vizex Studio. "+guides[kind]+" Answer in readable plain text inside JSON result.",context,schema,"vizex_post_"+kind,8192);
+   return res.status(200).json({result:String(result.result||"")});
   }
   const title=String(body.title||"").trim(),character=String(body.character||"").trim(),style=String(body.style||"3D Vinyl Toy");
   const requestedScenes=Number(body.sceneCount)||5;
@@ -209,7 +204,8 @@ export default async function handler(req,res){
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
    const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene});
   }
-  const system=coreRules(n,dur,freePlan);
+  const system=coreRules(n,dur,freePlan)+(freePlan?"":`
+PRO INTEGRATED PRODUCTION PIPELINE — automatic, never ask the user to open extra tools: (1) Character DNA: establish immutable face, body, accessories, outfit-state timeline and identity across all scenes; (2) Visual Style Locker: enforce the same art direction, color palette, lighting logic, lens language and 9:16 framing across all image and video prompts; (3) AI Director: make purposeful camera angles, motivated multi-shot movements, readable transitions and physically possible actions; (4) Pre-Render Quality Check: silently audit continuity, props, scene start/end states, outfit changes, character count, narration sync and prompt contradictions, then correct them BEFORE returning JSON. The output must remain the SAME package schema and existing scene prompt fields. Do not add menus, new steps, or unsupported rendering claims.`);
   const user=`TITLE:${title}
 SCENES:${n}
 DURATION:${dur}s
