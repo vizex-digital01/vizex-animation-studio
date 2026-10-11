@@ -96,10 +96,29 @@ Rewrite the narration now.`;
  return result;
 }
 
+
+// Enforce faceless at both prompt levels even if Gemini omits the constraint.
+const FACELESS_VIDEO_LOCK="ABSOLUTE FACELESS LOCK FOR THE ENTIRE VIDEO, FROM FIRST FRAME THROUGH LAST FRAME: No visible human face or facial features at any instant; no eyes, eyebrows, nose, mouth, lips, cheeks, face silhouette, facial profile or partial face. No face in mirrors, windows, reflections, screens, shadows, or background people. Use hands-only, first-person POV, rear-view, back-of-head, or tightly cropped below-neck framing. Camera movement, subject turning, cuts and transitions must NEVER reveal a face. If a proposed action would reveal a face, change the camera framing instead. No face reveal, no exceptions.";
+const FACELESS_IMAGE_LOCK="ABSOLUTE FACELESS STILL FRAME: no human face or facial features visible anywhere, including profile, partial faces, reflections, screens or background people. Frame hands-only, rear-view, POV, or below-neck crop. No eyes, eyebrows, nose, mouth or lips.";
+function isFacelessCharacter(character){return /tanpa wajah|faceless|completely featureless|no facial features/i.test(String(character||"")) && !/dengan wajah|with facial features/i.test(String(character||""));}
+function applyFacelessLock(payload,character){
+ if(!isFacelessCharacter(character)||!payload||typeof payload!=="object")return payload;
+ const lockScene=s=>{if(!s||typeof s!=="object")return;
+  s.image_prompt=FACELESS_IMAGE_LOCK+"\n"+String(s.image_prompt||"");
+  s.video_prompt=FACELESS_VIDEO_LOCK+"\n"+String(s.video_prompt||"");
+  if(/^(Front Shot|Medium Close-Up|Close-Up|Side Shot)$/.test(String(s.camera||"")))s.camera="Back Shot";
+ };
+ if(Array.isArray(payload.scenes))payload.scenes.forEach(lockScene);
+ if(payload.scene)lockScene(payload.scene);
+ if(typeof payload.image_prompt==="string"||typeof payload.video_prompt==="string")lockScene(payload);
+ if(typeof payload.cover_prompt==="string")payload.cover_prompt=FACELESS_IMAGE_LOCK+"\n"+payload.cover_prompt;
+ return payload;
+}
+
 function coreRules(n,dur,freePlan=false){return `You direct Vizex short-form stories. TITLE is absolute source of truth.
 WORK ORDER: silently decide one simple story spine from TITLE first (setup -> trigger -> consequence -> payoff). Then derive every scene from that SAME spine. Only after all scenes are fixed, write narration/caption/cover from those scenes. Never create a second version of the story in narration.
 STORY: exactly ${n} chronological scenes built directly from TITLE, with the simplest believable cause -> reaction -> escalation -> payoff. Do not add random strangers, secret notes/messages, mystery boxes, sudden discoveries, magical coincidences or unrelated twists unless TITLE explicitly requires them. Scene N knows only events already introduced. Each action must be physically plausible from start_state and must produce end_state. The next scene start_state must inherit the previous end_state. State, people, props, quantities, food amount, damage/wetness, outfit condition and location carry forward; nothing teleports, duplicates, resets, dries/cleans magically or appears early.
-IDENTITY: keep the same physical character identity, hair, proportions, distinctive traits and face/faceless setting.
+IDENTITY: keep the same physical character identity, hair, proportions, distinctive traits and face/faceless setting. IF LOCKED CHARACTER IS FACELESS, THIS IS A NON-NEGOTIABLE GLOBAL CAMERA RULE FOR EVERY SCENE, IMAGE PROMPT, VIDEO PROMPT, AND COVER: no face or facial feature visible at any time, not even partially, in profile, background, reflections, transitions, or the final frame. No eye direction or facial expressions; express emotion through posture, hands and body language. Prefer POV, hands-only, back shot, or below-neck crops. Never choose front-facing framing that reveals a face. Facial descriptions elsewhere in this template apply ONLY to characters explicitly WITH faces.
 TITLE FIDELITY: do not "improve" the title by adding mystery, strangers, notes, gifts, secrets, accidents or twists. Expand only details logically necessary to show the title.
 OUTFIT: infer Scene 1 clothes from title + place + time + role + activity. Saved character outfit is fallback only. Later scenes copy the current outfit until a visible/logical story event changes it. Wet/dirty/torn is a condition of the same outfit and persists realistically. Never change clothes for variety. outfit_change_reason is Indonesian; use "TIDAK BERUBAH" only when garment and relevant condition truly carry forward.
 SCENE JSON: every scene MUST contain non-empty function,start_state,action,end_state,camera,outfit,outfit_change_reason,image_prompt,video_prompt.
@@ -194,7 +213,7 @@ export default async function handler(req,res){
    let result=await askGemini(system,user,packageSchema,"vizex_finalized_package",16384);
    result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
-   return res.status(200).json(result);
+   return res.status(200).json(applyFacelessLock(result,character));
   }
   if(action==="regenerate_scene"){
    if(freePlan)return res.status(403).json({error:"Regenerate Scene tersedia untuk akun PRO."});
@@ -202,7 +221,7 @@ export default async function handler(req,res){
    const draft=body.draft||{};
    const system=coreRules(n,dur,freePlan)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
-   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene});
+   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene:applyFacelessLock(scene,character)});
   }
   const system=coreRules(n,dur,freePlan)+(freePlan?"":`
 PRO INTEGRATED PRODUCTION PIPELINE — automatic, never ask the user to open extra tools: (1) Character DNA: establish immutable face, body, accessories, outfit-state timeline and identity across all scenes; (2) Visual Style Locker: enforce the same art direction, color palette, lighting logic, lens language and 9:16 framing across all image and video prompts; (3) AI Director: make purposeful camera angles, motivated multi-shot movements, readable transitions and physically possible actions; (4) Pre-Render Quality Check: silently audit continuity, props, scene start/end states, outfit changes, character count, narration sync and prompt contradictions, then correct them BEFORE returning JSON. The output must remain the SAME package schema and existing scene prompt fields. Do not add menus, new steps, or unsupported rendering claims.`);
@@ -215,6 +234,6 @@ Generate one coherent package. Infer outfit from story context; saved outfit is 
   let result=await askGemini(system,user,packageSchema,"vizex_animation_package",16384);
    result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
-  return res.status(200).json(result);
+  return res.status(200).json(applyFacelessLock(result,character));
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }
