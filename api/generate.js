@@ -115,10 +115,31 @@ function applyFacelessLock(payload,character){
  return payload;
 }
 
+const SCENE_CROWD_SYNC="SCENE-LOCKED CAST AND ATMOSPHERE: Match the paired IMAGE PROMPT exactly at frame zero: same visible character count, distinct heights/body types/hair/outfits, foreground/background positions, props, environment and lighting. Animate each existing character naturally according to this scene; keep crowd density appropriate to the title and scene. No generic lone-person substitution, cloned extras, newly appearing/disappearing people, or changes in recurring character identity. Do not show characters or actions not established by this scene.";
+function applySceneCrowdSync(payload){
+ const sync=s=>{if(!s||typeof s!=="object")return;
+  const current=String(s.video_prompt||"");
+  if(current&&!current.includes("SCENE-LOCKED CAST AND ATMOSPHERE"))s.video_prompt=SCENE_CROWD_SYNC+"\\n"+current;
+ };
+ if(Array.isArray(payload?.scenes))payload.scenes.forEach(sync);
+ if(payload?.scene)sync(payload.scene);
+ if(typeof payload?.video_prompt==="string")sync(payload);
+ return payload;
+}
 function coreRules(n,dur,freePlan=false){return `You direct Vizex short-form stories. TITLE is absolute source of truth.
 WORK ORDER: silently decide one simple story spine from TITLE first (setup -> trigger -> consequence -> payoff). Then derive every scene from that SAME spine. Only after all scenes are fixed, write narration/caption/cover from those scenes. Never create a second version of the story in narration.
 STORY: exactly ${n} chronological scenes built directly from TITLE, with the simplest believable cause -> reaction -> escalation -> payoff. Do not add random strangers, secret notes/messages, mystery boxes, sudden discoveries, magical coincidences or unrelated twists unless TITLE explicitly requires them. Scene N knows only events already introduced. Each action must be physically plausible from start_state and must produce end_state. The next scene start_state must inherit the previous end_state. State, people, props, quantities, food amount, damage/wetness, outfit condition and location carry forward; nothing teleports, duplicates, resets, dries/cleans magically or appears early.
 IDENTITY: keep the same physical character identity, hair, proportions, distinctive traits and face/faceless setting. IF LOCKED CHARACTER IS FACELESS, THIS IS A NON-NEGOTIABLE GLOBAL CAMERA RULE FOR EVERY SCENE, IMAGE PROMPT, VIDEO PROMPT, AND COVER: no face or facial feature visible at any time, not even partially, in profile, background, reflections, transitions, or the final frame. No eye direction or facial expressions; express emotion through posture, hands and body language. Prefer POV, hands-only, back shot, or below-neck crops. Never choose front-facing framing that reveals a face. Facial descriptions elsewhere in this template apply ONLY to characters explicitly WITH faces.
+
+SCENE POPULATION AND ATMOSPHERE LOCK — REQUIRED FOR BOTH IMAGE AND VIDEO PROMPTS:
+- TITLE, actual storyboard action, setting, time, and atmosphere decide how many people/characters belong in EACH scene. Never default to a lone protagonist. A busy market, festival, classroom, family gathering, crowd, traffic scene, or group conversation MUST visibly contain the plausible supporting cast/background extras needed to communicate that setting. A genuinely solitary/private moment must remain solitary; do not force crowds into it.
+- Explicitly plan scene-by-scene population: main character(s), named supporting characters, and anonymous background extras. Set a plausible approximate count or density (e.g. 2 foreground people + 8-12 market shoppers), spatial arrangement, roles, and meaningful simultaneous activities. Do not invent important named characters or plot events merely to fill a scene.
+- DIFFERENTIATE people visibly and naturally: varied heights, body proportions, builds, silhouettes, hairstyles/hair length/color where visible, ages where relevant, outfits/colors, accessories and actions. Avoid clones, duplicated faces/bodies, identical outfits, repeated poses, or crowds of the same character. Recurring supporting characters must keep THEIR OWN consistent physical identities and clothes across scenes.
+- IMAGE PROMPT MUST portray the correct population, foreground/midground/background placement, specific individual appearance differences, setting details and atmosphere from that exact scene. For faceless mode differentiate by body shape, clothing, hair visible from behind, accessories and gestures WITHOUT revealing ANY face.
+- VIDEO PROMPT MUST start with the same people, positions, clothes, props, lighting and atmosphere depicted by its paired image prompt. Animate the same cast: foreground actions plus believable independent background motion such as walking, browsing, chatting with bodies turned away, carrying items or working, only when scene supports it. Preserve population and identity through camera cuts, reframing and transitions; no disappearing, duplicating, teleporting, sudden costume changes or new crowds materializing mid-shot.
+- A crowded scene may contain many distinct extras, but the focal story action remains legible. Match crowd energy to scene mood (busy, festive, tense, quiet), with appropriate ambient movement, depth, and composition. Scene-to-scene crowd density may change only when location/time/story changes justify it.
+- FACELESS OVERRIDE: when faceless is selected, EVERY human, including anonymous extras in far background, stays fully faceless for the whole video; no visible faces, partial profiles, reflections, screens or transitions. Frame the crowd from behind, from overhead with faces obscured, through hands/torso crops or rear silhouettes. NEVER trade the faceless lock for crowd variety.
+- Before returning each image/video pair, verify: (1) both depict the SAME scene and cast count, (2) appearance of every recurring person is stable, (3) background activity supports the title and mood, (4) faceless mode applies to everyone, (5) video starts from the still image's frame-zero state.
 TITLE FIDELITY: do not "improve" the title by adding mystery, strangers, notes, gifts, secrets, accidents or twists. Expand only details logically necessary to show the title.
 OUTFIT: infer Scene 1 clothes from title + place + time + role + activity. Saved character outfit is fallback only. Later scenes copy the current outfit until a visible/logical story event changes it. Wet/dirty/torn is a condition of the same outfit and persists realistically. Never change clothes for variety. outfit_change_reason is Indonesian; use "TIDAK BERUBAH" only when garment and relevant condition truly carry forward.
 SCENE JSON: every scene MUST contain non-empty function,start_state,action,end_state,camera,outfit,outfit_change_reason,image_prompt,video_prompt.
@@ -213,7 +234,7 @@ export default async function handler(req,res){
    let result=await askGemini(system,user,packageSchema,"vizex_finalized_package",16384);
    result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:"Final package scene tidak lengkap."});
-   return res.status(200).json(applyFacelessLock(result,character));
+   return res.status(200).json(applyFacelessLock(applySceneCrowdSync(result),character));
   }
   if(action==="regenerate_scene"){
    if(freePlan)return res.status(403).json({error:"Regenerate Scene tersedia untuk akun PRO."});
@@ -221,10 +242,10 @@ export default async function handler(req,res){
    const draft=body.draft||{};
    const system=coreRules(n,dur,freePlan)+`\nYou are revising ONLY scene ${idx+1}. Respect previous scene state/outfit and next scene continuity. Return exactly one scene object. The user's edited action/outfit is authoritative unless it breaks physical continuity; repair minimally.`;
    const user=`TITLE: ${title}\nSTYLE: ${style}\nLOCKED CHARACTER: ${character}\nSCENE INDEX: ${idx+1}/${n}\nPREVIOUS SCENE: ${JSON.stringify(pkg.scenes?.[idx-1]||null)}\nCURRENT ORIGINAL: ${JSON.stringify(pkg.scenes?.[idx]||null)}\nUSER EDIT DRAFT: ${JSON.stringify(draft)}\nNEXT SCENE: ${JSON.stringify(pkg.scenes?.[idx+1]||null)}\nRegenerate only this scene with synchronized state, current outfit, image prompt and video prompt.`;
-   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene:applyFacelessLock(scene,character)});
+   const scene=await askGemini(system,user,sceneSchema,"vizex_scene_revision",3072);return res.status(200).json({scene:applyFacelessLock(applySceneCrowdSync(scene),character)});
   }
   const system=coreRules(n,dur,freePlan)+(freePlan?"":`
-PRO INTEGRATED PRODUCTION PIPELINE — automatic, never ask the user to open extra tools: (1) Character DNA: establish immutable face, body, accessories, outfit-state timeline and identity across all scenes; (2) Visual Style Locker: enforce the same art direction, color palette, lighting logic, lens language and 9:16 framing across all image and video prompts; (3) AI Director: make purposeful camera angles, motivated multi-shot movements, readable transitions and physically possible actions; (4) Pre-Render Quality Check: silently audit continuity, props, scene start/end states, outfit changes, character count, narration sync and prompt contradictions, then correct them BEFORE returning JSON. The output must remain the SAME package schema and existing scene prompt fields. Do not add menus, new steps, or unsupported rendering claims.`);
+PRO INTEGRATED PRODUCTION PIPELINE — automatic, never ask the user to open extra tools: (1) Character DNA: establish immutable face, body, accessories, outfit-state timeline and identity across all scenes; (2) Visual Style Locker: enforce the same art direction, color palette, lighting logic, lens language and 9:16 framing across all image and video prompts; (3) AI Director: make purposeful camera angles, motivated multi-shot movements, readable transitions and physically possible actions; (4) Pre-Render Quality Check: silently audit continuity, props, scene start/end states, outfit changes, character count, supporting cast diversity, atmosphere accuracy, paired image/video cast synchronization, narration sync and prompt contradictions, then correct them BEFORE returning JSON. The output must remain the SAME package schema and existing scene prompt fields. Do not add menus, new steps, or unsupported rendering claims.`);
   const user=`TITLE:${title}
 SCENES:${n}
 DURATION:${dur}s
@@ -234,6 +255,6 @@ Generate one coherent package. Infer outfit from story context; saved outfit is 
   let result=await askGemini(system,user,packageSchema,"vizex_animation_package",16384);
    result=await enforceNarrationDuration(result,dur,title);
    if(!Array.isArray(result.scenes)||result.scenes.length!==n)return res.status(502).json({error:`Gemini menghasilkan ${result.scenes?.length||0} scene, seharusnya ${n}. Coba generate lagi.`});
-  return res.status(200).json(applyFacelessLock(result,character));
+  return res.status(200).json(applyFacelessLock(applySceneCrowdSync(result),character));
  }catch(err){console.error(err);return res.status(500).json({error:err?.message||"Generator gagal."})}
 }
